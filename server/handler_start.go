@@ -13,7 +13,7 @@ func (h *Handler) HandleStart(ctx context.Context, conn *jsonrpc2.Conn, req *jso
 		return nil, err
 	}
 
-	process, err := NewProcess(conn, params.Id, params.Script)
+	process, err := NewProcess(ctx, conn, params.Id, params.Script)
 	if err != nil {
 		return nil, err
 	}

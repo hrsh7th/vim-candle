@@ -17,13 +17,13 @@ func NewHandler(logfile string) *Handler {
 	}
 
 	return &Handler{
-		Logger:    log.New(file, "[CANDLE]", 0660),
+		Logger:     log.New(file, "[CANDLE]", 0660),
 		ProcessMap: make(map[string]*Process, 0),
 	}
 }
 
 type Handler struct {
-	Logger    *log.Logger
+	Logger     *log.Logger
 	ProcessMap map[string]*Process
 }
 
@@ -32,6 +32,9 @@ func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	case req.Method == "start":
 		return h.HandleStart(ctx, conn, req)
 	}
-	return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidRequest, Message: fmt.Sprintf("method not supported: %s", req.Method)}
+	return nil, &jsonrpc2.Error{
+		Code:    jsonrpc2.CodeMethodNotFound,
+		Message: fmt.Sprintf("method not supported: %s", req.Method),
+	}
 }
 

@@ -9,19 +9,21 @@ import (
 )
 
 type Process struct {
+	Ctx    context.Context
 	Conn   *jsonrpc2.Conn
 	Id     string
 	Name   string
 	Script *tengo.Script
 }
 
-func NewProcess(conn *jsonrpc2.Conn, id string, script string) (*Process, error) {
+func NewProcess(ctx context.Context, conn *jsonrpc2.Conn, id string, script string) (*Process, error) {
 	source, err := load(script)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Process{
+		Ctx:    ctx,
 		Conn:   conn,
 		Id:     id,
 		Name:   script,
@@ -31,6 +33,9 @@ func NewProcess(conn *jsonrpc2.Conn, id string, script string) (*Process, error)
 
 func (process *Process) Start(params interface{}) (interface{}, error) {
 	process.Script.Add("params", params)
+	process.Script.Add("notifyProgress", func(message string) {
+		process.Conn.Notify(process.Ctx, "progress", message)
+	})
 	compiled, err := process.Script.RunContext(context.Background())
 	if err != nil {
 		return nil, err

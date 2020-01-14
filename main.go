@@ -20,4 +20,3 @@ func main() {
 	).DisconnectNotify()
 	fmt.Printf("candle: disconnected.")
 }
-

@@ -49,7 +49,7 @@ func load(script string) ([]byte, error) {
 	for {
 		n, err := file.Read(buffer)
 		if err != nil {
-			break
+			return nil, err
 		}
 		if n == 0 {
 			break
@@ -58,4 +58,3 @@ func load(script string) ([]byte, error) {
 
 	return buffer, nil
 }
-

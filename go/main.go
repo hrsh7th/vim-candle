@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	handler := server.NewHandler("/tmp/candle.log")
+	handler := server.NewHandler("/tmp/candle2.log")
 	<-jsonrpc2.NewConn(
 		context.Background(),
 		jsonrpc2.NewBufferedStream(

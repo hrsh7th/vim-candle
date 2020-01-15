@@ -1,9 +1,24 @@
 package server
 
+type Item struct {
+	Title string `json:"title"`
+}
+
 type StartRequest struct {
 	Id     string                 `json:"id"`
-	Script string                 `json:"source"`
+	Script string                 `json:"script"`
 	Params map[string]interface{} `json:"params"`
+}
+
+type FetchRequest struct {
+	Id    string `json:"id"`
+	Index int    `json:"index"`
+	Count int    `json:"count"`
+}
+
+type FetchResponse struct {
+	Id    string `json:"id"`
+	Items []Item `json:"items"`
 }
 
 type StartResponse struct {
@@ -21,4 +36,3 @@ const (
 	Progress ProgressType = iota
 	Done
 )
-

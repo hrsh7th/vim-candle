@@ -8,6 +8,8 @@ import (
 )
 
 func (h *Handler) HandleStart(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
+	h.Logger.Printf("start")
+
 	var params StartRequest
 	if err := json.Unmarshal(*req.Params, &params); err != nil {
 		return nil, err
@@ -19,7 +21,7 @@ func (h *Handler) HandleStart(ctx context.Context, conn *jsonrpc2.Conn, req *jso
 	}
 	h.ProcessMap[params.Id] = process
 
-	go process.Start(params.Params)
+	process.Start(params.Params)
 
 	return StartResponse{}, nil
 }

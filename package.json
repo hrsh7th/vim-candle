@@ -1,0 +1,19 @@
+{
+  "name": "vim-candle",
+  "version": "1.0.0",
+  "description": "This plugin created to learn golang.",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd ./go && go build && mv ./vim-candle ../bin/candle"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrsh7th/vim-candle.git"
+  },
+  "author": "hrsh7th",
+  "license": "ISC",
+  "homepage": "https://github.com/hrsh7th/vim-candle",
+  "devDependencies": {
+    "husky": "^4.0.6"
+  }
+}

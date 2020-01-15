@@ -9,10 +9,13 @@ func (Stdio) Read(b []byte) (int, error) {
 }
 
 func (Stdio) Write(b []byte) (int, error) {
-	return os.Stdin.Write(b)
+	return os.Stdout.Write(b)
 }
 
 func (Stdio) Close() error {
-	return os.Stdin.Close()
+	if err := os.Stdin.Close(); err != nil {
+		return err
+	}
+	return os.Stdout.Close()
 }
 

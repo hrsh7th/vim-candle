@@ -28,9 +28,12 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
+	h.Logger.Println(req.Method)
 	switch {
 	case req.Method == "start":
 		return h.HandleStart(ctx, conn, req)
+	case req.Method == "fetch":
+		return h.HandleFetch(ctx, conn, req)
 	}
 	return nil, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,

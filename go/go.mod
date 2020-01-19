@@ -1,8 +1,9 @@
-module github.com/hrsh7th/vim-candle
+module github.com/hrsh7th/vim-candle/go
 
 go 1.13
 
 require (
-	github.com/d5/tengo/v2 v2.0.2
+	github.com/containous/yaegi v0.7.4
+	github.com/sahilm/fuzzy v0.1.0
 	github.com/sourcegraph/jsonrpc2 v0.0.0-20191222043438-96c4efab7ee2
 )

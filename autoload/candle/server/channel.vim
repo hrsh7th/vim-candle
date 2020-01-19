@@ -170,7 +170,7 @@ function! s:Channel.on_stdout(data) abort
   " try content.
   try
     let l:content = self.buffer[l:header_length : l:end_of_content - 1]
-    let l:message = json_decode(l:content)
+    let l:message = json_decode(trim(l:content))
     let self.buffer = self.buffer[l:end_of_content : ]
 
     call self.on_message(l:message)
@@ -179,7 +179,7 @@ function! s:Channel.on_stdout(data) abort
       call self.on_stdout('')
     endif
   catch /.*/
-    call self.log('[ERROR]', a:data)
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
 endfunction
 

@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hrsh7th/vim-candle/server"
+	"github.com/hrsh7th/vim-candle/go/candle"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
 func main() {
-	handler := server.NewHandler("/tmp/candle2.log")
+	handler := candle.NewHandler("/tmp/candle.log")
 	<-jsonrpc2.NewConn(
 		context.Background(),
 		jsonrpc2.NewBufferedStream(
-			server.Stdio{},
+			candle.Stdio{},
 			jsonrpc2.VSCodeObjectCodec{},
 		),
 		jsonrpc2.HandlerWithError(handler.Handle),

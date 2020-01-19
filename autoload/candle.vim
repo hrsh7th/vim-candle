@@ -1,9 +1,36 @@
 let s:Promise = vital#candle#import('Async.Promise')
-let s:Process = candle#process#import()
+let s:OptionParser = vital#candle#import('OptionParser')
+let s:Server = candle#server#import()
+let s:Source = candle#source#import()
 
-let s:root = expand('<sfile>:p:h:h')
+let s:state = {
+      \   'id': -1,
+      \   'sources': {},
+      \ }
 
 call s:Promise.on_unhandled_rejection({ err -> candle#log('[ERROR]', err) })
+
+"
+" candle#register
+"
+function! candle#register(definition) abort
+  let s:state.sources[a:definition.name] = a:definition
+endfunction
+
+"
+" candle#start
+"
+function! candle#start(option) abort
+  let s:state.id += 1
+  call candle#render#start(s:context(a:option))
+endfunction
+
+"
+" candle#sources
+"
+function! candle#sources() abort
+  return copy(s:state.sources)
+endfunction
 
 "
 " candle#sync
@@ -32,26 +59,25 @@ function! candle#sync(promise_or_fn, ...) abort
 endfunction
 
 "
-" candle#initialize
-"
-function! candle#start(source) abort
-  let l:context = {}
-  let l:context.bufnr = bufnr('aiueo', v:true)
-  let l:context.process = s:Process.new(a:source)
-  call timer_start(0, { -> candle#buffer#render(l:context) }, { 'repeat': 1 })
-endfunction
-
-"
-" candle#root
-"
-function! candle#root() abort
-  return s:root
-endfunction
-
-"
 " candle#log
 "
 function! candle#log(...) abort
   call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
 endfunction
 
+"
+" context
+"
+function! s:context(args) abort
+  let l:context = {}
+  let l:context.bufname = printf('candle-%s', s:state.id)
+  let l:context.winwidth = get(a:args, 'winwidth', float2nr(&lines * 0.6))
+  let l:context.winheight = get(a:args, 'winheight', float2nr(&lines * 0.6))
+  let l:context.layout = get(a:args, 'layout', 'floating')
+  let l:context.source = s:Source.new(
+        \   s:Server.new(),
+        \   s:state.sources[a:args.source],
+        \   a:args
+        \ )
+  return l:context
+endfunction

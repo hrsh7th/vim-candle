@@ -1,17 +1,28 @@
-package server
+package candle
 
-type Item struct {
-	Title string `json:"title"`
-}
+/**
+ * Item
+ */
+type Item map[string]interface{}
 
+/**
+ * Start
+ */
 type StartRequest struct {
 	Id     string                 `json:"id"`
 	Script string                 `json:"script"`
 	Params map[string]interface{} `json:"params"`
 }
 
+type StartResponse struct {
+}
+
+/**
+ * Fetch
+ */
 type FetchRequest struct {
 	Id    string `json:"id"`
+	Query string `json:"query"`
 	Index int    `json:"index"`
 	Count int    `json:"count"`
 }
@@ -19,20 +30,22 @@ type FetchRequest struct {
 type FetchResponse struct {
 	Id    string `json:"id"`
 	Items []Item `json:"items"`
+	Total int    `json:"total"`
 }
 
-type StartResponse struct {
-}
-
+/**
+ * Progress
+ */
 type ProgressMessage struct {
-	Id      string       `json:"id"`
-	Type    ProgressType `json:"type"`
-	Message string       `json:"message"`
+	Id    string `json:"id"`
+	Total int    `json:"total"`
 }
 
-type ProgressType int
+/**
+ * Done
+ */
+type DoneMessage struct {
+	Id    string `json:"id"`
+	Total int    `json:"total"`
+}
 
-const (
-	Progress ProgressType = iota
-	Done
-)

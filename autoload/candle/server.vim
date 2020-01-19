@@ -1,5 +1,6 @@
 let s:Promise = vital#candle#import('Async.Promise')
 let s:Channel = candle#server#channel#import()
+let s:dirname = expand('<sfile>:p:h')
 
 "
 " candle#server#import
@@ -64,7 +65,7 @@ endfunction
 "
 function! s:command() abort
   if has('mac')
-    return [printf('%s/bin/candle', candle#root())]
+    return [resolve(printf('%s/../../bin/candle', s:dirname))]
   endif
   throw 'candle: not supported platform.'
 endfunction

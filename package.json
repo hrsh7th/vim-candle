@@ -4,7 +4,8 @@
   "description": "This plugin created to learn golang.",
   "main": "index.js",
   "scripts": {
-    "build": "cd ./go && go build && mv ./vim-candle ../bin/candle"
+    "watch": "chokidar '**/*.go' -c 'npm run build'",
+    "build": "cd ./go && go build && mv ./go ../bin/candle"
   },
   "repository": {
     "type": "git",
@@ -14,6 +15,7 @@
   "license": "ISC",
   "homepage": "https://github.com/hrsh7th/vim-candle",
   "devDependencies": {
+    "chokidar-cli": "^2.1.0",
     "husky": "^4.0.6"
   }
 }

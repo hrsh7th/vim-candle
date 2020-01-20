@@ -2,6 +2,7 @@ package candle
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -45,35 +46,40 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 		return StartResponse{}, err
 	}
 
-	process.Interp = interp.New(interp.Options{})
 	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle"] = map[string]reflect.Value{
-		"Process":        reflect.ValueOf((*Process)(nil)),
-		"Item":           reflect.ValueOf((*Item)(nil)),
-		"StartRequest":   reflect.ValueOf((*StartRequest)(nil)),
-		"StartResponse":  reflect.ValueOf((*StartResponse)(nil)),
-		"NotifyProgress": reflect.ValueOf(process.NotifyProgress),
-		"NotifyDone":     reflect.ValueOf(process.NotifyDone),
+		"Process": reflect.ValueOf((*Process)(nil)),
+		"Item":    reflect.ValueOf((*Item)(nil)),
 	}
-	process.Interp.Use(stdlib.Symbols)
-	_, err = process.Interp.Eval(string(source))
+
+	i := interp.New(interp.Options{})
+	i.Use(stdlib.Symbols)
+	if _, err := i.Eval(string(source)); err != nil {
+		process.Logger.Println(err)
+		return StartResponse{}, nil
+	}
+
+	value, err := i.Eval("Start")
 	if err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil
 	}
 
-	value, err := process.Interp.Eval("Start")
-	if err != nil {
-		process.Logger.Println(err)
-		return StartResponse{}, nil
-	}
-
-	start, ok := value.Interface().(func(*Process, StartRequest) StartResponse)
+	start, ok := value.Interface().(func(*Process, string))
 	if !ok {
 		process.Logger.Println("Can't cast `Start`")
 		return StartResponse{}, nil
 	}
 
-	return start(process, params), nil
+	paramsstr, err := json.Marshal(params.Params)
+	if err != nil {
+		return StartResponse{}, err
+	}
+
+	process.Interp = i
+
+	start(process, string(paramsstr))
+
+	return StartResponse{}, nil
 }
 
 /**

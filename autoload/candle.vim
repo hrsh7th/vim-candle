@@ -71,7 +71,7 @@ endfunction
 function! s:context(args) abort
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.id)
-  let l:context.winwidth = get(a:args, 'winwidth', float2nr(&lines * 0.6))
+  let l:context.winwidth = get(a:args, 'winwidth', float2nr(&columns * 0.6))
   let l:context.winheight = get(a:args, 'winheight', float2nr(&lines * 0.6))
   let l:context.layout = get(a:args, 'layout', 'floating')
   let l:context.source = s:Source.new(

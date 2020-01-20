@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -13,25 +14,35 @@ import (
 
 var Items []candle.Item = make([]candle.Item, 0)
 
-func Start(process *candle.Process, params candle.StartRequest) candle.StartResponse {
+func Start(process *candle.Process, paramsstr string) {
+	var params map[string]interface{}
+	if err := json.Unmarshal([]byte(paramsstr), &params); err != nil {
+		process.Logger.Println(err)
+		return
+	}
+
+	pattern := params["pattern"].(string)
+	cwd := params["cwd"].(string)
 
 	go func() {
-		cmd := exec.Command("grep", "-r", params.Params["pattern"].(string), params.Params["cwd"].(string))
+		cmd := exec.Command("grep", "-r", pattern, cwd)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			panic(err)
+			process.Logger.Println(err)
+			return
 		}
 
 		err = cmd.Start()
 		if err != nil {
-			panic(err)
+			process.Logger.Println(err)
+			return
 		}
 
 		index := 0
 		now := makeTimestamp()
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			item := toItem(params.Params["cwd"].(string), index, scanner.Text())
+			item := toItem(cwd, index, scanner.Text())
 			if item != nil {
 				Items = append(Items, item)
 				index += 1
@@ -44,8 +55,6 @@ func Start(process *candle.Process, params candle.StartRequest) candle.StartResp
 
 		process.NotifyDone()
 	}()
-
-	return candle.StartResponse{}
 }
 
 func makeTimestamp() int64 {
@@ -61,7 +70,7 @@ func toItem(prefix string, index int, line string) map[string]interface{} {
 		"id": strconv.Itoa(index),
 		"title": fmt.Sprintf(
 			"%s\t%s",
-			strings.TrimPrefix(sub[0], prefix+"/"),
+			strings.TrimPrefix(sub[0], prefix),
 			sub[1],
 		),
 	}

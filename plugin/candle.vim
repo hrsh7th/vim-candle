@@ -93,4 +93,5 @@ endfunction
 "
 call candle#register(candle#source#grep#source#definition())
 call candle#register(candle#source#item#source#definition())
+call candle#register(candle#source#mru_file#source#definition())
 

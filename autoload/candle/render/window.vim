@@ -21,6 +21,7 @@ function! candle#render#window#open(context) abort
     execute printf('%s #%s', a:context.layout, l:bufnr)
     call candle#render#window#resize(l:bufnr, l:width, l:height)
   endif
+  setlocal noequalalways
 endfunction
 
 "

@@ -14,54 +14,38 @@ call sign_define('CandleSelect', {
 " candle#render#start
 "
 function! candle#render#start(context) abort
-  " init buffer (window#open must be first call)
-  call candle#render#window#open(a:context)
+  let l:candle = a:context
+  let l:candle.items = []
+  let l:candle.total = 0
+  let l:candle.state = {}
+  let l:candle.state.query = ''
+  let l:candle.state.index = 0
+  let l:candle.state.cursor = 1
+  let l:candle.state.selects = []
+  let l:candle.prev_state = {}
+  let l:candle.prev_state.query = ''
+  let l:candle.prev_state.index = -1
+  let l:candle.prev_state.cursor = -1
+  let l:candle.prev_state.selects = []
 
-  " init context
-  let b:candle = a:context
-  let b:candle.items = []
-  let b:candle.total = 0
-  let b:candle.state = {}
-  let b:candle.state.query = ''
-  let b:candle.state.index = 0
-  let b:candle.state.cursor = 1
-  let b:candle.state.selects = []
-  let b:candle.prev_state = {}
-  let b:candle.prev_state.query = ''
-  let b:candle.prev_state.index = -1
-  let b:candle.prev_state.cursor = -1
-  let b:candle.prev_state.selects = []
+  call candle#render#window#open(l:candle)
+  call candle#render#buffer#initialize(l:candle)
+  call candle#render#mapping#initialize(l:candle)
+  call candle#render#autocmd#initialize(l:candle)
+  let b:candle = l:candle
 
-  " init buffer.
-  call candle#render#buffer#initialize(a:context)
-  call candle#render#mapping#initialize(a:context)
-  call candle#render#autocmd#initialize(a:context)
+  " add context.
 
   " start
   call b:candle.source.start({ notification ->
-        \   candle#render#on_notification(a:context.bufname, notification)
+        \   candle#render#on_notification(l:candle.bufname, notification)
         \ })
 
   " refresh
   call candle#render#refresh({
-        \   'bufname': a:context.bufname,
+        \   'bufname': l:candle.bufname,
         \   'sync': v:true
         \ })
-endfunction
-
-"
-" refresh
-"
-function! candle#render#refresh(option) abort
-  try
-    let l:candle = getbufvar(a:option.bufname, 'candle')
-    call s:update_cursor(l:candle, a:option)
-    call s:update_selects(l:candle, a:option)
-    call s:update_items(l:candle, a:option)
-    let l:candle.prev_state = copy(l:candle.state)
-  catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
-  endtry
 endfunction
 
 "
@@ -83,6 +67,22 @@ function! candle#render#on_notification(bufname, notification) abort
 endfunction
 
 "
+" refresh
+"
+function! candle#render#refresh(option) abort
+  try
+    let l:candle = getbufvar(a:option.bufname, 'candle')
+    call s:update_cursor(l:candle, a:option)
+    call s:update_selects(l:candle, a:option)
+    call s:update_window(l:candle, a:option)
+    call s:update_items(l:candle, a:option)
+    let l:candle.prev_state = copy(l:candle.state)
+  catch /.*/
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  endtry
+endfunction
+
+"
 " update_cursor
 "
 function! s:update_cursor(candle, option) abort
@@ -92,7 +92,7 @@ function! s:update_cursor(candle, option) abort
   endif
 
   call sign_unplace('CandleCursor', { 'buffer': a:candle.bufname })
-  call sign_place(0, 'CandleCursor', 'CandleCursor', a:candle.bufname, {
+  call sign_place(1, 'CandleCursor', 'CandleCursor', a:candle.bufname, {
         \   'priority': 100,
         \   'lnum': a:candle.state.cursor
         \ })
@@ -120,6 +120,18 @@ function! s:update_selects(candle, option) abort
 endfunction
 
 "
+" update_window
+"
+function! s:update_window(candle, option) abort
+  let l:winnr = bufwinnr(a:candle.bufname)
+  call candle#render#window#resize(
+        \   a:candle.bufname,
+        \   winwidth(l:winnr),
+        \   len(a:candle.items)
+        \ )
+endfunction
+
+"
 " update_items
 "
 function! s:update_items(candle, option) abort
@@ -127,7 +139,6 @@ function! s:update_items(candle, option) abort
         \ && a:candle.state.query ==# a:candle.prev_state.query
         \ && a:candle.state.index ==# a:candle.prev_state.index
         \ && !has_key(a:option, 'notification')
-        \ && !has_key(a:option, 'force')
     call candle#log('[SKIP]', 's:update_items')
     return
   endif
@@ -143,7 +154,11 @@ function! s:update_items(candle, option) abort
 
   " sync.
   if get(a:option, 'sync', v:false)
-    call candle#sync(l:p)
+    try
+      call candle#sync(l:p)
+    catch /.*/
+      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    endtry
   endif
 endfunction
 
@@ -162,7 +177,7 @@ function! s:on_response(bufname, response) abort
   call candle#render#window#resize(
         \   l:candle.bufname,
         \   winwidth(l:winnr),
-        \   min([l:candle.winheight, l:candle.total])
+        \   min([l:candle.winheight, len(l:candle.items)])
         \ )
 endfunction
 

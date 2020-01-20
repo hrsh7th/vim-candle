@@ -26,6 +26,7 @@ function! s:get_options() abort
         \   'description': 'Specify grep cwd.',
         \   'extra': {
         \     'default': getcwd(),
+        \     'completion': 'file'
         \   }
         \ }]
 endfunction

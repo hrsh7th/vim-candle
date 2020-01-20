@@ -8,10 +8,9 @@ function! candle#render#autocmd#initialize(context) abort
     autocmd!
     autocmd BufWinEnter <buffer> call s:on_buf_win_enter()
     autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
+    autocmd BufEnter <buffer> call s:on_buf_enter()
     autocmd CursorMoved <buffer> call s:on_cursor_moved()
   augroup END
-
-  call s:on_buf_win_enter()
 endfunction
 
 "
@@ -29,6 +28,17 @@ endfunction
 "
 function! s:on_buf_win_leave() abort
   call b:candle.source.detach()
+endfunction
+
+"
+" on_win_enter
+"
+function! s:on_buf_enter() abort
+  let l:bufname = bufname('%')
+  call candle#render#refresh({
+        \   'bufname': l:bufname,
+        \   'sync': v:true
+        \ })
 endfunction
 
 "

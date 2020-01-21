@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -228,10 +227,13 @@ func (process *Process) items() []Item {
  * query
  */
 func (process *Process) query(query string) []Item {
+	query = strings.ReplaceAll(query, " ", "")
+
 	if len(query) == 0 {
 		return process.items()
 	}
 
+	// init items.
 	var items []Item
 	if process.Query != "" && strings.HasPrefix(query, process.Query) {
 		items = process.Items
@@ -240,28 +242,17 @@ func (process *Process) query(query string) []Item {
 	}
 	process.Query = query
 
-	returns := items
-	for _, part := range strings.Split(query, " ") {
-		part = strings.Trim(part, " ")
-		if part == "" {
-			continue
-		}
-
-		words := make([]string, len(returns))
-		for i, item := range returns {
-			words[i] = item["title"].(string)
-		}
-
-		matches := fuzzy.Find(part, words)
-		sort.Sort(matches)
-
-		var matched []Item = make([]Item, 0)
-		for _, match := range matches {
-			matched = append(matched, returns[match.Index])
-		}
-		returns = matched
+	// create words.
+	words := make([]string, len(items))
+	for i, item := range items {
+		words[i] = item["title"].(string)
 	}
-	return returns
+
+	var matches []Item = make([]Item, 0)
+	for _, match := range fuzzy.Find(query, words) {
+		matches = append(matches, items[match.Index])
+	}
+	return matches
 }
 
 /**

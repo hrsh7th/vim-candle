@@ -21,6 +21,8 @@ function! candle#render#input#open(candle) abort
   augroup END
 
   inoremap <silent><buffer> <CR> <Esc>:<C-u>call <SID>on_CR()<CR>
+  inoremap <silent><buffer> <C-n> <Esc>:<C-u>call <SID>on_ctrl_n()<CR>i
+  inoremap <silent><buffer> <C-p> <Esc>:<C-u>call <SID>on_ctrl_p()<CR>i
 
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
@@ -64,3 +66,20 @@ function! s:on_CR() abort
   doautocmd BufEnter
 endfunction
 
+function! s:on_ctrl_n() abort
+  let l:candle = getbufvar(b:candle.bufname, 'candle')
+  let l:candle.state.cursor += 1
+  call candle#render#refresh({
+        \   'bufname': l:candle.bufname,
+        \   'sync': v:true,
+        \ })
+endfunction
+
+function! s:on_ctrl_p() abort
+  let l:candle = getbufvar(b:candle.bufname, 'candle')
+  let l:candle.state.cursor -= 1
+  call candle#render#refresh({
+        \   'bufname': l:candle.bufname,
+        \   'sync': v:true,
+        \ })
+endfunction

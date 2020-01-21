@@ -7,7 +7,8 @@ function! candle#source#grep#source#definition() abort
   return {
         \   'name': 'grep',
         \   'script': s:dirname . '/source.go',
-        \   'get_options': { -> s:get_options() }
+        \   'get_options': { -> s:get_options() },
+        \   'get_actions': { -> s:get_actions() },
         \ }
 endfunction
 

@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/containous/yaegi/interp"
 	"github.com/containous/yaegi/stdlib"
@@ -17,6 +19,8 @@ type Process struct {
 	Ctx    *context.Context
 	Conn   *jsonrpc2.Conn
 	Logger *log.Logger
+	Query  string
+	Items  []Item
 
 	Id     string
 	Script string
@@ -32,6 +36,8 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*P
 		Ctx:    ctx,
 		Conn:   conn,
 		Logger: handler.Logger,
+		Query:  "",
+		Items:  make([]Item, 0),
 	}, nil
 }
 
@@ -83,11 +89,11 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
  * Fetch
  */
 func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
-	items := process.query(params.Query)
+	process.Items = process.query(params.Query)
 	return FetchResponse{
 		Id:    params.Id,
-		Items: process.slice(items, params.Index, params.Index+params.Count),
-		Total: len(items),
+		Items: process.slice(process.Items, params.Index, params.Index+params.Count),
+		Total: len(process.Items),
 	}, nil
 }
 
@@ -222,22 +228,38 @@ func (process *Process) items() []Item {
  * query
  */
 func (process *Process) query(query string) []Item {
-	items := process.items()
-
 	if len(query) == 0 {
-		return items
+		return process.items()
 	}
 
-	words := make([]string, len(items))
-	for i, item := range items {
-		words[i] = item["title"].(string)
+	var items []Item
+	if process.Query != "" && strings.HasPrefix(query, process.Query) {
+		items = process.Items
+	} else {
+		items = process.items()
 	}
+	process.Query = query
 
-	matches := fuzzy.Find(query, words)
+	returns := items
+	for _, part := range strings.Split(query, " ") {
+		part = strings.Trim(part, " ")
+		if part == "" {
+			continue
+		}
 
-	returns := make([]Item, len(matches))
-	for i, match := range matches {
-		returns[i] = items[match.Index]
+		words := make([]string, len(returns))
+		for i, item := range returns {
+			words[i] = item["title"].(string)
+		}
+
+		matches := fuzzy.Find(part, words)
+		sort.Sort(matches)
+
+		var matched []Item = make([]Item, 0)
+		for _, match := range matches {
+			matched = append(matched, returns[match.Index])
+		}
+		returns = matched
 	}
 	return returns
 }
@@ -262,14 +284,3 @@ func (process *Process) slice(items []Item, start int, end int) []Item {
 	return items[start:end]
 }
 
-/**
- * contains
- */
-func (process *Process) contains(array []string, target string) bool {
-	for _, item := range array {
-		if item == target {
-			return true
-		}
-	}
-	return false
-}

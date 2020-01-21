@@ -3,26 +3,11 @@ package main
 import (
 	"bufio"
 	"os"
-	"sort"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
 
 var Items []candle.Item = make([]candle.Item, 0)
-
-type Filepaths []string
-
-func (filepaths Filepaths) Len() int {
-	return len(filepaths)
-}
-
-func (filepaths Filepaths) Swap(i int, j int) {
-	filepaths[j], filepaths[i] = filepaths[i], filepaths[j]
-}
-
-func (filepaths Filepaths) Less(i int, j int) bool {
-	return i < j
-}
 
 func Start(process *candle.Process) {
 	go func() {
@@ -37,15 +22,16 @@ func Start(process *candle.Process) {
 		}
 		defer file.Close()
 
-		var filepaths Filepaths = make(Filepaths, 0)
-		index := 0
+		var filepaths_ []string = make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			filepaths = append(filepaths, scanner.Text())
-			index += 1
+			filepaths_ = append(filepaths_, scanner.Text())
 		}
 
-		sort.Sort(sort.Reverse(filepaths))
+		var filepaths []string = make([]string, len(filepaths_))
+		for i, filepath := range filepaths_ {
+			filepaths[len(filepaths_)-i-1] = filepath
+		}
 
 		mark := make(map[string]bool)
 		uniqued := []string{}

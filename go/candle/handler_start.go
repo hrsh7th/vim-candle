@@ -14,7 +14,7 @@ func (h *Handler) HandleStart(ctx context.Context, conn *jsonrpc2.Conn, req *jso
 		return nil, err
 	}
 
-	process, err := NewProcess(h, &ctx, conn, params.Id, params.Script)
+	process, err := NewProcess(h, &ctx, conn)
 	if err != nil {
 		h.Logger.Println(err)
 		return nil, err

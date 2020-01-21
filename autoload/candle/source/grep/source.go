@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -14,15 +13,9 @@ import (
 
 var Items []candle.Item = make([]candle.Item, 0)
 
-func Start(process *candle.Process, paramsstr string) {
-	var params map[string]interface{}
-	if err := json.Unmarshal([]byte(paramsstr), &params); err != nil {
-		process.Logger.Println(err)
-		return
-	}
-
-	pattern := params["pattern"].(string)
-	cwd := params["cwd"].(string)
+func Start(process *candle.Process) {
+	pattern := process.GetString([]string{"pattern"})
+	cwd := process.GetString([]string{"cwd"})
 
 	go func() {
 		cmd := exec.Command("grep", "-r", pattern, cwd)
@@ -75,4 +68,3 @@ func toItem(prefix string, index int, line string) map[string]interface{} {
 		),
 	}
 }
-

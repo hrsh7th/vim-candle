@@ -57,7 +57,7 @@ function! candle#render#on_notification(bufname, notification) abort
     let l:candle.total = a:notification.params.total
   elseif a:notification.method ==# 'done'
     let l:candle.total = a:notification.params.total
-    echomsg printf('[CANDLE] process done. (total: %s)', l:candle.total)
+    call candle#echo(printf('[CANDLE] process done. (total: %s)', l:candle.total))
   endif
   call candle#render#refresh({
         \   'bufname': a:bufname,
@@ -78,7 +78,7 @@ function! candle#render#refresh(option) abort
     call s:update_items(l:candle, a:option)
     let l:candle.prev_state = copy(l:candle.state)
   catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
 endfunction
 
@@ -157,7 +157,7 @@ function! s:update_items(candle, option) abort
     try
       call candle#sync(l:p)
     catch /.*/
-      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+      call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
     endtry
   endif
 endfunction

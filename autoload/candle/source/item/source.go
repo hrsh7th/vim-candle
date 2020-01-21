@@ -1,25 +1,18 @@
 package main
 
 import (
-	"encoding/json"
+	"strconv"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
 
 var Items []candle.Item = make([]candle.Item, 0)
 
-func Start(process *candle.Process, paramsstr string) {
-	var params map[string]interface{}
-	if err := json.Unmarshal([]byte(paramsstr), &params); err != nil {
-		process.Logger.Println(err)
-		return
-	}
-
-	items := params["items"].([]map[string]interface{})
-
+func Start(process *candle.Process) {
 	go func() {
-		for _, item := range items {
-			Items = append(Items, item)
+		length := process.Len([]string{"items"})
+		for i := 0; i < length; i++ {
+			Items = append(Items, process.Get("items", strconv.Itoa(i)).(map[string]interface{}))
 		}
 		process.NotifyDone()
 	}()

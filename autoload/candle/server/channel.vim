@@ -179,7 +179,7 @@ function! s:Channel.on_stdout(data) abort
       call self.on_stdout('')
     endif
   catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
 endfunction
 
@@ -188,7 +188,7 @@ endfunction
 "
 function! s:Channel.on_stderr(data) abort
   if strlen(a:data)
-    echomsg string(['s:Channel.on_stderr', a:data])
+    call candle#echo('s:Channel.on_stderr', a:data)
   endif
 endfunction
 
@@ -196,8 +196,7 @@ endfunction
 " on_exit
 "
 function! s:Channel.on_exit(code) abort
-  echomsg string(['s:Channel.on_exit', a:code])
-  " TODO: impl
+  call candle#echo('s:Channel.on_exit', a:code)
 endfunction
 
 "

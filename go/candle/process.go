@@ -2,10 +2,10 @@ package candle
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"log"
 	"reflect"
+	"strconv"
 
 	"github.com/containous/yaegi/interp"
 	"github.com/containous/yaegi/stdlib"
@@ -16,22 +16,21 @@ import (
 type Process struct {
 	Ctx    *context.Context
 	Conn   *jsonrpc2.Conn
-	Id     string
-	Name   string
-	Script string
 	Logger *log.Logger
+
+	Id     string
+	Script string
+	Params map[string]interface{}
 	Interp *interp.Interpreter
 }
 
 /**
  * NewProcess
  */
-func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn, id string, script string) (*Process, error) {
+func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*Process, error) {
 	return &Process{
 		Ctx:    ctx,
 		Conn:   conn,
-		Id:     id,
-		Script: script,
 		Logger: handler.Logger,
 	}, nil
 }
@@ -40,6 +39,10 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn, id 
  * Start
  */
 func (process *Process) Start(params StartRequest) (StartResponse, error) {
+	process.Id = params.Id
+	process.Script = params.Script
+	process.Params = params.Params
+
 	source, err := ioutil.ReadFile(process.Script)
 	if err != nil {
 		process.Logger.Println(err)
@@ -58,26 +61,20 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 		return StartResponse{}, nil
 	}
 
-	value, err := i.Eval("Start")
+	start_, err := i.Eval("Start")
 	if err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil
 	}
 
-	start, ok := value.Interface().(func(*Process, string))
+	start, ok := start_.Interface().(func(*Process))
 	if !ok {
 		process.Logger.Println("Can't cast `Start`")
 		return StartResponse{}, nil
 	}
 
-	paramsstr, err := json.Marshal(params.Params)
-	if err != nil {
-		return StartResponse{}, err
-	}
-
 	process.Interp = i
-
-	start(process, string(paramsstr))
+	start(process)
 
 	return StartResponse{}, nil
 }
@@ -92,6 +89,78 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
 		Items: process.slice(items, params.Index, params.Index+params.Count),
 		Total: len(items),
 	}, nil
+}
+
+/**
+ * Len
+ */
+func (process *Process) Len(keys []string) int {
+	value := process.Get(keys)
+	if value == nil {
+		return 0
+	}
+	list, ok := value.([]interface{})
+	if ok {
+		return len(list)
+	}
+	return 0
+}
+
+/**
+ * GetInt
+ */
+func (process *Process) GetInt(keys []string) int {
+	value, ok := process.Get(keys).(int)
+	if !ok {
+		return 0
+	}
+	return value
+}
+
+/**
+ * GetString
+ */
+func (process *Process) GetString(keys []string) string {
+	value, ok := process.Get(keys).(string)
+	if !ok {
+		return ""
+	}
+	return value
+}
+
+/**
+ * Get
+ */
+func (process *Process) Get(keys []string) interface{} {
+	var current interface{} = process.Params
+	for _, key := range keys {
+		switch reflect.TypeOf(current) {
+
+		// map[string]interface{}
+		case reflect.TypeOf(map[string]interface{}{}):
+			current = current.(map[string]interface{})[key].(interface{})
+
+		// map[int]interface{}
+		case reflect.TypeOf(map[int]interface{}{}):
+			key, err := strconv.Atoi(key)
+			if err != nil {
+				return nil
+			}
+			current = current.(map[int]interface{})[key].(interface{})
+
+		// []interface{}
+		case reflect.TypeOf([]interface{}{}):
+			key, err := strconv.Atoi(key)
+			if err != nil {
+				return nil
+			}
+			current = current.([]interface{})[key].(interface{})
+
+		default:
+			return nil
+		}
+	}
+	return current
 }
 
 /**

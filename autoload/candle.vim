@@ -66,6 +66,21 @@ function! candle#log(...) abort
 endfunction
 
 "
+" candle#echo
+"
+function! candle#echo(...) abort
+  for l:msg in a:000
+    let l:msg = string(l:msg)
+    let l:msg = substitute(l:msg, "\r\n", "\n", 'g')
+    let l:msg = substitute(l:msg, "\r", "\n", 'g')
+    for l:line in split(string(l:msg), "\n")
+      echomsg l:line
+    endfor
+    echomsg ' '
+  endfor
+endfunction
+
+"
 " context
 "
 function! s:context(args) abort

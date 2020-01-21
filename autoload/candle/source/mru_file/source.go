@@ -68,5 +68,6 @@ func toItem(index int, filepath string) candle.Item {
 	return map[string]interface{}{
 		"id":    index,
 		"title": filepath,
+		"path":  filepath,
 	}
 }

@@ -33,6 +33,24 @@ function! candle#sources() abort
 endfunction
 
 "
+" candle#action
+"
+function! candle#action(name) abort
+  if !has_key(b:, 'candle')
+    return
+  endif
+  let l:candle = b:candle
+  let l:after = b:candle.source.action(a:name, l:candle)
+  let l:after = !empty(l:after) ? l:after : {}
+  if !has_key(l:after, 'leave')
+    let l:winid = win_getid()
+    call win_gotoid(l:candle.winid)
+    quit
+    call win_gotoid(l:winid)
+  endif
+endfunction
+
+"
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort
@@ -89,6 +107,7 @@ function! s:context(args) abort
   let l:context.winwidth = get(a:args, 'winwidth', float2nr(&columns * 0.6))
   let l:context.winheight = get(a:args, 'winheight', float2nr(&lines * 0.6))
   let l:context.layout = get(a:args, 'layout', 'floating')
+  let l:context.no_quit = get(a:args, 'no-quit', v:false)
   let l:context.source = s:Source.new(
         \   s:Server.new(),
         \   s:state.sources[a:args.source],

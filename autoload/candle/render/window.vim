@@ -1,11 +1,13 @@
 "
 " candle#render#window#open
 "
-function! candle#render#window#open(context) abort
-  let l:bufnr = bufnr(a:context.bufname, v:true)
-  let l:width = get(a:context, 'winwidth', -1)
-  let l:height = get(a:context, 'winheight', -1)
-  if a:context.layout ==# 'floating' && exists('*nvim_open_win')
+function! candle#render#window#open(candle) abort
+  let l:bufname = a:candle.bufname
+  let l:bufnr = bufnr(a:candle.bufname, v:true)
+  let l:width = get(a:candle, 'winwidth', -1)
+  let l:height = get(a:candle, 'winheight', -1)
+
+  if a:candle.layout ==# 'floating' && exists('*nvim_open_win')
     let l:winid = nvim_open_win(l:bufnr, v:true, {
           \   'relative': 'editor',
           \   'width': l:width,
@@ -18,25 +20,32 @@ function! candle#render#window#open(context) abort
     call candle#utils#highlight#extend('NormalFloat', 'CandleSignColumn', {})
     call setwinvar(l:winid, '&winhighlight', 'SignColumn:CandleSignColumn')
   else
-    execute printf('%s #%s', a:context.layout, l:bufnr)
-    call candle#render#window#resize(l:bufnr, l:width, l:height)
+    execute printf('botright %s #%s', a:candle.layout, l:bufnr)
   endif
-  setlocal noequalalways
+
+  let b:candle = a:candle
+  let b:candle.winid = win_getid()
+  call candle#render#window#resize(l:bufname, l:width, l:height)
 endfunction
 
 "
 " candle#render#window#resize
 "
-function! candle#render#window#resize(bufnr, width, height) abort
-  let l:winnr = bufwinnr(a:bufnr)
+function! candle#render#window#resize(bufname, width, height) abort
+  let l:winnr = bufwinnr(a:bufname)
+  let l:candle = getbufvar(a:bufname, 'candle')
 
   " width
-  call s:set_width(l:winnr, a:width)
+  if l:candle.layout !=# 'split'
+    call s:set_width(l:winnr, a:width)
+  endif
 
   " height
-  let l:screenpos = win_screenpos(l:winnr)
-  if winheight(l:winnr) != (&lines - s:get_offset_height())
-    call s:set_height(l:winnr, a:height)
+  if l:candle.layout !=# 'vsplit'
+    let l:screenpos = win_screenpos(l:winnr)
+    if winheight(l:winnr) != (&lines - s:get_offset_height())
+      call s:set_height(l:winnr, a:height)
+    endif
   endif
 endfunction
 

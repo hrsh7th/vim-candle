@@ -188,7 +188,7 @@ endfunction
 "
 function! s:Channel.on_stderr(data) abort
   if strlen(a:data)
-    call candle#echo('s:Channel.on_stderr', a:data)
+    call candle#log('s:Channel.on_stderr', a:data)
   endif
 endfunction
 
@@ -196,7 +196,7 @@ endfunction
 " on_exit
 "
 function! s:Channel.on_exit(code) abort
-  call candle#echo('s:Channel.on_exit', a:code)
+  call candle#log('s:Channel.on_exit', a:code)
 endfunction
 
 "

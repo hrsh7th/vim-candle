@@ -18,6 +18,9 @@ endfunction
 "
 function! s:on_buf_win_enter() abort
   let l:bufname = bufname('%')
+  if len(b:candle.items) > 0
+    call cursor([b:candle.state.cursor])
+  endif
   call b:candle.source.attach({ notification ->
         \   candle#render#on_notification(l:bufname, notification)
         \ })
@@ -27,7 +30,9 @@ endfunction
 " on_buf_win_leave
 "
 function! s:on_buf_win_leave() abort
-  call b:candle.source.detach()
+  let l:candle = b:candle
+  call l:candle.source.detach()
+  call l:candle.source.stop()
 endfunction
 
 "

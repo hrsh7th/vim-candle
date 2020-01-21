@@ -40,6 +40,13 @@ function! s:Server.start(on_notification) abort
 endfunction
 
 "
+" stop
+"
+function! s:Server.stop() abort
+  call self.channel.stop()
+endfunction
+
+"
 " request
 "
 function! s:Server.request(method, params) abort

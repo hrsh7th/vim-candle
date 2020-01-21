@@ -15,6 +15,8 @@ call sign_define('CandleSelect', {
 "
 function! candle#render#start(context) abort
   let l:candle = a:context
+  let l:candle.winid = -1
+  let l:candle.prev_winid = win_getid()
   let l:candle.items = []
   let l:candle.total = 0
   let l:candle.state = {}
@@ -33,6 +35,7 @@ function! candle#render#start(context) abort
   call candle#render#mapping#initialize(l:candle)
   call candle#render#autocmd#initialize(l:candle)
   let b:candle = l:candle
+  doautocmd User candle#render#start
 
   " add context.
 
@@ -57,7 +60,6 @@ function! candle#render#on_notification(bufname, notification) abort
     let l:candle.total = a:notification.params.total
   elseif a:notification.method ==# 'done'
     let l:candle.total = a:notification.params.total
-    call candle#echo(printf('[CANDLE] process done. (total: %s)', l:candle.total))
   endif
   call candle#render#refresh({
         \   'bufname': a:bufname,

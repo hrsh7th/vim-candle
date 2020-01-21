@@ -7,6 +7,8 @@ function! candle#render#mapping#initialize(context) abort
   nnoremap <silent><buffer> gg :<C-u>call <SID>on_gg()<CR>
   nnoremap <silent><buffer> G :<C-u>call <SID>on_G()<CR>
   nnoremap <silent><buffer> i :<C-u>call <SID>on_i()<CR>
+  nnoremap <silent><buffer> a :<C-u>call <SID>on_a()<CR>
+  nnoremap <silent><buffer> <CR> :<C-u>call <SID>on_cr()<CR>
 endfunction
 
 
@@ -61,3 +63,18 @@ endfunction
 function! s:on_i() abort
   call candle#render#input#open(b:candle)
 endfunction
+
+"
+" on_a
+"
+function! s:on_a() abort
+  call candle#render#input#open(b:candle)
+endfunction
+
+"
+" on_cr
+"
+function! s:on_cr() abort
+  call candle#action('default')
+endfunction
+

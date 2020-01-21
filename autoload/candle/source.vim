@@ -40,10 +40,20 @@ function! s:Source.start(callback) abort
 endfunction
 
 "
-" get_highlights
+" stop
 "
-function! s:Source.get_highlights() abort
-  return self.source.get_highlights()
+function! s:Source.stop() abort
+  call self.server.stop()
+endfunction
+
+"
+" action
+"
+function! s:Source.action(name, candle) abort
+  let l:actions = self.source.get_actions()
+  if has_key(l:actions, a:name)
+    call l:actions[a:name](a:candle)
+  endif
 endfunction
 
 "

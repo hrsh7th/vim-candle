@@ -18,7 +18,7 @@ func Start(process *candle.Process) {
 	cwd := process.GetString([]string{"cwd"})
 
 	go func() {
-		cmd := exec.Command("grep", "-r", pattern, cwd)
+		cmd := exec.Command("grep", "-rin", pattern, cwd)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			process.Logger.Println(err)
@@ -55,16 +55,25 @@ func makeTimestamp() int64 {
 }
 
 func toItem(prefix string, index int, line string) map[string]interface{} {
-	sub := strings.SplitN(line, ":", 2)
-	if len(sub) != 2 {
+	sub := strings.SplitN(line, ":", 3)
+	if len(sub) != 3 {
 		return nil
 	}
+
+	lnum, err := strconv.Atoi(sub[1])
+	if err != nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"id": strconv.Itoa(index),
 		"title": fmt.Sprintf(
-			"%s\t%s",
+			"%s:%s\t%s",
 			strings.TrimPrefix(sub[0], prefix),
 			sub[1],
+			sub[2],
 		),
+		"path": sub[2],
+		"lnum": lnum,
 	}
 }

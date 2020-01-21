@@ -2,13 +2,11 @@
 " candle#render#input#open
 "
 function! candle#render#input#open(candle) abort
-  try
-    new
-    if winheight(0) != 1
-      execute printf('resize %s', 1)
-    endif
-  catch /.*/
-  endtry
+  " NOTE: Error occur when split on window that's height less than 3
+  if winheight(0) < 3
+    resize 3
+  endif
+  execute printf('new | resize %s', 1)
   call setbufvar('%', 'candle', a:candle)
   call setbufvar('%', '&buftype', 'nofile')
   call setbufvar('%', '&bufhidden', 'delete')
@@ -19,7 +17,7 @@ function! candle#render#input#open(candle) abort
   augroup printf('candle#render#input:%s', l:candle.bufname)
     autocmd!
     autocmd TextChanged,TextChangedI,TextChangedP <buffer> call s:on_text_changed()
-    autocmd WinLeave <buffer> call s:on_win_leave()
+    autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
   augroup END
 
   inoremap <silent><buffer> <CR> <Esc>:<C-u>call <SID>on_CR()<CR>
@@ -47,13 +45,13 @@ function! s:on_text_changed() abort
 endfunction
 
 "
-" on_win_leave
+" on_buf_win_leave
 "
-function! s:on_win_leave() abort
+function! s:on_buf_win_leave() abort
   let l:candle = getbufvar(b:candle.bufname, 'candle')
   for l:winid in win_findbuf(bufnr(l:candle.bufname))
-    call execute('bdelete!')
     call win_gotoid(l:winid)
+    doautocmd BufEnter
     break
   endfor
 endfunction
@@ -62,6 +60,7 @@ endfunction
 " s:on_CR
 "
 function! s:on_CR() abort
-  quit
+  call execute('bdelete!')
+  doautocmd BufEnter
 endfunction
 

@@ -13,6 +13,7 @@ call s:parser.on('--source=VALUE', '', {
 call s:parser.on('--layout', '', {})
 call s:parser.on('--winwidth', '', {})
 call s:parser.on('--winheight', '', {})
+call s:parser.on('--no-quit', '', {})
 
 "
 " test

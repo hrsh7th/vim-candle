@@ -4,8 +4,8 @@
 function! candle#render#window#open(candle) abort
   let l:bufname = a:candle.bufname
   let l:bufnr = bufnr(a:candle.bufname, v:true)
-  let l:width = get(a:candle, 'winwidth', -1)
-  let l:height = get(a:candle, 'winheight', -1)
+  let l:width = a:candle.maxwidth
+  let l:height = a:candle.maxheight
 
   if a:candle.layout ==# 'floating' && exists('*nvim_open_win')
     let l:winid = nvim_open_win(l:bufnr, v:true, {

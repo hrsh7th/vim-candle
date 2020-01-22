@@ -274,4 +274,3 @@ func (process *Process) slice(items []Item, start int, end int) []Item {
 	}
 	return items[start:end]
 }
-

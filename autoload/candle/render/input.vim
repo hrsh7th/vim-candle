@@ -21,8 +21,11 @@ function! candle#render#input#open(candle) abort
   augroup END
 
   inoremap <silent><buffer> <CR> <Esc>:<C-u>call <SID>on_CR()<CR>
+  inoremap <silent><buffer> <C-y> <Esc>:<C-u>call <SID>on_ctrl_y()<CR>
   inoremap <silent><buffer> <C-n> <Esc>:<C-u>call <SID>on_ctrl_n()<CR>i
   inoremap <silent><buffer> <C-p> <Esc>:<C-u>call <SID>on_ctrl_p()<CR>i
+  nnoremap <silent><buffer> <C-n> :<C-u>call <SID>on_ctrl_n()<CR>
+  nnoremap <silent><buffer> <C-p> :<C-u>call <SID>on_ctrl_p()<CR>
 
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
@@ -59,13 +62,26 @@ function! s:on_buf_win_leave() abort
 endfunction
 
 "
-" s:on_CR
+" on_CR
 "
 function! s:on_CR() abort
   call execute('bdelete!')
   doautocmd BufEnter
 endfunction
 
+"
+" on_ctrl_CR
+"
+function! s:on_ctrl_y() abort
+  let l:candle = getbufvar(b:candle.bufname, 'candle')
+  quit
+  call win_gotoid(l:candle.winid)
+  call candle#action('default')
+endfunction
+
+"
+" on_ctrl_n
+"
 function! s:on_ctrl_n() abort
   let l:candle = getbufvar(b:candle.bufname, 'candle')
   let l:candle.state.cursor += 1
@@ -75,6 +91,9 @@ function! s:on_ctrl_n() abort
         \ })
 endfunction
 
+"
+" on_ctrl_p
+"
 function! s:on_ctrl_p() abort
   let l:candle = getbufvar(b:candle.bufname, 'candle')
   let l:candle.state.cursor -= 1

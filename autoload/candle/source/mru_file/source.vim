@@ -109,14 +109,18 @@ function! s:on_buf_win_enter() abort
   endif
 
   let l:filepath = fnamemodify(bufname('%'), ':p')
+
+  " skip same to recently added
   if s:state.recent == l:filepath
     return
   endif
 
+  " skip not file
   if !filereadable(l:filepath)
     return
   endif
 
+  " add mru entry
   call writefile([l:filepath], g:candle#source#mru_file#filepath, 'a')
   let s:state.recent = l:filepath
 endfunction

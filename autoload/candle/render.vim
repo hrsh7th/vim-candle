@@ -3,7 +3,8 @@ let s:Promise = vital#candle#import('Async.Promise')
 let s:tick = 200
 
 call sign_define('CandleCursor', {
-      \   'text': '>'
+      \   'text': '>',
+      \   'linehl': 'CursorLine'
       \ })
 
 call sign_define('CandleSelect', {
@@ -37,18 +38,12 @@ function! candle#render#start(context) abort
   let b:candle = l:candle
   doautocmd User candle#render#start
 
-  " add context.
-
   " start
   call b:candle.source.start({ notification ->
         \   candle#render#on_notification(l:candle.bufname, notification)
         \ })
 
-  " refresh
-  call candle#render#refresh({
-        \   'bufname': l:candle.bufname,
-        \   'sync': v:true
-        \ })
+  sleep 50m
 endfunction
 
 "
@@ -149,7 +144,7 @@ function! s:update_items(candle, option) abort
   let l:p = a:candle.source.fetch({
         \   'query': a:candle.state.query,
         \   'index': a:candle.state.index,
-        \   'count': a:candle.winheight,
+        \   'count': a:candle.maxheight,
         \ }).then({ response ->
         \   s:on_response(a:option.bufname, response)
         \ })
@@ -179,7 +174,7 @@ function! s:on_response(bufname, response) abort
   call candle#render#window#resize(
         \   l:candle.bufname,
         \   winwidth(l:winnr),
-        \   min([l:candle.winheight, len(l:candle.items)])
+        \   min([l:candle.maxheight, len(l:candle.items)])
         \ )
 endfunction
 

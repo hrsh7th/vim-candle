@@ -10,10 +10,11 @@ call s:parser.on('--source=VALUE', '', {
       \   'required': 1,
       \   'completion': { -> keys(candle#sources()) }
       \ })
-call s:parser.on('--layout', '', {})
-call s:parser.on('--winwidth', '', {})
-call s:parser.on('--winheight', '', {})
-call s:parser.on('--no-quit', '', {})
+call s:parser.on('--layout', '', {
+      \   'completion': { -> ['floating', 'split', 'vsplit'] }
+      \ })
+call s:parser.on('--maxwidth', '', {})
+call s:parser.on('--maxheight', '', {})
 
 "
 " test

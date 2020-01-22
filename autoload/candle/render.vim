@@ -42,8 +42,6 @@ function! candle#render#start(context) abort
   call b:candle.source.start({ notification ->
         \   candle#render#on_notification(l:candle.bufname, notification)
         \ })
-
-  sleep 50m
 endfunction
 
 "
@@ -71,7 +69,6 @@ function! candle#render#refresh(option) abort
     let l:candle = getbufvar(a:option.bufname, 'candle')
     call s:update_cursor(l:candle, a:option)
     call s:update_selects(l:candle, a:option)
-    call s:update_window(l:candle, a:option)
     call s:update_items(l:candle, a:option)
     let l:candle.prev_state = copy(l:candle.state)
   catch /.*/
@@ -136,6 +133,7 @@ function! s:update_items(candle, option) abort
         \ && a:candle.state.query ==# a:candle.prev_state.query
         \ && a:candle.state.index ==# a:candle.prev_state.index
         \ && !has_key(a:option, 'notification')
+    call s:update_window(a:candle, a:option)
     call candle#log('[SKIP]', 's:update_items')
     return
   endif

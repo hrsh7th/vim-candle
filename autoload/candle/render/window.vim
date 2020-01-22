@@ -11,7 +11,7 @@ function! candle#render#window#open(candle) abort
     let l:winid = nvim_open_win(l:bufnr, v:true, {
           \   'relative': 'editor',
           \   'width': l:width,
-          \   'height': l:height,
+          \   'height': 1,
           \   'col': float2nr(&columns / 2 - l:width / 2),
           \   'row': float2nr(&lines / 2 - l:height / 2),
           \   'focusable': v:true,
@@ -25,7 +25,7 @@ function! candle#render#window#open(candle) abort
 
   let b:candle = a:candle
   let b:candle.winid = win_getid()
-  call candle#render#window#resize(l:bufname, l:width, l:height)
+  call candle#render#window#resize(l:bufname, l:width, 1)
 endfunction
 
 "
@@ -67,6 +67,10 @@ function! s:get_offset_height() abort
 endfunction
 
 function! s:set_width(winnr, width) abort
+  if winwidth(a:winnr) == a:width
+    return
+  endif
+
   if has('nvim')
     call nvim_win_set_width(win_getid(a:winnr), a:width)
   else
@@ -74,6 +78,10 @@ function! s:set_width(winnr, width) abort
 endfunction
 
 function! s:set_height(winnr, height) abort
+  if winheight(a:winnr) == a:height
+    return
+  endif
+
   if has('nvim')
     call nvim_win_set_height(win_getid(a:winnr), a:height)
   else

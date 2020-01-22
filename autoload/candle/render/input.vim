@@ -29,10 +29,6 @@ function! candle#render#input#open(candle) abort
 
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
-  call candle#render#refresh({
-        \   'bufname': a:candle.bufname,
-        \   'sync': v:true
-        \ })
 endfunction
 
 "
@@ -40,9 +36,12 @@ endfunction
 "
 function! s:on_text_changed() abort
   let l:candle = getbufvar(b:candle.bufname, 'candle')
-  let l:candle.state.index = 0
-  let l:candle.state.cursor = 1
-  let l:candle.state.query = getline('.')
+  if l:candle.state.query != getline('.')
+    let l:candle.state.index = 0
+    let l:candle.state.cursor = 1
+    let l:candle.state.query = getline('.')
+  endif
+
   call candle#render#refresh({
         \   'bufname': l:candle.bufname,
         \   'sync': v:true,

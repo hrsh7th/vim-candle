@@ -61,7 +61,7 @@ function! s:Context.start() abort
 
   doautocmd User candle#start
 
-  return self.source.start({ n -> self.on_notification(n) })
+  call candle#sync(self.source.start({ n -> self.on_notification(n) }))
 endfunction
 
 "
@@ -80,7 +80,7 @@ function! s:Context.on_notification(notification) abort
   elseif a:notification.method ==# 'done'
     let self.state.total = a:notification.params.total
   endif
-  call timer_start(0, { -> self.refresh() }) " TODO: move to srever.
+  call self.refresh({ 'async': v:true })
 endfunction
 
 "
@@ -122,7 +122,11 @@ endfunction
 " query
 "
 function! s:Context.query(query) abort
-  let self.state.query = a:query
+  if self.state.query != a:query
+    let self.state.query = a:query
+    call self.top()
+  endif
+  call self.refresh()
 endfunction
 
 "
@@ -164,6 +168,7 @@ function! s:Context.up() abort
     endif
     let self.state.cursor -= 1
   endif
+  call self.refresh()
 endfunction
 
 "
@@ -179,6 +184,7 @@ function! s:Context.down() abort
     endif
     let self.state.cursor += 1
   endif
+  call self.refresh()
 endfunction
 
 "
@@ -186,6 +192,7 @@ endfunction
 "
 function! s:Context.set_cursor(cursor) abort
   let self.state.cursor = a:cursor
+  call self.refresh()
 endfunction
 
 "
@@ -194,6 +201,7 @@ endfunction
 function! s:Context.top() abort
   let self.state.index = 0
   let self.state.cursor = 1
+  call self.refresh()
 endfunction
 
 "
@@ -203,6 +211,7 @@ function! s:Context.bottom() abort
   let l:winheight = winheight(win_id2win(self.state.winid))
   let self.state.index = self.state.total - l:winheight
   let self.state.cursor = l:winheight
+  call self.refresh()
 endfunction
 
 "
@@ -244,9 +253,9 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
-  let l:option = extend(get(a:000, 0, {}), {
+  let l:option = extend({
   \   'async': v:false
-  \ })
+  \ }, get(a:000, 0, {}))
 
   " update cursor
   if self.state_changed(['cursor'])
@@ -263,10 +272,10 @@ function! s:Context.refresh(...) abort
 
   " update items
   if self.state_changed(['query', 'index'])
-    let l:async = self.fetch().then({ response -> self.on_response(response) })
+    let l:p = self.fetch().then({ response -> self.on_response(response) })
     if !l:option.async
       try
-        call candle#sync(l:async)
+        call candle#sync(l:p)
       catch /.*/
         call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
       endtry

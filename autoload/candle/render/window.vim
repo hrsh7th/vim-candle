@@ -13,7 +13,7 @@ function! candle#render#window#initialize(candle) abort
     \   'style': 'minimal',
     \ })
   else
-    execute printf('botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
+    execute printf('keepalt botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
   endif
   normal! gg
   call setwinvar(winnr(), '&number', 0)

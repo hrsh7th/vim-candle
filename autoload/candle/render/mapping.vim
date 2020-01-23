@@ -17,7 +17,6 @@ endfunction
 "
 function! s:on_k() abort
   call b:candle.up()
-  call b:candle.refresh()
 endfunction
 
 "
@@ -25,7 +24,6 @@ endfunction
 "
 function! s:on_j() abort
   call b:candle.down()
-  call b:candle.refresh()
 endfunction
 
 "
@@ -33,7 +31,6 @@ endfunction
 "
 function! s:on_gg() abort
   call b:candle.top()
-  call b:candle.refresh()
 endfunction
 
 "
@@ -41,7 +38,6 @@ endfunction
 "
 function! s:on_G() abort
   call b:candle.bottom()
-  call b:candle.refresh()
 endfunction
 
 "

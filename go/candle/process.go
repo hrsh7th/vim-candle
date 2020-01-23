@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -228,32 +229,90 @@ func (process *Process) items() []Item {
  * query
  */
 func (process *Process) query(query string) []Item {
-	query = strings.ReplaceAll(query, " ", "")
+	query = strings.TrimSpace(query)
 
-	if len(query) == 0 {
-		return process.items()
-	}
-
-	// init items.
 	var items []Item
 	if process.Query != "" && query != "" && strings.HasPrefix(query, process.Query) {
 		items = process.Items
 	} else {
 		items = process.items()
 	}
+
+	switch process.Params["filter"] {
+	case "fuzzy":
+		items = process.fuzzy(query, items)
+	case "regexp":
+		items = process.regexp(query, items)
+	case "substring":
+		items = process.substring(query, items)
+	default:
+		items = process.substring(query, items)
+	}
+	process.Items = items
 	process.Query = query
+	return items
+}
 
-	// create words.
-	words := make([]string, len(items))
-	for i, item := range items {
-		words[i] = item["title"].(string)
+func (process *Process) regexp(query string, items []Item) []Item {
+	for _, q := range strings.Split(query, " ") {
+		q = strings.TrimSpace(q)
+		if len(q) == 0 {
+			continue
+		}
+
+		matches := make([]Item, 0)
+		for _, item := range items {
+			if match, err := regexp.MatchString(q, item["title"].(string)); match {
+				matches = append(matches, item)
+			} else if err != nil {
+				process.Logger.Println(err)
+			}
+		}
+		items = matches
 	}
 
-	var matches []Item = make([]Item, 0)
-	for _, match := range fuzzy.Find(query, words) {
-		matches = append(matches, items[match.Index])
+	return items
+}
+
+func (process *Process) fuzzy(query string, items []Item) []Item {
+	for _, q := range strings.Split(query, " ") {
+		q = strings.TrimSpace(q)
+		if len(q) == 0 {
+			continue
+		}
+
+		words := make([]string, len(items))
+		for i, item := range items {
+			words[i] = item["title"].(string)
+		}
+
+		matches := fuzzy.Find(q, words)
+		new_items := make([]Item, len(matches))
+		for i, match := range matches {
+			new_items[i] = items[match.Index]
+		}
+		items = new_items
 	}
-	return matches
+
+	return items
+}
+
+func (process *Process) substring(query string, items []Item) []Item {
+	for _, q := range strings.Split(query, " ") {
+		q = strings.TrimSpace(q)
+		if len(q) == 0 {
+			continue
+		}
+
+		matches := make([]Item, 0)
+		for _, item := range items {
+			if strings.Contains(item["title"].(string), q) {
+				matches = append(matches, item)
+			}
+		}
+		items = matches
+	}
+	return items
 }
 
 /**

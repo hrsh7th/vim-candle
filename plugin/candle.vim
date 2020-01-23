@@ -3,19 +3,6 @@ if exists('g:loaded_candle')
 endif
 let g:loaded_candle = v:true
 
-let s:OptionParser = vital#candle#import('OptionParser')
-
-let s:parser = s:OptionParser.new()
-call s:parser.on('--source=VALUE', '', {
-      \   'required': 1,
-      \   'completion': { -> keys(candle#sources()) }
-      \ })
-call s:parser.on('--layout', '', {
-      \   'completion': { -> ['floating', 'split', 'vsplit'] }
-      \ })
-call s:parser.on('--maxwidth', '', {})
-call s:parser.on('--maxheight', '', {})
-
 "
 " test
 "
@@ -47,25 +34,15 @@ command! -nargs=* CandleTest call candle#start({
 "
 command! -nargs=* -complete=customlist,s:complete Candle call s:start('<args>')
 function! s:start(args) abort
-  let l:sources = candle#sources()
-
-  " source name.
-  let l:option = s:parser.parse(a:args)
-  if !has_key(l:sources, l:option.source)
-    echomsg printf('candle#start: `%s` is not valid source-name.', l:option.source)
-    return
-  endif
-
-  " source specific option.
-  let l:parser = deepcopy(s:parser)
-  call map(
-        \   copy(l:sources[l:option.source].get_options()),
-        \   { _, option ->
-        \     l:parser.on(option.name, option.description, option.extra)
-        \   }
-        \ )
-
   try
+    let l:parser = candle#get_option_parser()
+    let l:source = candle#get_source(l:parser.parse(a:args).source)
+    call map(
+    \   copy(l:source.get_options()),
+    \   { _, option ->
+    \     l:parser.on(option.name, option.description, option.extra)
+    \   }
+    \ )
     call candle#start(l:parser.parse(a:args))
   catch /.*/
     echomsg v:exception
@@ -76,15 +53,12 @@ endfunction
 " complete
 "
 function! s:complete(arglead, cmdline, cursorpos) abort
-  let l:sources = candle#sources()
-  let l:parser = deepcopy(s:parser)
+  let l:parser = candle#get_option_parser()
   try
-    let l:option = l:parser.parse(a:cmdline)
-    if has_key(l:sources, l:option.source)
-      call map(copy(l:sources[l:option.source].get_options()), { _, o ->
-            \   l:parser.on(o.name, o.description, o.extra)
-            \ })
-    endif
+    let l:source = candle#get_source(l:parser.parse(a:cmdline).source)
+    call map(copy(l:source.get_options()), { _, o ->
+    \   l:parser.on(o.name, o.description, o.extra)
+    \ })
   catch /.*/
   endtry
   return l:parser.complete(a:arglead, a:cmdline, a:cursorpos)

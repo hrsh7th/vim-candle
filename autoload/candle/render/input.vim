@@ -32,15 +32,6 @@ function! candle#render#input#open(candle) abort
 endfunction
 
 "
-" on_text_changed
-"
-function! s:on_text_changed() abort
-  call b:candle.top()
-  call b:candle.query(getline('.'))
-  call b:candle.refresh()
-endfunction
-
-"
 " on_buf_win_leave
 "
 function! s:on_buf_win_leave() abort
@@ -50,6 +41,14 @@ function! s:on_buf_win_leave() abort
     doautocmd BufEnter
     break
   endfor
+endfunction
+
+"
+" on_text_changed
+"
+function! s:on_text_changed() abort
+  call b:candle.top()
+  call b:candle.query(getline('.'))
 endfunction
 
 "
@@ -75,7 +74,6 @@ endfunction
 "
 function! s:on_ctrl_n() abort
   call b:candle.down()
-  call b:candle.refresh()
 endfunction
 
 "
@@ -83,5 +81,4 @@ endfunction
 "
 function! s:on_ctrl_p() abort
   call b:candle.up()
-  call b:candle.refresh()
 endfunction

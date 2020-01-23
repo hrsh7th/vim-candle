@@ -53,7 +53,7 @@ function! s:action_open(candle) abort
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('edit %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
@@ -69,7 +69,7 @@ function! s:action_split(candle) abort
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('split %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
@@ -85,7 +85,7 @@ function! s:action_vsplit(candle) abort
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('vsplit %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])

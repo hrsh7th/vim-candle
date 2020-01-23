@@ -2,11 +2,11 @@
 " candle#render#highlight#initialize
 "
 function! candle#render#highlight#initialize(candle) abort
-  if a:candle.layout ==# 'floating'
-    call s:extend('NormalFloat', 'SignColumn')
-  else
-    call s:extend('Normal', 'SignColumn')
-  endif
+"  if a:candle.layout ==# 'floating'
+"    call s:extend('NormalFloat', 'SignColumn')
+"  else
+"    call s:extend('Normal', 'SignColumn')
+"  endif
 endfunction
 
 function! s:extend(parent, highlight) abort

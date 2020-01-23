@@ -22,14 +22,14 @@ endfunction
 " candle#start
 "
 function! candle#start(option) abort
-  call candle#sync(s:Context.new(s:context(a:option)).start())
+  call s:Context.new(s:context(a:option)).start()
 endfunction
 
 "
-" candle#sources
+" candle#get_source
 "
-function! candle#sources() abort
-  return copy(s:state.sources)
+function! candle#get_source(name) abort
+  return get(s:state.sources, a:name, {})
 endfunction
 
 "
@@ -90,16 +90,38 @@ function! candle#echo(...) abort
 endfunction
 
 "
+" candle#get_option_parser
+"
+function! candle#get_option_parser() abort
+  let s:parser = s:OptionParser.new()
+  call s:parser.on('--source=VALUE', '', {
+  \   'required': 1,
+  \   'completion': { -> keys(s:state.sources) }
+  \ })
+  call s:parser.on('--layout', '', {
+  \   'completion': { -> ['floating', 'split', 'vsplit'] }
+  \ })
+  call s:parser.on('--filter', '', {
+  \   'completion': { -> ['fuzzy', 'substring', 'regexp'] }
+  \ })
+  call s:parser.on('--maxwidth', '', {})
+  call s:parser.on('--maxheight', '', {})
+  return s:parser
+endfunction
+
+"
 " context
 "
 function! s:context(args) abort
   let s:state.id += 1
 
-  let l:context = {}
+  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.3))
+  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.3))
+  let a:args.layout = get(a:args, 'layout', 'split')
+  let a:args.filter = get(a:args, 'filter', 'regexp')
+
+  let l:context = copy(a:args)
   let l:context.bufname = printf('candle-%s', s:state.id)
-  let l:context.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.3))
-  let l:context.maxheight = get(a:args, 'maxwidth', float2nr(&lines * 0.3))
-  let l:context.layout = get(a:args, 'layout', 'split')
   let l:context.source = s:Source.new(
         \   s:Server.new(),
         \   s:state.sources[a:args.source],

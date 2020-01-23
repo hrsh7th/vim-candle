@@ -22,7 +22,7 @@ endfunction
 " candle#start
 "
 function! candle#start(option) abort
-  call s:Context.new(s:context(a:option)).start()
+  call candle#sync(s:Context.new(s:context(a:option)).start())
 endfunction
 
 "

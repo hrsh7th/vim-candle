@@ -35,10 +35,8 @@ endfunction
 " on_text_changed
 "
 function! s:on_text_changed() abort
-  if b:candle.state.query != getline('.')
-    call b:candle.top()
-    call b:candle.query(getline('.'))
-  endif
+  call b:candle.top()
+  call b:candle.query(getline('.'))
   call b:candle.refresh()
 endfunction
 

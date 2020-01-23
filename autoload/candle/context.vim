@@ -54,6 +54,7 @@ endfunction
 function! s:Context.start() abort
   let self.state.prev_winid = win_getid()
   call candle#render#window#initialize(self)
+  call candle#render#highlight#initialize(self)
   call candle#render#autocmd#initialize(self)
   call candle#render#mapping#initialize(self)
   let self.state.winid = win_getid()
@@ -132,6 +133,23 @@ function! s:Context.toggle_select_all() abort
   if !self.state.is_selected_all
     let self.state.selected_ids = []
   endif
+  call self.refresh()
+endfunction
+
+"
+" toggle_select
+"
+function! s:Context.toggle_select() abort
+  let l:item = self.get_cursor_item()
+  let l:index = index(self.state.selected_ids, l:item.id)
+  if l:index >= 0
+    call remove(self.state.selected_ids, l:index)
+    call self.up()
+  else
+    let self.state.selected_ids += [l:item.id]
+    call self.down()
+  endif
+  call self.refresh()
 endfunction
 
 "
@@ -184,7 +202,7 @@ endfunction
 function! s:Context.bottom() abort
   let l:winheight = winheight(win_id2win(self.state.winid))
   let self.state.index = self.state.total - l:winheight
-  let self.state.cursor = l:winheight + 1
+  let self.state.cursor = l:winheight
 endfunction
 
 "
@@ -229,26 +247,34 @@ function! s:Context.refresh(...) abort
   let l:option = extend(get(a:000, 0, {}), {
   \   'async': v:false
   \ })
+
+  " update cursor
   if self.state_changed(['cursor'])
     if self.bufname ==# bufname('%')
       call cursor([self.state.cursor, col('.')])
     endif
     call candle#render#signs#cursor(self)
   endif
+
+  " update selected_ids
   if self.state_changed(['selected_ids', 'is_selected_all'])
     call candle#render#signs#selected_ids(self)
   endif
+
+  " update items
   if self.state_changed(['query', 'index'])
     let l:async = self.fetch().then({ response -> self.on_response(response) })
     if !l:option.async
       try
         call candle#sync(l:async)
       catch /.*/
+        call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
       endtry
     endif
   else
     call candle#render#window#resize(self)
   endif
+  let self.prev_state = deepcopy(self.state)
 endfunction
 
 "
@@ -261,8 +287,6 @@ function! s:Context.on_response(response) abort
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item ->
   \   item.title
   \ }))
-  if winheight(win_id2win(self.state.winid)) > len(self.state.items)
-    call deletebufline(self.bufname, len(self.state.items) + 1, '$')
-  endif
+  call deletebufline(self.bufname, len(self.state.items) + 1, '$')
 endfunction
 

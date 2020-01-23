@@ -3,7 +3,7 @@ if !hlexists('CandleCursorLine')
 endif
 
 if !hlexists('CandleSelectedLine')
-  highlight! link CandleSelectedLine Folded
+  highlight! link CandleSelectedLine MoreMsg
 endif
 
 call sign_define('CandleCursorLine', {
@@ -33,11 +33,10 @@ endfunction
 " candle#render#signs#selected_ids
 "
 function! candle#render#signs#selected_ids(candle) abort
-  call sign_unplace('CandleSelectedLine', {
-  \   'buffer': a:candle.bufname,
-  \ })
-
   if a:candle.state.is_selected_all
+    call sign_unplace('CandleSelectedLine', {
+    \   'buffer': a:candle.bufname,
+    \ })
     for l:lnum in range(1, winheight(bufwinnr(a:candle.bufname)) + 1)
       call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
       \   'priority': 200,
@@ -45,11 +44,14 @@ function! candle#render#signs#selected_ids(candle) abort
       \ })
     endfor
   else
+    call sign_unplace('CandleSelectedLine', {
+    \   'buffer': a:candle.bufname,
+    \ })
     let l:item_ids = map(copy(a:candle.state.items), { _, item -> item.id })
-    for l:selected_item in a:candle.state.selected_ids
+    for l:selected_id in a:candle.state.selected_ids
       call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
       \   'priority': 200,
-      \   'lnum': index(l:item_ids, l:selected_item.id) + 1,
+      \   'lnum': index(l:item_ids, l:selected_id) + 1,
       \ })
     endfor
   endif

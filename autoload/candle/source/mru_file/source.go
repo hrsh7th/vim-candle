@@ -42,10 +42,10 @@ func Start(process *candle.Process) {
 			Items = append(Items, toItem(i, path))
 		}
 
-		process.NotifyDone()
-
 		// write back uniqued lines
-		ioutil.WriteFile(filepath, []byte(strings.Join(unique(paths), "\n")+"\n"), 0666)
+		ioutil.WriteFile(filepath, []byte(strings.Join(reverse(uniqued), "\n")+"\n"), 0666)
+
+		process.NotifyDone()
 	}()
 }
 

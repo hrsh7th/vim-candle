@@ -97,13 +97,13 @@ endfunction
 "
 augroup candle#source#mru_file#source
   autocmd!
-  autocmd BufWinEnter * call <SID>on_buf_win_enter()
+  autocmd BufWinEnter,BufRead,BufNewFile * call <SID>on_touch()
 augroup END
 
 "
-" on_buf_enter
+" on_touch
 "
-function! s:on_buf_win_enter() abort
+function! s:on_touch() abort
   if empty(g:candle#source#mru_file#filepath)
     return
   endif

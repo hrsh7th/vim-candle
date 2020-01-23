@@ -13,12 +13,11 @@ function! candle#render#window#initialize(candle) abort
     \   'style': 'minimal',
     \ })
   else
-    execute printf('keepalt botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
+    execute printf('botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
+    call candle#render#window#resize(a:candle)
   endif
-  normal! gg
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')
-  call candle#render#window#resize(a:candle)
 endfunction
 
 "
@@ -60,6 +59,7 @@ endfunction
 
 function! s:set_width(winnr, width) abort
   if winwidth(a:winnr) == a:width
+    call candle#log('[SKIP] s:set_width')
     return
   endif
 
@@ -71,6 +71,7 @@ endfunction
 
 function! s:set_height(winnr, height) abort
   if winheight(a:winnr) == a:height
+    call candle#log('[SKIP] s:set_height')
     return
   endif
 

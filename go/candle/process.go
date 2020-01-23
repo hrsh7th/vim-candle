@@ -5,27 +5,26 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
-	"regexp"
-	"strconv"
 	"strings"
+	"time"
 
 	"github.com/containous/yaegi/interp"
 	"github.com/containous/yaegi/stdlib"
-	"github.com/sahilm/fuzzy"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
 type Process struct {
-	Ctx    *context.Context
-	Conn   *jsonrpc2.Conn
-	Logger *log.Logger
-	Query  string
-	Items  []Item
-
-	Id     string
-	Script string
-	Params map[string]interface{}
-	Interp *interp.Interpreter
+	ctx              *context.Context
+	conn             *jsonrpc2.Conn
+	Logger           *log.Logger
+	query            string
+	lastProgressTime int64
+	allItems         []Item
+	filteredItems    []Item
+	id               string
+	script           string
+	params           map[string]interface{}
+	interp           *interp.Interpreter
 }
 
 /**
@@ -33,11 +32,13 @@ type Process struct {
  */
 func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*Process, error) {
 	return &Process{
-		Ctx:    ctx,
-		Conn:   conn,
-		Logger: handler.Logger,
-		Query:  "",
-		Items:  make([]Item, 0),
+		ctx:              ctx,
+		conn:             conn,
+		Logger:           handler.Logger,
+		lastProgressTime: now(),
+		query:            "",
+		allItems:         make([]Item, 0),
+		filteredItems:    make([]Item, 0),
 	}, nil
 }
 
@@ -45,41 +46,42 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*P
  * Start
  */
 func (process *Process) Start(params StartRequest) (StartResponse, error) {
-	process.Id = params.Id
-	process.Script = params.Script
-	process.Params = params.Params
+	process.id = params.Id
+	process.script = params.Script
+	process.params = params.Params
 
-	source, err := ioutil.ReadFile(process.Script)
+	source, err := ioutil.ReadFile(process.script)
 	if err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, err
 	}
+
+	i := interp.New(interp.Options{})
 
 	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle"] = map[string]reflect.Value{
 		"Process": reflect.ValueOf((*Process)(nil)),
 		"Item":    reflect.ValueOf((*Item)(nil)),
 	}
 
-	i := interp.New(interp.Options{})
 	i.Use(stdlib.Symbols)
 	if _, err := i.Eval(string(source)); err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil
 	}
 
-	start_, err := i.Eval("Start")
+	value, err := i.Eval("Start")
 	if err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil
 	}
 
-	start, ok := start_.Interface().(func(*Process))
+	start, ok := value.Interface().(func(*Process))
 	if !ok {
 		process.Logger.Println("Can't cast `Start`")
 		return StartResponse{}, nil
 	}
 
-	process.Interp = i
+	process.interp = i
 
 	start(process)
 
@@ -90,93 +92,21 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
  * Fetch
  */
 func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
-	process.Items = process.query(params.Query)
+	process.filteredItems = process.filter(params.Query)
 	return FetchResponse{
 		Id:    params.Id,
-		Items: process.slice(process.Items, params.Index, params.Index+params.Count),
-		Total: len(process.Items),
+		Items: slice(process.filteredItems, params.Index, params.Index+params.Count),
+		Total: len(process.filteredItems),
 	}, nil
-}
-
-/**
- * Len
- */
-func (process *Process) Len(keys []string) int {
-	value := process.Get(keys)
-	if value == nil {
-		return 0
-	}
-	list, ok := value.([]interface{})
-	if ok {
-		return len(list)
-	}
-	return 0
-}
-
-/**
- * GetInt
- */
-func (process *Process) GetInt(keys []string) int {
-	value, ok := process.Get(keys).(int)
-	if !ok {
-		return 0
-	}
-	return value
-}
-
-/**
- * GetString
- */
-func (process *Process) GetString(keys []string) string {
-	value, ok := process.Get(keys).(string)
-	if !ok {
-		return ""
-	}
-	return value
-}
-
-/**
- * Get
- */
-func (process *Process) Get(keys []string) interface{} {
-	var current interface{} = process.Params
-	for _, key := range keys {
-		switch reflect.TypeOf(current) {
-
-		// map[string]interface{}
-		case reflect.TypeOf(map[string]interface{}{}):
-			current = current.(map[string]interface{})[key].(interface{})
-
-		// map[int]interface{}
-		case reflect.TypeOf(map[int]interface{}{}):
-			key, err := strconv.Atoi(key)
-			if err != nil {
-				return nil
-			}
-			current = current.(map[int]interface{})[key].(interface{})
-
-		// []interface{}
-		case reflect.TypeOf([]interface{}{}):
-			key, err := strconv.Atoi(key)
-			if err != nil {
-				return nil
-			}
-			current = current.([]interface{})[key].(interface{})
-
-		default:
-			return nil
-		}
-	}
-	return current
 }
 
 /**
  * NotifyProgress
  */
 func (process *Process) NotifyProgress() {
-	process.Conn.Notify(context.Background(), "progress", &ProgressMessage{
-		Id:    process.Id,
-		Total: len(process.items()),
+	process.conn.Notify(context.Background(), "progress", &ProgressMessage{
+		Id:    process.id,
+		Total: len(process.allItems),
 	})
 }
 
@@ -184,61 +114,37 @@ func (process *Process) NotifyProgress() {
  * NotifyDone
  */
 func (process *Process) NotifyDone() {
-	process.Conn.Notify(context.Background(), "done", &DoneMessage{
-		Id:    process.Id,
-		Total: len(process.items()),
+	process.conn.Notify(context.Background(), "done", &DoneMessage{
+		Id:    process.id,
+		Total: len(process.allItems),
 	})
 }
 
 /**
- * items
+ * AddItem
  */
-func (process *Process) items() []Item {
-	if process.Interp == nil {
-		return make([]Item, 0)
+func (process *Process) AddItem(item Item) {
+	process.allItems = append(process.allItems, item)
+	if now()-process.lastProgressTime > 1000 {
+		process.NotifyProgress()
+		process.lastProgressTime = now()
 	}
-
-	value, err := process.Interp.Eval("Items")
-	if err != nil {
-		process.Logger.Println(err)
-		return make([]Item, 0)
-	}
-
-	items, ok := value.Interface().([]Item)
-	if !ok {
-		process.Logger.Println("Can't cast `Items`")
-		return make([]Item, 0)
-	}
-
-	returns := make([]Item, len(items))
-	for i, item := range items {
-		if _, ok = item["id"]; !ok {
-			process.Logger.Printf("%d: has not property `id`", i)
-			continue
-		}
-		if _, ok = item["title"]; !ok {
-			process.Logger.Printf("%d: has not property `title`", i)
-			continue
-		}
-		returns[i] = item
-	}
-	return returns
 }
 
 /**
- * query
+ * filter
  */
-func (process *Process) query(query string) []Item {
+func (process *Process) filter(query string) []Item {
 	query = strings.TrimSpace(query)
 
 	var items []Item
-	if process.Query != "" && query != "" && strings.HasPrefix(query, process.Query) {
-		items = process.Items
+	if process.query != "" && query != "" && strings.HasPrefix(query, process.query) {
+		items = process.filteredItems
 	} else {
-		items = process.items()
+		items = process.allItems
 	}
 
-	switch process.Params["filter"] {
+	switch process.params["filter"] {
 	case "fuzzy":
 		items = process.fuzzy(query, items)
 	case "regexp":
@@ -248,77 +154,15 @@ func (process *Process) query(query string) []Item {
 	default:
 		items = process.substring(query, items)
 	}
-	process.Items = items
-	process.Query = query
-	return items
-}
-
-func (process *Process) regexp(query string, items []Item) []Item {
-	for _, q := range strings.Split(query, " ") {
-		q = strings.TrimSpace(q)
-		if len(q) == 0 {
-			continue
-		}
-
-		matches := make([]Item, 0)
-		for _, item := range items {
-			if match, err := regexp.MatchString(q, item["title"].(string)); match {
-				matches = append(matches, item)
-			} else if err != nil {
-				process.Logger.Println(err)
-			}
-		}
-		items = matches
-	}
-
-	return items
-}
-
-func (process *Process) fuzzy(query string, items []Item) []Item {
-	for _, q := range strings.Split(query, " ") {
-		q = strings.TrimSpace(q)
-		if len(q) == 0 {
-			continue
-		}
-
-		words := make([]string, len(items))
-		for i, item := range items {
-			words[i] = item["title"].(string)
-		}
-
-		matches := fuzzy.Find(q, words)
-		new_items := make([]Item, len(matches))
-		for i, match := range matches {
-			new_items[i] = items[match.Index]
-		}
-		items = new_items
-	}
-
-	return items
-}
-
-func (process *Process) substring(query string, items []Item) []Item {
-	for _, q := range strings.Split(query, " ") {
-		q = strings.TrimSpace(q)
-		if len(q) == 0 {
-			continue
-		}
-
-		matches := make([]Item, 0)
-		for _, item := range items {
-			if strings.Contains(item["title"].(string), q) {
-				matches = append(matches, item)
-			}
-		}
-		items = matches
-	}
+	process.filteredItems = items
+	process.query = query
 	return items
 }
 
 /**
  * slice
  */
-func (process *Process) slice(items []Item, start int, end int) []Item {
+func slice(items []Item, start int, end int) []Item {
 	if start >= len(items) {
 		start = len(items) - 1
 	}
@@ -333,4 +177,11 @@ func (process *Process) slice(items []Item, start int, end int) []Item {
 		end = 0
 	}
 	return items[start:end]
+}
+
+/**
+ * now
+ */
+func now() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

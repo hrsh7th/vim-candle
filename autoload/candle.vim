@@ -22,7 +22,13 @@ endfunction
 " candle#start
 "
 function! candle#start(option) abort
-  call s:Context.new(s:context(a:option)).start()
+  try
+    call candle#log('')
+    call candle#log('[START]', string(a:option))
+    call s:Context.new(s:context(a:option)).start()
+  catch /.*/
+    echomsg v:exception
+  endtry
 endfunction
 
 "
@@ -115,10 +121,15 @@ endfunction
 function! s:context(args) abort
   let s:state.id += 1
 
-  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.3))
-  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.3))
+  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.8))
+  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
   let a:args.layout = get(a:args, 'layout', 'split')
-  let a:args.filter = get(a:args, 'filter', 'regexp')
+  let a:args.filter = get(a:args, 'filter', 'substring')
+
+  let l:source = s:state.sources[a:args.source]
+  if has_key(l:source, 'on_before_start')
+    call l:source.on_before_start(a:args)
+  endif
 
   let l:context = copy(a:args)
   let l:context.bufname = printf('candle-%s', s:state.id)
@@ -127,6 +138,7 @@ function! s:context(args) abort
         \   s:state.sources[a:args.source],
         \   a:args
         \ )
+
   return l:context
 endfunction
 

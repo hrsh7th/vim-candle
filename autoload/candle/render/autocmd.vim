@@ -7,6 +7,7 @@ function! candle#render#autocmd#initialize(context) abort
   execute printf('augroup candle#render:%s', a:context.bufname)
     autocmd!
     autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
+    autocmd CursorMoved <buffer> call s:on_cursor_moved()
     autocmd BufEnter <buffer> call s:on_buf_enter()
     autocmd WinEnter * call s:on_win_enter_all()
   augroup END
@@ -40,5 +41,12 @@ function! s:on_buf_enter() abort
 
   " NOTE: This refresh is needed to fix window height when left from query buffer.
   call b:candle.refresh()
+endfunction
+
+"
+" on_cursor_moved
+"
+function! s:on_cursor_moved() abort
+  call b:candle.set_cursor(line('.'))
 endfunction
 

@@ -1,11 +1,11 @@
 let s:dirname = expand('<sfile>:p:h')
 
 "
-" candle#source#grep#source#definition
+" candle#source#files#source#definition
 "
-function! candle#source#grep#source#definition() abort
+function! candle#source#files#source#definition() abort
   return {
-        \   'name': 'grep',
+        \   'name': 'files',
         \   'script': s:dirname . '/source.go',
         \   'on_before_start': { args -> s:on_before_start(args) },
         \   'get_options': { -> s:get_options() },
@@ -17,11 +17,13 @@ endfunction
 " on_before_start
 "
 function! s:on_before_start(args) abort
-  if !has_key(a:args, 'pattern') || strlen(a:args.pattern) == 0
-    throw '[grep] `pattern` is not valid.'
+  if !has_key(a:args, 'ignore-globs') || len(a:args['ignore-globs']) == 0
+    throw '[files] `ignore-globs` is not valid.'
   endif
-  if !has_key(a:args, 'cwd') || !isdirectory(a:args.cwd)
-    throw '[grep] `cwd` is not valid.'
+  let a:args['ignore-globs'] = split(a:args['ignore-globs'], ' ')
+
+  if !has_key(a:args, 'root-path') || !isdirectory(a:args['root-path'])
+    throw '[files] `root-path` is not valid.'
   endif
 endfunction
 
@@ -30,14 +32,14 @@ endfunction
 "
 function! s:get_options() abort
   return [{
-        \   'name': '--pattern=VALUE',
-        \   'description': 'Specify grep pattern.',
+        \   'name': '--ignore-globs=VALUE',
+        \   'description': 'Specify ignore glob patterns.',
         \   'extra': {
         \     'required': 0
         \   }
         \ }, {
-        \   'name': '--cwd=VALUE',
-        \   'description': 'Specify grep cwd.',
+        \   'name': '--root-path=VALUE',
+        \   'description': 'Specify root path.',
         \   'extra': {
         \     'default': getcwd(),
         \     'completion': 'file'
@@ -104,4 +106,5 @@ function! s:action_vsplit(candle) abort
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
   endif
 endfunction
+
 

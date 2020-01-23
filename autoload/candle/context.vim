@@ -62,6 +62,10 @@ function! s:Context.start() abort
   doautocmd User candle#start
 
   call candle#sync(self.source.start({ n -> self.on_notification(n) }))
+
+  " NOTE: This sleep needs to reduce flicker on first opening window.
+  " start -> (...async) -> on_notification -> refresh
+  sleep 20m
 endfunction
 
 "

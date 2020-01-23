@@ -32,17 +32,12 @@ func Start(process *candle.Process) {
 		}
 
 		index := 0
-		now := makeTimestamp()
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			item := toItem(cwd, index, scanner.Text())
 			if item != nil {
-				Items = append(Items, item)
+				process.AddItem(item)
 				index += 1
-				if makeTimestamp()-now > 100 {
-					process.NotifyProgress()
-					now = makeTimestamp()
-				}
 			}
 		}
 

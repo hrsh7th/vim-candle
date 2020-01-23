@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
@@ -24,14 +25,17 @@ func Start(process *candle.Process) {
 		}
 		defer file.Close()
 
-		// get file lines (check existence)
+		// get file lines
 		var paths []string = make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			path := scanner.Text()
+
+			// skip already deleted file
 			if _, err := os.Stat(path); err != nil {
 				continue
 			}
+
 			paths = append(paths, path)
 		}
 
@@ -39,7 +43,7 @@ func Start(process *candle.Process) {
 		reversed := reverse(paths)
 		uniqued := unique(reversed)
 		for i, path := range uniqued {
-			Items = append(Items, toItem(i, path))
+			process.AddItem(toItem(i, path))
 		}
 
 		// write back uniqued lines
@@ -50,8 +54,8 @@ func Start(process *candle.Process) {
 }
 
 func toItem(index int, filepath string) candle.Item {
-	return map[string]interface{}{
-		"id":    index,
+	return candle.Item{
+		"id":    strconv.Itoa(index),
 		"title": filepath,
 		"path":  filepath,
 	}

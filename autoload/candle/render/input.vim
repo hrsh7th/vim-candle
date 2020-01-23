@@ -29,24 +29,15 @@ function! candle#render#input#open(candle) abort
 
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
-  call candle#render#refresh({
-        \   'bufname': a:candle.bufname,
-        \   'sync': v:true
-        \ })
 endfunction
 
 "
 " on_text_changed
 "
 function! s:on_text_changed() abort
-  let l:candle = getbufvar(b:candle.bufname, 'candle')
-  let l:candle.state.index = 0
-  let l:candle.state.cursor = 1
-  let l:candle.state.query = getline('.')
-  call candle#render#refresh({
-        \   'bufname': l:candle.bufname,
-        \   'sync': v:true,
-        \ })
+  call b:candle.top()
+  call b:candle.query(getline('.'))
+  call b:candle.refresh()
 endfunction
 
 "
@@ -73,7 +64,7 @@ endfunction
 " on_ctrl_CR
 "
 function! s:on_ctrl_y() abort
-  let l:candle = getbufvar(b:candle.bufname, 'candle')
+  let l:candle = b:candle
   quit
   call win_gotoid(l:candle.winid)
   call candle#action('default')
@@ -83,22 +74,14 @@ endfunction
 " on_ctrl_n
 "
 function! s:on_ctrl_n() abort
-  let l:candle = getbufvar(b:candle.bufname, 'candle')
-  let l:candle.state.cursor += 1
-  call candle#render#refresh({
-        \   'bufname': l:candle.bufname,
-        \   'sync': v:true,
-        \ })
+  call b:candle.down()
+  call b:candle.refresh()
 endfunction
 
 "
 " on_ctrl_p
 "
 function! s:on_ctrl_p() abort
-  let l:candle = getbufvar(b:candle.bufname, 'candle')
-  let l:candle.state.cursor -= 1
-  call candle#render#refresh({
-        \   'bufname': l:candle.bufname,
-        \   'sync': v:true,
-        \ })
+  call b:candle.up()
+  call b:candle.refresh()
 endfunction

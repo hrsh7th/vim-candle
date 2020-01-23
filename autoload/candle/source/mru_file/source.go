@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
@@ -22,29 +24,26 @@ func Start(process *candle.Process) {
 		}
 		defer file.Close()
 
-		var filepaths_ []string = make([]string, 0)
+		// get file lines (check existence)
+		var paths []string = make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			filepaths_ = append(filepaths_, scanner.Text())
-		}
-
-		var filepaths []string = make([]string, len(filepaths_))
-		for i, filepath := range filepaths_ {
-			filepaths[len(filepaths_)-i-1] = filepath
-		}
-
-		mark := make(map[string]bool)
-		uniqued := []string{}
-		for _, filepath := range filepaths {
-			if !mark[filepath] {
-				mark[filepath] = true
-				uniqued = append(uniqued, filepath)
+			path := scanner.Text()
+			if _, err := os.Stat(path); err != nil {
+				continue
 			}
+			paths = append(paths, path)
 		}
 
-		for i, filepath := range uniqued {
-			Items = append(Items, toItem(i, filepath))
+		// add items
+		reversed := reverse(paths)
+		uniqued := unique(reversed)
+		for i, path := range uniqued {
+			Items = append(Items, toItem(i, path))
 		}
+
+		// write back uniqued lines
+		ioutil.WriteFile(filepath, []byte(strings.Join(reverse(uniqued), "\n")+"\n"), 0666)
 
 		process.NotifyDone()
 	}()
@@ -57,3 +56,25 @@ func toItem(index int, filepath string) candle.Item {
 		"path":  filepath,
 	}
 }
+
+func reverse(strs []string) []string {
+	length := len(strs)
+	reversed := make([]string, length)
+	for i, str := range strs {
+		reversed[length-i-1] = str
+	}
+	return reversed
+}
+
+func unique(strs []string) []string {
+	checked := make(map[string]bool, 0)
+	uniqued := make([]string, 0)
+	for _, str := range strs {
+		if !checked[str] {
+			checked[str] = true
+			uniqued = append(uniqued, str)
+		}
+	}
+	return uniqued
+}
+

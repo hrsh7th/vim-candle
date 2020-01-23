@@ -79,6 +79,7 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 	}
 
 	process.Interp = i
+
 	start(process)
 
 	return StartResponse{}, nil
@@ -235,7 +236,7 @@ func (process *Process) query(query string) []Item {
 
 	// init items.
 	var items []Item
-	if process.Query != "" && strings.HasPrefix(query, process.Query) {
+	if process.Query != "" && query != "" && strings.HasPrefix(query, process.Query) {
 		items = process.Items
 	} else {
 		items = process.items()

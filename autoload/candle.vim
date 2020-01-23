@@ -2,6 +2,7 @@ let s:Promise = vital#candle#import('Async.Promise')
 let s:OptionParser = vital#candle#import('OptionParser')
 let s:Server = candle#server#import()
 let s:Source = candle#source#import()
+let s:Context = candle#context#import()
 
 let s:state = {
       \   'id': -1,
@@ -21,8 +22,7 @@ endfunction
 " candle#start
 "
 function! candle#start(option) abort
-  let s:state.id += 1
-  call candle#render#start(s:context(a:option))
+  call candle#sync(s:Context.new(s:context(a:option)).start())
 endfunction
 
 "
@@ -39,35 +39,26 @@ function! candle#action(name) abort
   if !has_key(b:, 'candle')
     return
   endif
-  let l:candle = b:candle
-  let l:after = b:candle.source.action(a:name, l:candle)
-  let l:after = !empty(l:after) ? l:after : {}
-  if !has_key(l:after, 'leave')
-    let l:winid = win_getid()
-    call win_gotoid(l:candle.winid)
-    quit
-    call win_gotoid(l:winid)
-  endif
+  call b:candle.action(a:name)
 endfunction
 
 "
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort
-  let l:timeout = get(a:000, 0, -1)
+  let l:timeout = get(a:000, 0, 500)
   let l:start = reltime()
   while v:true
-    if type(a:promise_or_fn) == v:t_func
-      if a:promise_or_fn()
-        return
-      endif
-    else
+    if type(a:promise_or_fn) == v:t_func && a:promise_or_fn()
+      return
+    elseif has_key(a:promise_or_fn, '_vital_promise')
       if a:promise_or_fn._state == 1
         return a:promise_or_fn._result
       elseif a:promise_or_fn._state == 2
         throw json_encode(a:promise_or_fn._result)
       endif
     endif
+
     sleep 1m
 
     if l:timeout != -1 && reltimefloat(reltime(l:start)) * 1000 > l:timeout
@@ -102,6 +93,8 @@ endfunction
 " context
 "
 function! s:context(args) abort
+  let s:state.id += 1
+
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.id)
   let l:context.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.3))
@@ -114,3 +107,4 @@ function! s:context(args) abort
         \ )
   return l:context
 endfunction
+

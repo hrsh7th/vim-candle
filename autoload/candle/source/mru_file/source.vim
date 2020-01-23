@@ -47,12 +47,12 @@ endfunction
 " action_open
 "
 function! s:action_open(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('edit %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
@@ -63,12 +63,12 @@ endfunction
 " action_split
 "
 function! s:action_split(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('split %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
@@ -79,12 +79,12 @@ endfunction
 " action_vsplit
 "
 function! s:action_vsplit(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif
 
-  call win_gotoid(a:candle.prev_winid)
+  call win_gotoid(a:candle.state.prev_winid)
   execute printf('vsplit %s', l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', 1)])
@@ -97,13 +97,13 @@ endfunction
 "
 augroup candle#source#mru_file#source
   autocmd!
-  autocmd BufWinEnter * call <SID>on_buf_win_enter()
+  autocmd BufWinEnter,BufRead,BufNewFile * call <SID>on_touch()
 augroup END
 
 "
-" on_buf_enter
+" on_touch
 "
-function! s:on_buf_win_enter() abort
+function! s:on_touch() abort
   if empty(g:candle#source#mru_file#filepath)
     return
   endif

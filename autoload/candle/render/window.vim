@@ -1,50 +1,42 @@
 "
 " candle#render#window#open
 "
-function! candle#render#window#open(candle) abort
-  let l:bufname = a:candle.bufname
-  let l:bufnr = bufnr(a:candle.bufname, v:true)
-  let l:width = a:candle.maxwidth
-  let l:height = a:candle.maxheight
-
-  if a:candle.layout ==# 'floating' && exists('*nvim_open_win')
-    let l:winid = nvim_open_win(l:bufnr, v:true, {
-          \   'relative': 'editor',
-          \   'width': l:width,
-          \   'height': l:height,
-          \   'col': float2nr(&columns / 2 - l:width / 2),
-          \   'row': float2nr(&lines / 2 - l:height / 2),
-          \   'focusable': v:true,
-          \   'style': 'minimal',
-          \ })
-    call candle#utils#highlight#extend('NormalFloat', 'CandleSignColumn', {})
-    call setwinvar(l:winid, '&winhighlight', 'SignColumn:CandleSignColumn')
+function! candle#render#window#initialize(candle) abort
+  if a:candle.layout ==# 'floating'
+    call nvim_open_win(bufnr(a:candle.bufname), v:true, {
+    \   'relative': 'editor',
+    \   'width': 1,
+    \   'height': 1,
+    \   'col': float2nr(&columns / 2 - a:candle.maxwidth / 2),
+    \   'row': float2nr(&lines / 2 - a:candle.maxheight / 2),
+    \   'focusable': v:true,
+    \   'style': 'minimal',
+    \ })
   else
-    execute printf('botright %s #%s', a:candle.layout, l:bufnr)
+    execute printf('botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
   endif
-
-  let b:candle = a:candle
-  let b:candle.winid = win_getid()
-  call candle#render#window#resize(l:bufname, l:width, l:height)
+  normal! gg
+  call setwinvar(winnr(), '&number', 0)
+  call setwinvar(winnr(), '&signcolumn', 'yes')
+  call candle#render#window#resize(a:candle)
 endfunction
 
 "
 " candle#render#window#resize
 "
-function! candle#render#window#resize(bufname, width, height) abort
-  let l:winnr = bufwinnr(a:bufname)
-  let l:candle = getbufvar(a:bufname, 'candle')
+function! candle#render#window#resize(candle) abort
+  let l:winnr = win_id2win(a:candle.state.winid)
 
   " width
-  if l:candle.layout !=# 'split'
-    call s:set_width(l:winnr, a:width)
+  if a:candle.layout !=# 'split'
+    call s:set_width(l:winnr, a:candle.maxwidth)
   endif
 
   " height
-  if l:candle.layout !=# 'vsplit'
+  if a:candle.layout !=# 'vsplit'
     let l:screenpos = win_screenpos(l:winnr)
     if winheight(l:winnr) != (&lines - s:get_offset_height())
-      call s:set_height(l:winnr, a:height)
+      call s:set_height(l:winnr, len(a:candle.state.items))
     endif
   endif
 endfunction
@@ -67,6 +59,10 @@ function! s:get_offset_height() abort
 endfunction
 
 function! s:set_width(winnr, width) abort
+  if winwidth(a:winnr) == a:width
+    return
+  endif
+
   if has('nvim')
     call nvim_win_set_width(win_getid(a:winnr), a:width)
   else
@@ -74,8 +70,13 @@ function! s:set_width(winnr, width) abort
 endfunction
 
 function! s:set_height(winnr, height) abort
+  if winheight(a:winnr) == a:height
+    return
+  endif
+
   if has('nvim')
     call nvim_win_set_height(win_getid(a:winnr), a:height)
   else
   endif
 endfunction
+

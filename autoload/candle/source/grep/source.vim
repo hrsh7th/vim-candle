@@ -48,7 +48,7 @@ endfunction
 " action_open
 "
 function! s:action_open(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif
@@ -64,7 +64,7 @@ endfunction
 " action_split
 "
 function! s:action_split(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif
@@ -80,7 +80,7 @@ endfunction
 " action_vsplit
 "
 function! s:action_vsplit(candle) abort
-  let l:item = get(a:candle.items, a:candle.state.cursor - 1, {})
+  let l:item = a:candle.get_cursor_item()
   if empty(l:item)
     return
   endif

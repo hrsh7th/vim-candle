@@ -79,6 +79,7 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 	}
 
 	process.Interp = i
+
 	start(process)
 
 	return StartResponse{}, nil

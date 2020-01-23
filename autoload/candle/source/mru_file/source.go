@@ -24,7 +24,7 @@ func Start(process *candle.Process) {
 		}
 		defer file.Close()
 
-		// get file lines
+		// get file lines (check existence)
 		var paths []string = make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {

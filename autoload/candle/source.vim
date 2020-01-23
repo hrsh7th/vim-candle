@@ -30,13 +30,13 @@ endfunction
 function! s:Source.start(callback) abort
   let self.callback = a:callback
   call self.server.start({ notification ->
-        \   self.on_notification(notification)
-        \ })
+  \   self.on_notification(notification)
+  \ })
   return self.server.request('start', {
-        \   'id': self.id,
-        \   'script': self.source.script,
-        \   'params': self.params,
-        \ })
+  \   'id': self.id,
+  \   'script': self.source.script,
+  \   'params': self.params,
+  \ })
 endfunction
 
 "
@@ -51,9 +51,13 @@ endfunction
 "
 function! s:Source.action(name, candle) abort
   let l:actions = self.source.get_actions()
-  if has_key(l:actions, a:name)
-    call l:actions[a:name](a:candle)
+  if !has_key(l:actions, a:name)
+    echomsg printf('No such action: `%s`', a:name)
+    return
   endif
+
+  let l:after = l:actions[a:name](a:candle)
+  return empty(l:after) ? {} : l:after
 endfunction
 
 "
@@ -61,11 +65,11 @@ endfunction
 "
 function! s:Source.fetch(params) abort
   return self.server.request('fetch', {
-        \   'id': self.id,
-        \   'query': a:params.query,
-        \   'index': a:params.index,
-        \   'count': a:params.count
-        \ })
+  \   'id': self.id,
+  \   'query': a:params.query,
+  \   'index': a:params.index,
+  \   'count': a:params.count
+  \ })
 endfunction
 
 "

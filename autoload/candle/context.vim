@@ -280,7 +280,7 @@ function! s:Context.refresh(...) abort
   endif
 
   " update items
-  let l:is_viewport_changed = self.state.index + len(self.state.items) < self.state.total
+  let l:is_viewport_changed = self.state.index + len(self.state.items) >= self.prev_state.total && self.state.index + len(self.state.items) <= self.state.total
   if self.state_changed(['query', 'index']) || l:is_viewport_changed
     let l:p = self.fetch().then({ response -> self.on_response(response) })
     if !l:option.async
@@ -291,6 +291,7 @@ function! s:Context.refresh(...) abort
       endtry
     endif
   else
+    call candle#log('[SKIP]', 'fetch skipped.', self.state, self.prev_state)
     call candle#render#window#resize(self)
   endif
   let self.prev_state = deepcopy(self.state)
@@ -306,6 +307,6 @@ function! s:Context.on_response(response) abort
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item ->
   \   item.title
   \ }))
-  call deletebufline(self.bufname, len(self.state.items) + 1, '$')
+  call deletebufline(self.bufname, len(self.state.items) + 2, '$')
 endfunction
 

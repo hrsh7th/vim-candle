@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
@@ -43,10 +42,6 @@ func Start(process *candle.Process) {
 
 		process.NotifyDone()
 	}()
-}
-
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func toItem(prefix string, index int, line string) map[string]interface{} {

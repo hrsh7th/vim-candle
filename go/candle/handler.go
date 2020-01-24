@@ -28,8 +28,6 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
-	h.Logger.Printf(req.Method)
-
 	switch {
 	case req.Method == "start":
 		return h.HandleStart(ctx, conn, req)

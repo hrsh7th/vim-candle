@@ -65,7 +65,7 @@ endfunction
 function! s:on_ctrl_y() abort
   let l:candle = b:candle
   quit
-  call win_gotoid(l:candle.winid)
+  call win_gotoid(l:candle.state.winid)
   call candle#action('default')
 endfunction
 

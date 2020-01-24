@@ -2,18 +2,23 @@ package candle
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 
 	"github.com/saracen/walker"
 )
 
-func (process *Process) Walk(root string, callback func(pathname string) error) chan string {
+func (process *Process) Walk(root string, callback func(pathname string) bool) chan string {
 	ch := make(chan string, 0)
 	go func() {
 		walker.Walk(root, func(pathname string, fi os.FileInfo) error {
 			ch <- pathname
-			return callback(pathname)
+			if callback(pathname) {
+				return nil
+			} else {
+				return filepath.SkipDir
+			}
 		})
 		close(ch)
 	}()

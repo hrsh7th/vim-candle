@@ -12,13 +12,13 @@ func Start(process *candle.Process) {
 	rootPath := process.GetString([]string{"root-path"})
 
 	go func() {
-		ch := process.Walk(rootPath, func(pathname string) error {
+		ch := process.Walk(rootPath, func(pathname string) bool {
 			for _, ignoreGlob := range ignoreGlobs {
 				if matched, _ := filepath.Match(ignoreGlob, pathname); matched {
-					return filepath.SkipDir
+					return false
 				}
 			}
-			return nil
+			return true
 		})
 
 		index := 0

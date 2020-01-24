@@ -12,17 +12,24 @@ func Start(process *candle.Process) {
 	rootPath := process.GetString([]string{"root-path"})
 
 	go func() {
-		index := 0
-		process.Walk(rootPath, func(pathname string) error {
+		ch := process.Walk(rootPath, func(pathname string) error {
 			for _, ignoreGlob := range ignoreGlobs {
 				if matched, _ := filepath.Match(ignoreGlob, pathname); matched {
 					return filepath.SkipDir
 				}
 			}
-			process.AddItem(toItem(index, pathname))
-			index += 1
 			return nil
 		})
+
+		index := 0
+		for {
+			pathname, ok := <-ch
+			if !ok {
+				break
+			}
+			process.AddItem(toItem(index, pathname))
+			index += 1
+		}
 		process.NotifyDone()
 	}()
 

@@ -20,7 +20,9 @@ function! s:on_before_start(args) abort
   if !has_key(a:args, 'ignore-globs') || len(a:args['ignore-globs']) == 0
     throw '[files] `ignore-globs` is not valid.'
   endif
-  let a:args['ignore-globs'] = split(a:args['ignore-globs'], ' ')
+  if type(a:args['ignore-globs']) == type('')
+    let a:args['ignore-globs'] = split(a:args['ignore-globs'], ' ')
+  endif
 
   if !has_key(a:args, 'root-path') || !isdirectory(a:args['root-path'])
     throw '[files] `root-path` is not valid.'

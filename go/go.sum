@@ -2,9 +2,6 @@ github.com/containous/yaegi v0.7.4 h1:mdEQypyfFlnCvKci+kaPKvIb3CilkkN0ivd9rug+sK
 github.com/containous/yaegi v0.7.4/go.mod h1:Yj82MHpXQ9/h3ukzc2numJQ/Wr4+M3C9YLMzNjFtd3o=
 github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvKCM=
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/hrsh7th/vim-candle v0.0.0-20200123063851-8e15631715a8 h1:5YEHzF/A18VAghMCc+/UFqo0qYBJ2w054HoNwqY+VhI=
-github.com/karrick/godirwalk v1.14.1 h1:eFeFrvfLc79AXZ5782mZsVx6T41uxVORlddagiORs4E=
-github.com/karrick/godirwalk v1.14.1/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/sahilm/fuzzy v0.1.0 h1:FzWGaw2Opqyu+794ZQ9SYifWv2EIXpwP4q8dY1kDAwI=

@@ -1,21 +1,23 @@
 package candle
 
 import (
-	"github.com/karrick/godirwalk"
+	"os"
 	"reflect"
 	"strconv"
+
+	"github.com/saracen/walker"
 )
 
-/**
- * Walk
- */
-func (process *Process) Walk(root string, callback func(pathname string) error) error {
-	return godirwalk.Walk(root, &godirwalk.Options{
-		Callback: func(pathname string, entry *godirwalk.Dirent) error {
+func (process *Process) Walk(root string, callback func(pathname string) error) chan string {
+	ch := make(chan string, 0)
+	go func() {
+		walker.Walk(root, func(pathname string, fi os.FileInfo) error {
+			ch <- pathname
 			return callback(pathname)
-		},
-		Unsorted: false,
-	})
+		})
+		close(ch)
+	}()
+	return ch
 }
 
 /**

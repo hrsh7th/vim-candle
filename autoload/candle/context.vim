@@ -26,6 +26,7 @@ function! s:Context.new(context) abort
         \     'index': 0,
         \     'cursor': 1,
         \     'selected_ids': [],
+        \     'status': 'progress',
         \     'is_selected_all': v:false,
         \   },
         \   'prev_state': {
@@ -37,6 +38,7 @@ function! s:Context.new(context) abort
         \     'index': -1,
         \     'cursor': -1,
         \     'selected_ids': [],
+        \     'status': 'progress',
         \     'is_selected_all': v:false,
         \   }
         \ })
@@ -57,6 +59,7 @@ function! s:Context.start() abort
   call candle#render#highlight#initialize(self)
   call candle#render#autocmd#initialize(self)
   call candle#render#mapping#initialize(self)
+  call candle#render#statusline#initialize(self)
   let self.state.winid = win_getid()
 
   doautocmd User candle#start
@@ -83,6 +86,7 @@ function! s:Context.on_notification(notification) abort
     let self.state.total = a:notification.params.total
   elseif a:notification.method ==# 'done'
     let self.state.total = a:notification.params.total
+    let self.state.status = 'done'
   endif
   call self.refresh({ 'async': v:true })
 endfunction
@@ -257,13 +261,14 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
+
   let l:option = extend({
   \   'async': v:false
   \ }, get(a:000, 0, {}))
 
   " update cursor
   if self.state_changed(['cursor'])
-    if self.bufname ==# bufname('%')
+    if bufnr(self.bufname) ==# bufnr('%')
       call cursor([self.state.cursor, col('.')])
     endif
     call candle#render#signs#cursor(self)
@@ -275,7 +280,8 @@ function! s:Context.refresh(...) abort
   endif
 
   " update items
-  if self.state_changed(['query', 'index'])
+  let l:is_viewport_changed = self.state.index + len(self.state.items) < self.state.total
+  if self.state_changed(['query', 'index']) || l:is_viewport_changed
     let l:p = self.fetch().then({ response -> self.on_response(response) })
     if !l:option.async
       try

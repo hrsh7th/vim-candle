@@ -125,7 +125,7 @@ func (process *Process) NotifyDone() {
  */
 func (process *Process) AddItem(item Item) {
 	process.allItems = append(process.allItems, item)
-	if now()-process.lastProgressTime > 500 {
+	if now()-process.lastProgressTime > 200 {
 		process.NotifyProgress()
 		process.lastProgressTime = now()
 	}

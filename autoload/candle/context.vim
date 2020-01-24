@@ -21,6 +21,7 @@ function! s:Context.new(context) abort
         \     'winid': -1,
         \     'prev_winid': -1,
         \     'total': 0,
+        \     'filtered_total': 0,
         \     'items': [],
         \     'query': '',
         \     'index': 0,
@@ -33,6 +34,7 @@ function! s:Context.new(context) abort
         \     'winid': -1,
         \     'prev_winid': -1,
         \     'total': 0,
+        \     'filtered_total': 0,
         \     'items': [],
         \     'query': '',
         \     'index': -1,
@@ -59,7 +61,6 @@ function! s:Context.start() abort
   call candle#render#highlight#initialize(self)
   call candle#render#autocmd#initialize(self)
   call candle#render#mapping#initialize(self)
-  call candle#render#statusline#initialize(self)
   let self.state.winid = win_getid()
 
   doautocmd User candle#start
@@ -84,8 +85,10 @@ endfunction
 function! s:Context.on_notification(notification) abort
   if a:notification.method ==# 'progress'
     let self.state.total = a:notification.params.total
+    let self.state.filtered_total = a:notification.params.filtered_total
   elseif a:notification.method ==# 'done'
     let self.state.total = a:notification.params.total
+    let self.state.filtered_total = a:notification.params.filtered_total
     let self.state.status = 'done'
   endif
   call self.refresh({ 'async': v:true })
@@ -185,7 +188,7 @@ endfunction
 function! s:Context.down() abort
   let l:winheight = winheight(win_id2win(self.state.winid))
   if l:winheight == self.state.cursor
-    let self.state.index = min([self.state.total - l:winheight, self.state.index + 1])
+    let self.state.index = min([self.state.filtered_total - l:winheight, self.state.index + 1])
   else
     if win_getid() == self.state.winid
       normal! j
@@ -217,7 +220,7 @@ endfunction
 "
 function! s:Context.bottom() abort
   let l:winheight = winheight(win_id2win(self.state.winid))
-  let self.state.index = self.state.total - l:winheight
+  let self.state.index = self.state.filtered_total - l:winheight
   let self.state.cursor = l:winheight
   call self.refresh()
 endfunction
@@ -266,6 +269,9 @@ function! s:Context.refresh(...) abort
   \   'async': v:false
   \ }, get(a:000, 0, {}))
 
+  " update statusline
+  call candle#render#statusline#initialize(self)
+
   " update cursor
   if self.state_changed(['cursor'])
     if bufnr(self.bufname) ==# bufnr('%')
@@ -280,7 +286,9 @@ function! s:Context.refresh(...) abort
   endif
 
   " update items
-  let l:is_viewport_changed = self.state.index + len(self.state.items) >= self.prev_state.total && self.state.index + len(self.state.items) <= self.state.total
+  let l:is_viewport_changed = v:true
+  let l:is_viewport_changed = l:is_viewport_changed && self.state.index + len(self.state.items) >= self.prev_state.filtered_total
+  let l:is_viewport_changed = l:is_viewport_changed && self.state.index + len(self.state.items) <= self.state.filtered_total
   if self.state_changed(['query', 'index']) || l:is_viewport_changed
     let l:p = self.fetch().then({ response -> self.on_response(response) })
     if !l:option.async
@@ -294,6 +302,7 @@ function! s:Context.refresh(...) abort
     call candle#log('[SKIP]', 'fetch skipped.', self.state, self.prev_state)
     call candle#render#window#resize(self)
   endif
+
   let self.prev_state = deepcopy(self.state)
 endfunction
 
@@ -303,6 +312,7 @@ endfunction
 function! s:Context.on_response(response) abort
   let self.state.items = a:response.items
   let self.state.total = a:response.total
+  let self.state.filtered_total = a:response.filtered_total
   call candle#render#window#resize(self)
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item ->
   \   item.title

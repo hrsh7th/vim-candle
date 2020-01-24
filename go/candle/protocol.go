@@ -28,24 +28,27 @@ type FetchRequest struct {
 }
 
 type FetchResponse struct {
-	Id    string `json:"id"`
-	Items []Item `json:"items"`
-	Total int    `json:"total"`
+	Id            string `json:"id"`
+	Items         []Item `json:"items"`
+	Total         int    `json:"total"`
+	FilteredTotal int    `json:"filtered_total"`
 }
 
 /**
  * Progress
  */
 type ProgressMessage struct {
-	Id    string `json:"id"`
-	Total int    `json:"total"`
+	Id            string `json:"id"`
+	Total         int    `json:"total"`
+	FilteredTotal int    `json:"filtered_total"`
 }
 
 /**
  * Done
  */
 type DoneMessage struct {
-	Id    string `json:"id"`
-	Total int    `json:"total"`
+	Id            string `json:"id"`
+	Total         int    `json:"total"`
+	FilteredTotal int    `json:"filtered_total"`
 }
 

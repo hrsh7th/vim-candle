@@ -92,11 +92,20 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
  * Fetch
  */
 func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
-	process.filteredItems = process.filter(params.Query)
+	var items []Item
+	if process.query != "" && params.Query != "" && strings.HasPrefix(params.Query, process.query) {
+		items = process.filteredItems
+	} else {
+		items = process.allItems
+	}
+
+	process.query = params.Query
+	process.filteredItems = process.filter(params.Query, items)
 	return FetchResponse{
-		Id:    params.Id,
-		Items: slice(process.filteredItems, params.Index, params.Index+params.Count),
-		Total: len(process.filteredItems),
+		Id:            params.Id,
+		Items:         slice(process.filteredItems, params.Index, params.Index+params.Count),
+		Total:         process.total(),
+		FilteredTotal: process.filteredTotal(),
 	}, nil
 }
 
@@ -105,8 +114,9 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
  */
 func (process *Process) NotifyProgress() {
 	process.conn.Notify(context.Background(), "progress", &ProgressMessage{
-		Id:    process.id,
-		Total: len(process.allItems),
+		Id:            process.id,
+		Total:         process.total(),
+		FilteredTotal: process.filteredTotal(),
 	})
 }
 
@@ -115,8 +125,9 @@ func (process *Process) NotifyProgress() {
  */
 func (process *Process) NotifyDone() {
 	process.conn.Notify(context.Background(), "done", &DoneMessage{
-		Id:    process.id,
-		Total: len(process.allItems),
+		Id:            process.id,
+		Total:         process.total(),
+		FilteredTotal: process.filteredTotal(),
 	})
 }
 
@@ -125,6 +136,11 @@ func (process *Process) NotifyDone() {
  */
 func (process *Process) AddItem(item Item) {
 	process.allItems = append(process.allItems, item)
+
+	if len(process.filter(process.query, []Item{item})) == 1 {
+		process.filteredItems = append(process.filteredItems, item)
+	}
+
 	if now()-process.lastProgressTime > 200 {
 		process.NotifyProgress()
 		process.lastProgressTime = now()
@@ -132,17 +148,28 @@ func (process *Process) AddItem(item Item) {
 }
 
 /**
+ * total
+ */
+func (process *Process) total() int {
+	return len(process.allItems)
+}
+
+/**
+ * filteredTotal
+ */
+func (process *Process) filteredTotal() int {
+	query := strings.TrimSpace(process.query)
+	if len(query) > 0 {
+		return len(process.filteredItems)
+	}
+	return process.total()
+}
+
+/**
  * filter
  */
-func (process *Process) filter(query string) []Item {
+func (process *Process) filter(query string, items []Item) []Item {
 	query = strings.TrimSpace(query)
-
-	var items []Item
-	if process.query != "" && query != "" && strings.HasPrefix(query, process.query) {
-		items = process.filteredItems
-	} else {
-		items = process.allItems
-	}
 
 	switch process.params["filter"] {
 	case "fuzzy":
@@ -154,8 +181,6 @@ func (process *Process) filter(query string) []Item {
 	default:
 		items = process.substring(query, items)
 	}
-	process.filteredItems = items
-	process.query = query
 	return items
 }
 

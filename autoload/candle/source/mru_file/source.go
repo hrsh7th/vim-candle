@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -13,11 +14,15 @@ import (
 var Items []candle.Item = make([]candle.Item, 0)
 
 func Start(process *candle.Process) {
+	filepath := process.GetString([]string{"filepath"})
+	if _, err := os.Stat(filepath); err != nil {
+		process.NotifyMessage(fmt.Sprintf("`%s` is not valid filepath.", filepath))
+		process.NotifyDone()
+		return
+	}
+
 	go func() {
-		filepath := process.GetString([]string{"filepath"})
-		if _, err := os.Stat(filepath); err != nil {
-			return
-		}
+		process.NotifyStart()
 
 		file, err := os.Open(filepath)
 		if err != nil {

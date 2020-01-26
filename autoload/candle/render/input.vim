@@ -16,6 +16,7 @@ function! candle#render#input#open(candle) abort
 
   execute printf('new | resize %s', 1)
   call setbufvar('%', 'candle', a:candle)
+  call setbufvar('%', '&filetype', 'candle.input')
   call setbufvar('%', '&buftype', 'nofile')
   call setbufvar('%', '&bufhidden', 'delete')
   setlocal winheight=1
@@ -36,6 +37,8 @@ function! candle#render#input#open(candle) abort
 
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
+
+  doautocmd User candle#input#start
 endfunction
 
 "

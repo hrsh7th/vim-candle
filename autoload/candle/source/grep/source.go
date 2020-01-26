@@ -17,6 +17,8 @@ func Start(process *candle.Process) {
 	cwd := process.GetString([]string{"cwd"})
 
 	go func() {
+		process.NotifyStart()
+
 		cmd := exec.Command("grep", "-rin", pattern, cwd)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {

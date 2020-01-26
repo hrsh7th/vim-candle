@@ -114,6 +114,17 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
 }
 
 /**
+ * NotifyStart
+ */
+func (process *Process) NotifyStart() {
+	process.conn.Notify(context.Background(), "start", &ProgressMessage{
+		Id:            process.id,
+		Total:         process.total(),
+		FilteredTotal: process.filteredTotal(),
+	})
+}
+
+/**
  * NotifyProgress
  */
 func (process *Process) NotifyProgress() {
@@ -132,6 +143,16 @@ func (process *Process) NotifyDone() {
 		Id:            process.id,
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
+	})
+}
+
+/**
+ * NotifyMessage
+ */
+func (process *Process) NotifyMessage(message string) {
+	process.conn.Notify(context.Background(), "message", &MessageMessage{
+		Id:      process.id,
+		Message: message,
 	})
 }
 

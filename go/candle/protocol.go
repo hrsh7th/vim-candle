@@ -52,3 +52,10 @@ type DoneMessage struct {
 	FilteredTotal int    `json:"filtered_total"`
 }
 
+/**
+ * Message
+ */
+type MessageMessage struct {
+	Id      string `json:"id"`
+	Message string `json:"message"`
+}

@@ -47,6 +47,7 @@ function! s:Context.new(context) abort
         \ })
   call bufnr(a:context.bufname, v:true)
   call setbufvar(a:context.bufname, 'candle', l:candle)
+  call setbufvar(a:context.bufname, '&filetype', 'candle')
   call setbufvar(a:context.bufname, '&buftype', 'nofile')
   call setbufvar(a:context.bufname, '&number', 0)
   call setbufvar(a:context.bufname, '&signcolumn', 'yes')
@@ -57,20 +58,12 @@ endfunction
 " start
 "
 function! s:Context.start() abort
-  let self.state.prev_winid = win_getid()
-  call candle#render#window#initialize(self)
-  call candle#render#highlight#initialize(self)
-  call candle#render#autocmd#initialize(self)
-  call candle#render#mapping#initialize(self)
-  let self.state.winid = win_getid()
-
-  doautocmd User candle#start
-
   call candle#sync(self.source.start({ n -> self.on_notification(n) }))
 
-  " NOTE: This sleep needs to reduce flicker on first opening window.
-  " start -> (...async) -> on_notification -> refresh
-  sleep 20m
+  " NOTE: This sleep is needed to reduce flicking when open first window.
+  if g:candle.global.start_delay > 0
+    execute printf('sleep %sm', g:candle.global.start_delay)
+  endif
 endfunction
 
 "
@@ -84,15 +77,32 @@ endfunction
 " on_notification
 "
 function! s:Context.on_notification(notification) abort
-  if a:notification.method ==# 'progress'
+  if a:notification.method ==# 'start'
+    if self.state.winid == -1
+      let self.state.prev_winid = win_getid()
+      call candle#render#window#initialize(self)
+      call candle#render#highlight#initialize(self)
+      call candle#render#autocmd#initialize(self)
+      let self.state.winid = win_getid()
+      doautocmd User candle#start
+    endif
+
+  elseif a:notification.method ==# 'progress'
     let self.state.total = a:notification.params.total
     let self.state.filtered_total = a:notification.params.filtered_total
+    let self.state.status = 'progress'
+    call self.refresh({ 'async': v:true })
+
   elseif a:notification.method ==# 'done'
     let self.state.total = a:notification.params.total
     let self.state.filtered_total = a:notification.params.filtered_total
     let self.state.status = 'done'
+    call self.refresh({ 'async': v:true })
+
+  elseif a:notification.method ==# 'message'
+    redraw
+    echon a:notification.params.message . "\n"
   endif
-  call self.refresh({ 'async': v:true })
 endfunction
 
 "

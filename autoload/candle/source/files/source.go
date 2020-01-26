@@ -14,8 +14,9 @@ func Start(process *candle.Process) {
 	}
 
 	go func() {
-		ch := process.Walk(rootPath, ignoreGlobs)
+		process.NotifyStart()
 
+		ch := process.Walk(rootPath, ignoreGlobs)
 		index := 0
 		for {
 			pathname, ok := <-ch
@@ -25,6 +26,7 @@ func Start(process *candle.Process) {
 			process.AddItem(toItem(index, pathname))
 			index += 1
 		}
+
 		process.NotifyDone()
 	}()
 

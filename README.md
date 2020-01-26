@@ -20,6 +20,24 @@ You can create a custom source with golang.
 # Setting
 
 ```viml
+nnoremap <silent>files :<C-u>call candle#start({
+\   'source': 'files',
+\   'layout': 'split',
+\   'root-path': 'path to root dir',
+\   'ignore-globs': locon#get('ignore_globs')
+\ })<CR>
+nnoremap <silent>mru :<C-u>call candle#start({
+\   'source': 'mru_file',
+\   'layout': 'split',
+\   'filepath': g:candle#source#mru_file#filepath,
+\ })<CR>
+nnoremap <silent>grep :<C-u>call candle#start({
+\   'source': 'grep',
+\   'pattern': input('PATTERN: '),
+\   'cwd': 'path to root dir',
+\   'layout': 'split',
+\ })<CR>
+
 autocmd vimrc User candle#initialize call s:on_candle_initialize()
 function! s:on_candle_initialize()
   let g:candle.debug = '/tmp/candle.log'

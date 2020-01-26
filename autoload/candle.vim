@@ -77,7 +77,9 @@ endfunction
 " candle#log
 "
 function! candle#log(...) abort
-  call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
+  if g:candle.debug
+    call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
+  endif
 endfunction
 
 "

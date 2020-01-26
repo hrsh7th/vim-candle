@@ -57,6 +57,9 @@ function! s:get_offset_height() abort
   return l:offset
 endfunction
 
+"
+" set_width
+"
 function! s:set_width(winnr, width) abort
   if winwidth(a:winnr) == a:width
     call candle#log('[SKIP] s:set_width')
@@ -66,9 +69,17 @@ function! s:set_width(winnr, width) abort
   if has('nvim')
     call nvim_win_set_width(win_getid(a:winnr), a:width)
   else
+    if winnr() != a:winnr
+      call win_execute(win_getid(a:winnr), printf('vertical resize %s', a:width))
+    else
+      execute printf('vertical resize %s', a:width)
+    endif
   endif
 endfunction
 
+"
+" set_height
+"
 function! s:set_height(winnr, height) abort
   if winheight(a:winnr) == a:height
     call candle#log('[SKIP] s:set_height')
@@ -78,6 +89,11 @@ function! s:set_height(winnr, height) abort
   if has('nvim')
     call nvim_win_set_height(win_getid(a:winnr), a:height)
   else
+    if winnr() != a:winnr
+      call win_execute(win_getid(a:winnr), printf('resize %s', a:height))
+    else
+      execute printf('resize %s', a:height)
+    endif
   endif
 endfunction
 

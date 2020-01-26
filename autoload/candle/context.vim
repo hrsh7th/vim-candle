@@ -17,6 +17,7 @@ function! s:Context.new(context) abort
         \   'maxheight': get(a:context, 'maxheight', float2nr(&lines * 0.3)),
         \   'layout': get(a:context, 'layout', 'floating'),
         \   'source': a:context.source,
+        \   'request_id': 0,
         \   'state': {
         \     'winid': -1,
         \     'prev_winid': -1,
@@ -159,11 +160,10 @@ function! s:Context.toggle_select() abort
   let l:index = index(self.state.selected_ids, l:item.id)
   if l:index >= 0
     call remove(self.state.selected_ids, l:index)
-    call self.up()
   else
     let self.state.selected_ids += [l:item.id]
-    call self.down()
   endif
+  call self.down()
   call self.refresh()
 endfunction
 
@@ -202,8 +202,10 @@ endfunction
 " set_cursor
 "
 function! s:Context.set_cursor(cursor) abort
-  let self.state.cursor = a:cursor
-  call self.refresh()
+  if self.state.cursor != a:cursor
+    let self.state.cursor = a:cursor
+    call self.refresh()
+  endif
 endfunction
 
 "
@@ -264,17 +266,14 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
-
-  let l:option = extend({
-  \   'async': v:false
-  \ }, get(a:000, 0, {}))
+  let l:option = extend({ 'async': v:false }, get(a:000, 0, {}))
 
   " update statusline
   call candle#render#statusline#initialize(self)
 
   " update cursor
   if self.state_changed(['cursor'])
-    if bufnr(self.bufname) ==# bufnr('%')
+    if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
       call cursor([self.state.cursor, col('.')])
     endif
     call candle#render#signs#cursor(self)
@@ -286,14 +285,14 @@ function! s:Context.refresh(...) abort
   endif
 
   " update items
-  let l:is_viewport_changed = v:true
-  let l:is_viewport_changed = l:is_viewport_changed && self.state.index + len(self.state.items) >= self.prev_state.filtered_total
-  let l:is_viewport_changed = l:is_viewport_changed && self.state.index + len(self.state.items) <= self.state.filtered_total
-  if self.state_changed(['query', 'index']) || l:is_viewport_changed
-    let l:p = self.fetch().then({ response -> self.on_response(response) })
+  if self.state_changed(['query', 'index']) || self.can_display_new_items()
+    let self.request_id += 1
+    let l:id = self.request_id
+
+    let l:promise = self.fetch().then({ response -> self.on_response(l:id, response) })
     if !l:option.async
       try
-        call candle#sync(l:p)
+        call candle#sync(l:promise)
       catch /.*/
         call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
       endtry
@@ -309,7 +308,11 @@ endfunction
 "
 " on_response
 "
-function! s:Context.on_response(response) abort
+function! s:Context.on_response(id, response) abort
+  if a:id != self.request_id
+    return
+  endif
+
   let self.state.items = a:response.items
   let self.state.total = a:response.total
   let self.state.filtered_total = a:response.filtered_total
@@ -317,6 +320,15 @@ function! s:Context.on_response(response) abort
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item ->
   \   item.title
   \ }))
-  call deletebufline(self.bufname, len(self.state.items) + 2, '$')
+  call deletebufline(self.bufname, len(self.state.items) + 1, '$')
+endfunction
+
+"
+" can_display_new_items
+"
+function! s:Context.can_display_new_items() abort
+  let l:has_enough_items = self.maxheight <= len(self.state.items)
+  let l:has_new_items = self.state.index + len(self.state.items) < self.state.filtered_total
+  return !l:has_enough_items && l:has_new_items
 endfunction
 

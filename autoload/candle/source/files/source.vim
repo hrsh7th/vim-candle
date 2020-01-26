@@ -35,7 +35,7 @@ endfunction
 function! s:get_options() abort
   return [{
         \   'name': '--ignore-globs=VALUE',
-        \   'description': 'Specify ignore glob patterns.',
+        \   'description': 'Specify ignore globs.',
         \   'extra': {
         \     'required': 0
         \   }

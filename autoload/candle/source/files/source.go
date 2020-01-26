@@ -1,25 +1,20 @@
 package main
 
 import (
-	"path/filepath"
 	"strconv"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
 
 func Start(process *candle.Process) {
-	ignoreGlobs := make([]string, process.Len([]string{"ignore-globs"}))
 	rootPath := process.GetString([]string{"root-path"})
+	ignoreGlobs := make([]string, 0)
+	for i := 0; i < process.Len([]string{"ignore-globs"}); i++ {
+		ignoreGlobs = append(ignoreGlobs, process.GetString([]string{"ignore-globs", strconv.Itoa(i)}))
+	}
 
 	go func() {
-		ch := process.Walk(rootPath, func(pathname string) bool {
-			for _, ignoreGlob := range ignoreGlobs {
-				if matched, _ := filepath.Match(ignoreGlob, pathname); matched {
-					return false
-				}
-			}
-			return true
-		})
+		ch := process.Walk(rootPath, ignoreGlobs)
 
 		index := 0
 		for {

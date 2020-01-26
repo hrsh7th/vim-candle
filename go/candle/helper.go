@@ -5,20 +5,34 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 
+	"github.com/monochromegane/go-gitignore"
 	"github.com/saracen/walker"
 )
 
-func (process *Process) Walk(root string, callback func(pathname string) bool) chan string {
+/**
+ * Walk
+ */
+func (process *Process) Walk(root string, patterns []string) chan string {
 	ch := make(chan string, 0)
+
+	reader := strings.NewReader(strings.Join(patterns, "\n"))
+	gitignore := gitignore.NewGitIgnoreFromReader("/", reader)
+
 	go func() {
 		walker.Walk(root, func(pathname string, fi os.FileInfo) error {
-			ch <- pathname
-			if callback(pathname) {
-				return nil
-			} else {
-				return filepath.SkipDir
+			if gitignore.Match(pathname, fi.IsDir()) {
+				if fi.IsDir() {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
 			}
+
+			ch <- pathname
+
+			return nil
 		})
 		close(ch)
 	}()

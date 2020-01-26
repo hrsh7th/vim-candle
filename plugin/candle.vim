@@ -3,6 +3,9 @@ if exists('g:loaded_candle')
 endif
 let g:loaded_candle = v:true
 
+let g:candle = get(g:, 'candle', {})
+let g:candle.debug = get(g:candle, 'debug', v:false)
+
 "
 " test
 "

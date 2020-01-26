@@ -92,15 +92,19 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
  * Fetch
  */
 func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
-	var items []Item
-	if process.query != "" && params.Query != "" && strings.HasPrefix(params.Query, process.query) {
-		items = process.filteredItems
-	} else {
-		items = process.allItems
+	params.Query = strings.TrimSpace(params.Query)
+
+	if params.Query != process.query {
+		var items []Item
+		if process.query != "" && params.Query != "" && strings.HasPrefix(params.Query, process.query) {
+			items = process.filteredItems
+		} else {
+			items = process.allItems
+		}
+		process.filteredItems = process.filter(params.Query, items)
+		process.query = params.Query
 	}
 
-	process.query = params.Query
-	process.filteredItems = process.filter(params.Query, items)
 	return FetchResponse{
 		Id:            params.Id,
 		Items:         slice(process.filteredItems, params.Index, params.Index+params.Count),
@@ -169,8 +173,6 @@ func (process *Process) filteredTotal() int {
  * filter
  */
 func (process *Process) filter(query string, items []Item) []Item {
-	query = strings.TrimSpace(query)
-
 	switch process.params["filter"] {
 	case "fuzzy":
 		items = process.fuzzy(query, items)

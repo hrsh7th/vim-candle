@@ -15,11 +15,21 @@ You can create a custom source with golang.
 # Requirements
 
 - latest vim or latest nvim
+- candle server binary (Currently, binary should create by yourself)
+  - git clone git@github.com:hrsh7th/vim-candle /path/to/suitable/gopath
+  - cd /path/to/suitable/gopath
+  - cd ./go && go build && mv ./go ../bin/candle
+
 
 
 # Setting
 
 ```viml
+
+augroup vimrc
+ autocmd!
+augroup END
+
 nnoremap <silent>files :<C-u>call candle#start({
 \   'source': 'files',
 \   'layout': 'split',

@@ -166,7 +166,7 @@ func (process *Process) AddItem(item Item) {
 		process.filteredItems = append(process.filteredItems, item)
 	}
 
-	if now()-process.lastProgressTime > 200 {
+	if now()-process.lastProgressTime > 200 || len(process.allItems) == 100 {
 		process.NotifyProgress()
 		process.lastProgressTime = now()
 	}

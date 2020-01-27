@@ -71,9 +71,6 @@ endfunction
 " command
 "
 function! s:command() abort
-  if has('mac')
-    return [resolve(printf('%s/../../bin/candle', s:dirname))]
-  endif
-  throw 'candle: not supported platform.'
+  return [resolve(printf('%s/../../bin/candle', s:dirname))]
 endfunction
 

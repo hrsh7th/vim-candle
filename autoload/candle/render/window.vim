@@ -2,18 +2,18 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  if a:candle.layout ==# 'floating'
+  if a:candle.option.layout ==# 'floating'
     call nvim_open_win(bufnr(a:candle.bufname), v:true, {
     \   'relative': 'editor',
     \   'width': 1,
     \   'height': 1,
-    \   'col': float2nr(&columns / 2 - a:candle.maxwidth / 2),
-    \   'row': float2nr(&lines / 2 - a:candle.maxheight / 2),
+    \   'col': float2nr(&columns / 2 - a:candle.option.maxwidth / 2),
+    \   'row': float2nr(&lines / 2 - a:candle.option.maxheight / 2),
     \   'focusable': v:true,
     \   'style': 'minimal',
     \ })
   else
-    execute printf('botright %s #%s', a:candle.layout, bufnr(a:candle.bufname))
+    execute printf('botright %s #%s', a:candle.option.layout, bufnr(a:candle.bufname))
     call candle#render#window#resize(a:candle)
   endif
   call setwinvar(winnr(), '&number', 0)
@@ -27,12 +27,12 @@ function! candle#render#window#resize(candle) abort
   let l:winnr = win_id2win(a:candle.state.winid)
 
   " width
-  if a:candle.layout !=# 'split'
-    call s:set_width(l:winnr, a:candle.maxwidth)
+  if a:candle.option.layout !=# 'split'
+    call s:set_width(l:winnr, a:candle.option.maxwidth)
   endif
 
   " height
-  if a:candle.layout !=# 'vsplit'
+  if a:candle.option.layout !=# 'vsplit'
     let l:screenpos = win_screenpos(l:winnr)
     if winheight(l:winnr) != (&lines - s:get_offset_height())
       call s:set_height(l:winnr, len(a:candle.state.items))

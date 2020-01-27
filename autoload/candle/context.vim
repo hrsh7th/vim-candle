@@ -11,12 +11,9 @@ let s:Context = {}
 " new
 "
 function! s:Context.new(context) abort
-  let l:candle = extend(deepcopy(s:Context), {
-        \   'bufname': a:context.bufname,
-        \   'maxwidth': get(a:context, 'maxwidth', float2nr(&columns * 0.6)),
-        \   'maxheight': get(a:context, 'maxheight', float2nr(&lines * 0.3)),
-        \   'layout': get(a:context, 'layout', 'floating'),
-        \   'source': a:context.source,
+  let l:candle = extend({}, deepcopy(s:Context))
+  let l:candle = extend(l:candle, a:context)
+  let l:candle = extend(l:candle, {
         \   'request_id': 0,
         \   'state': {
         \     'winid': -1,
@@ -81,10 +78,14 @@ function! s:Context.on_notification(notification) abort
     if self.state.winid == -1
       let self.state.prev_winid = win_getid()
       call candle#render#window#initialize(self)
-      call candle#render#highlight#initialize(self)
       call candle#render#autocmd#initialize(self)
       let self.state.winid = win_getid()
+
       doautocmd User candle#start
+
+      if self.option.start_input
+        call candle#render#input#open(self)
+      endif
     endif
 
   elseif a:notification.method ==# 'progress'
@@ -112,7 +113,7 @@ function! s:Context.fetch() abort
   return self.source.fetch({
         \   'query': self.state.query,
         \   'index': self.state.index,
-        \   'count': self.maxheight,
+        \   'count': self.option.maxheight,
         \ })
 endfunction
 
@@ -131,13 +132,17 @@ endfunction
 " action
 "
 function! s:Context.action(name) abort
-  let l:after = self.source.action(a:name, self)
-  if get(l:after, 'quit', v:true)
-    let l:current_winid = win_getid()
-    call win_gotoid(self.state.winid)
-    quit
-    call win_gotoid(l:current_winid)
-  endif
+  try
+    let l:after = self.source.action(a:name, self)
+    if get(l:after, 'quit', v:true)
+      let l:current_winid = win_getid()
+      call win_gotoid(self.state.winid)
+      quit
+      call win_gotoid(l:current_winid)
+    endif
+  catch /.*/
+    echomsg v:exception
+  endtry
 endfunction
 
 "
@@ -337,7 +342,7 @@ endfunction
 " can_display_new_items
 "
 function! s:Context.can_display_new_items() abort
-  let l:has_enough_items = self.maxheight <= len(self.state.items)
+  let l:has_enough_items = self.option.maxheight <= len(self.state.items)
   let l:has_new_items = self.state.index + len(self.state.items) < self.state.filtered_total
   return !l:has_enough_items && l:has_new_items
 endfunction

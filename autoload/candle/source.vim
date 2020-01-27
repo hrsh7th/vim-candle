@@ -50,25 +50,34 @@ endfunction
 " action
 "
 function! s:Source.action(name, candle) abort
-  let l:actions = self.source.get_actions()
-  if !has_key(l:actions, a:name)
-    echomsg printf('No such action: `%s`', a:name)
-    return
+  let l:config = get(g:candle.source, self.source.name, {})
+  if !empty(l:config) && has_key(l:config, 'action') && has_key(l:config.action, a:name)
+    if type(l:config.action[a:name]) == type('')
+      let l:Action = get(self.source.get_actions(), a:name, {})
+    elseif type(l:config.action[a:name]) == type({ -> {} })
+      let l:Action = l:config.action[a:name]
+    endif
+  else
+    let l:Action = get(self.source.get_actions(), a:name, {})
   endif
 
-  let l:after = l:actions[a:name](a:candle)
+  if empty(l:Action)
+    throw printf('No such action: `%s`', a:name)
+  endif
+
+  let l:after = l:Action(a:candle)
   return empty(l:after) ? {} : l:after
 endfunction
 
 "
 " fetch
 "
-function! s:Source.fetch(params) abort
+function! s:Source.fetch(args) abort
   return self.server.request('fetch', {
   \   'id': self.id,
-  \   'query': a:params.query,
-  \   'index': a:params.index,
-  \   'count': a:params.count
+  \   'query': a:args.query,
+  \   'index': a:args.index,
+  \   'count': a:args.count
   \ })
 endfunction
 

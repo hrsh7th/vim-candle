@@ -29,11 +29,18 @@ function! candle#mapping#action(name) abort
 endfunction
 
 function! candle#mapping#input_open() abort
-  call candle#render#input#open(b:candle)
+  if has_key(b:, 'candle')
+    call candle#render#input#open(b:candle)
+  endif
 endfunction
 
 function! candle#mapping#input_close() abort
   if has_key(b:, 'candle')
+    let l:candle = b:candle
+    if &filetype ==# 'candle.input'
+      quit
+      call win_gotoid(l:candle.state.winid)
+    endif
   endif
 endfunction
 

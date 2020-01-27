@@ -7,14 +7,14 @@ function! candle#source#item#source#definition() abort
   return {
         \   'name': 'item',
         \   'script': s:dirname . '/source.go',
-        \   'get_options': { -> s:get_options() }
+        \   'get_actions': { -> s:get_actions() }
         \ }
 endfunction
 
 "
-" get_options
+" get_actions
 "
-function! s:get_options() abort
-  return []
+function! s:get_actions() abort
+  return {}
 endfunction
 

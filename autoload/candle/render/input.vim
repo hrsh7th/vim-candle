@@ -29,27 +29,10 @@ function! candle#render#input#open(candle) abort
     autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
   augroup END
 
-  inoremap <silent><buffer> <CR>  <Esc>:<C-u>call <SID>on_CR()<CR>
-  inoremap <silent><buffer> <Esc> <Esc>:<C-u>call <SID>on_ESC()<CR>
-  inoremap <silent><buffer> <C-y> <Esc>:<C-u>call <SID>on_ctrl_y()<CR>
-  inoremap <silent><buffer> <C-n> <Esc>:<C-u>call <SID>on_ctrl_n()<CR>a
-  inoremap <silent><buffer> <C-p> <Esc>:<C-u>call <SID>on_ctrl_p()<CR>a
-
   call setline('.', a:candle.state.query)
   call cursor([1, strlen(a:candle.state.query) + 1])
 
   doautocmd User candle#input#start
-endfunction
-
-"
-" on_buf_win_leave
-"
-function! s:on_buf_win_leave() abort
-  for l:winid in win_findbuf(bufnr(b:candle.bufname))
-    call win_gotoid(l:winid)
-    doautocmd BufEnter
-    break
-  endfor
 endfunction
 
 "
@@ -71,43 +54,13 @@ function! s:on_text_changed() abort
 endfunction
 
 "
-" on_CR
+" on_buf_win_leave
 "
-function! s:on_CR() abort
-  let l:candle = b:candle
-  quit
-  call win_gotoid(l:candle.state.winid)
+function! s:on_buf_win_leave() abort
+  for l:winid in win_findbuf(bufnr(b:candle.bufname))
+    call win_gotoid(l:winid)
+    doautocmd BufEnter
+    break
+  endfor
 endfunction
 
-"
-" on_ESC
-"
-function! s:on_ESC() abort
-  let l:candle = b:candle
-  quit
-  call win_gotoid(l:candle.state.winid)
-endfunction
-
-"
-" on_ctrl_y
-"
-function! s:on_ctrl_y() abort
-  let l:candle = b:candle
-  quit
-  call win_gotoid(l:candle.state.winid)
-  call candle#action('default')
-endfunction
-
-"
-" on_ctrl_n
-"
-function! s:on_ctrl_n() abort
-  call b:candle.down()
-endfunction
-
-"
-" on_ctrl_p
-"
-function! s:on_ctrl_p() abort
-  call b:candle.up()
-endfunction

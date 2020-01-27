@@ -1,5 +1,4 @@
 let s:Promise = vital#candle#import('Async.Promise')
-let s:OptionParser = vital#candle#import('OptionParser')
 let s:Server = candle#server#import()
 let s:Source = candle#source#import()
 let s:Context = candle#context#import()
@@ -29,13 +28,6 @@ function! candle#start(option) abort
   catch /.*/
     echomsg v:exception
   endtry
-endfunction
-
-"
-" candle#get_source
-"
-function! candle#get_source(name) abort
-  return get(s:state.sources, a:name, {})
 endfunction
 
 "
@@ -98,47 +90,24 @@ function! candle#echo(...) abort
 endfunction
 
 "
-" candle#get_option_parser
-"
-function! candle#get_option_parser() abort
-  let s:parser = s:OptionParser.new()
-  call s:parser.on('--source=VALUE', '', {
-  \   'required': 1,
-  \   'completion': { -> keys(s:state.sources) }
-  \ })
-  call s:parser.on('--layout', '', {
-  \   'completion': { -> ['floating', 'split', 'vsplit'] }
-  \ })
-  call s:parser.on('--filter', '', {
-  \   'completion': { -> ['fuzzy', 'substring', 'regexp'] }
-  \ })
-  call s:parser.on('--maxwidth', '', {})
-  call s:parser.on('--maxheight', '', {})
-  return s:parser
-endfunction
-
-"
 " context
 "
-function! s:context(args) abort
+function! s:context(option) abort
   let s:state.id += 1
 
-  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.8))
-  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
-  let a:args.layout = get(a:args, 'layout', 'split')
-  let a:args.filter = get(a:args, 'filter', 'substring')
+  let a:option.maxwidth = get(a:option, 'maxwidth', float2nr(&columns * 0.8))
+  let a:option.maxheight = get(a:option, 'maxheight', float2nr(&lines * 0.2))
+  let a:option.layout = get(a:option, 'layout', 'split')
+  let a:option.filter = get(a:option, 'filter', 'substring')
+  let a:option.start_input = get(a:option, 'start_input', v:false)
 
-  let l:source = s:state.sources[a:args.source]
-  if has_key(l:source, 'on_before_start')
-    call l:source.on_before_start(a:args)
-  endif
-
-  let l:context = copy(a:args)
+  let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.id)
+  let l:context.option = copy(a:option)
   let l:context.source = s:Source.new(
         \   s:Server.new(),
-        \   s:state.sources[a:args.source],
-        \   a:args
+        \   s:state.sources[a:option.source],
+        \   get(a:option, 'params')
         \ )
 
   return l:context

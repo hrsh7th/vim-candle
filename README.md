@@ -24,7 +24,7 @@ nnoremap <silent>files :<C-u>call candle#start({
 \   'source': 'files',
 \   'layout': 'split',
 \   'root-path': 'path to root dir',
-\   'ignore-globs': locon#get('ignore_globs')
+\   'ignore-globs': ['.git/', 'node_modules']
 \ })<CR>
 nnoremap <silent>mru :<C-u>call candle#start({
 \   'source': 'mru_file',

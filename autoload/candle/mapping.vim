@@ -22,6 +22,18 @@ function! candle#mapping#cursor_bottom() abort
   endif
 endfunction
 
+function! candle#mapping#toggle_select() abort
+  if has_key(b:, 'candle')
+    call b:candle.toggle_select()
+  endif
+endfunction
+
+function! candle#mapping#toggle_select_all() abort
+  if has_key(b:, 'candle')
+    call b:candle.toggle_select_all()
+  endif
+endfunction
+
 function! candle#mapping#action(name) abort
   if has_key(b:, 'candle')
     call b:candle.action(a:name)

@@ -55,12 +55,9 @@ endfunction
 " start
 "
 function! s:Context.start() abort
-  call candle#sync(self.source.start({ n -> self.on_notification(n) }))
-
-  " NOTE: This sleep is needed to reduce flicking when open first window.
-  if g:candle.global.start_delay > 0
-    execute printf('sleep %sm', g:candle.global.start_delay)
-  endif
+  call self.source.start({ n -> self.on_notification(n) })
+  call candle#sync({ -> self.is_retrieved() })
+  call self.refresh()
 endfunction
 
 "
@@ -141,7 +138,7 @@ function! s:Context.action(name) abort
       call win_gotoid(l:current_winid)
     endif
   catch /.*/
-    echomsg v:exception
+    call candle#on_exception()
   endtry
 endfunction
 
@@ -309,7 +306,7 @@ function! s:Context.refresh(...) abort
       try
         call candle#sync(l:promise)
       catch /.*/
-        call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+        call candle#on_exception()
       endtry
     endif
   else
@@ -345,5 +342,12 @@ function! s:Context.can_display_new_items() abort
   let l:has_enough_items = self.option.maxheight <= len(self.state.items)
   let l:has_new_items = self.state.index + len(self.state.items) < self.state.filtered_total
   return !l:has_enough_items && l:has_new_items
+endfunction
+
+"
+" is_retrieved
+"
+function! s:Context.is_retrieved() abort
+  return self.state.status ==# 'done' || len(self.state.total) >= self.option.maxheight
 endfunction
 

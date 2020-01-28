@@ -13,21 +13,21 @@ endfunction
 " edit
 "
 function! s:edit(candle) abort
-  call s:open(a:candle, 'edit')
+  return s:open(a:candle, 'edit')
 endfunction
 
 "
 " split
 "
 function! s:split(candle) abort
-  call s:open(a:candle, 'split')
+  return s:open(a:candle, 'split')
 endfunction
 
 "
 " vsplit
 "
 function! s:vsplit(candle) abort
-  call s:open(a:candle, 'vsplit')
+  return s:open(a:candle, 'vsplit')
 endfunction
 
 "
@@ -45,5 +45,10 @@ function! s:open(candle, command) abort
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', col('.'))])
   endif
+
+  return {
+  \   'quit': v:true
+  \ }
 endfunction
+
 

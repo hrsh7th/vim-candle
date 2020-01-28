@@ -26,7 +26,7 @@ function! candle#start(option) abort
     call candle#log('[START]', string(a:option))
     call s:Context.new(s:context(a:option)).start()
   catch /.*/
-    echomsg v:exception
+    call candle#on_exception()
   endtry
 endfunction
 
@@ -44,12 +44,12 @@ endfunction
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort
-  let l:timeout = get(a:000, 0, 500)
+  let l:timeout = get(a:000, 0, 1000)
   let l:start = reltime()
   while v:true
-    if type(a:promise_or_fn) == v:t_func && a:promise_or_fn()
+    if type(a:promise_or_fn) == type({ -> {} }) && a:promise_or_fn()
       return
-    elseif has_key(a:promise_or_fn, '_vital_promise')
+    elseif type(a:promise_or_fn) == type({}) && has_key(a:promise_or_fn, '_vital_promise')
       if a:promise_or_fn._state == 1
         return a:promise_or_fn._result
       elseif a:promise_or_fn._state == 2
@@ -72,6 +72,13 @@ function! candle#log(...) abort
   if g:candle.debug
     call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
   endif
+endfunction
+
+"
+" candle#on_exception
+"
+function! candle#on_exception() abort
+  call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
 endfunction
 
 "

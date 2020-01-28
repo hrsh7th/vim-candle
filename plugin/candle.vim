@@ -9,7 +9,6 @@ let g:loaded_candle = v:true
 let g:candle = get(g:, 'candle', {})
 let g:candle.debug = get(g:candle, 'debug', v:false)
 let g:candle.global = get(g:candle, 'global', {})
-let g:candle.global.start_delay = get(g:candle.global, 'start_delay', 20)
 let g:candle.source = get(g:candle, 'source', {})
 
 "

@@ -51,13 +51,14 @@ nnoremap <silent>grep :<C-u>call candle#start({
 autocmd vimrc User candle#initialize call s:on_candle_initialize()
 function! s:on_candle_initialize()
   let g:candle.debug = '/tmp/candle.log'
-  let g:candle.global.start_delay = 20
 endfunction
 
 autocmd vimrc User candle#start call s:on_candle_start()
 function! s:on_candle_start()
-  nnoremap <silent><buffer> k    :<C-u>call candle#mapping#cursor_up()<CR>
-  nnoremap <silent><buffer> j    :<C-u>call candle#mapping#cursor_down()<CR>
+  nnoremap <silent><buffer> k    :<C-u>call candle#mapping#cursor_move(-1)<CR>
+  nnoremap <silent><buffer> j    :<C-u>call candle#mapping#cursor_move(1)<CR>
+  nnoremap <silent><buffer> K    :<C-u>call candle#mapping#cursor_move(-10)<CR>
+  nnoremap <silent><buffer> J    :<C-u>call candle#mapping#cursor_move(10)<CR>
   nnoremap <silent><buffer> gg   :<C-u>call candle#mapping#cursor_top()<CR>
   nnoremap <silent><buffer> G    :<C-u>call candle#mapping#cursor_bottom()<CR>
   nnoremap <silent><buffer> i    :<C-u>call candle#mapping#input_open()<CR>
@@ -73,8 +74,8 @@ function! s:on_candle_input_start()
   inoremap <silent><buffer> <CR> <Esc>:<C-u>call candle#mapping#input_close()<CR>
   inoremap <silent><buffer> <Esc> <Esc>:<C-u>call candle#mapping#input_close()<CR>
   inoremap <silent><buffer> <C-y> <Esc>:<C-u>call candle#mapping#action('default')<CR>
-  inoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_up()<CR>
-  inoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_down()<CR>
+  inoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(1)<CR>
+  inoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(-1)<CR>
 endfunction
 ```
 

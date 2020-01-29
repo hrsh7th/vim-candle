@@ -44,25 +44,35 @@ endfunction
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort
-  let l:timeout = get(a:000, 0, 1000)
-  let l:start = reltime()
-  while v:true
-    if type(a:promise_or_fn) == type({ -> {} }) && a:promise_or_fn()
-      return
-    elseif type(a:promise_or_fn) == type({}) && has_key(a:promise_or_fn, '_vital_promise')
+  let l:timeout = get(a:000, 0, lamp#config('global.timeout'))
+  let l:reltime = reltime()
+
+  if type(a:promise_or_fn) == type({ -> {} })
+    while v:true
+      if  a:promise_or_fn()
+        return
+      endif
+
+      if l:timeout != -1 && reltimefloat(reltime(l:reltime)) * 1000 > l:timeout
+        throw 'candle#sync: timeout'
+      endif
+      sleep 1m
+    endwhile
+  elseif type(a:promise_or_fn) == type({}) && has_key(a:promise_or_fn, '_vital_promise')
+    while v:true
       if a:promise_or_fn._state == 1
         return a:promise_or_fn._result
       elseif a:promise_or_fn._state == 2
         throw json_encode(a:promise_or_fn._result)
       endif
-    endif
 
-    sleep 1m
+      if l:timeout != -1 && reltimefloat(reltime(l:reltime)) * 1000 > l:timeout
+        throw 'candle#sync: timeout'
+      endif
 
-    if l:timeout != -1 && reltimefloat(reltime(l:start)) * 1000 > l:timeout
-      throw 'candle#sync: timeout'
-    endif
-  endwhile
+      sleep 1m
+    endwhile
+  endif
 endfunction
 
 "

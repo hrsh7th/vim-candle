@@ -23,7 +23,8 @@ endfunction
 "
 function! s:get_script_params(params) abort
   return {
-  \   'filepath': get(a:params, 'filepath', g:candle#source#mru_file#filepath)
+  \   'filepath': get(a:params, 'filepath', g:candle#source#mru_file#filepath),
+  \   'ignore_patterns': get(a:params, 'ignore_patterns', []),
   \ }
 endfunction
 

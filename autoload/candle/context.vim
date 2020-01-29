@@ -56,7 +56,10 @@ endfunction
 "
 function! s:Context.start() abort
   call self.source.start({ n -> self.on_notification(n) })
-  call candle#sync({ -> self.is_retrieved() })
+  try
+    call candle#sync({ -> self.is_retrieved() }, 100)
+  catch /.*/
+  endtry
   call self.refresh()
 endfunction
 
@@ -72,18 +75,7 @@ endfunction
 "
 function! s:Context.on_notification(notification) abort
   if a:notification.method ==# 'start'
-    if self.state.winid == -1
-      let self.state.prev_winid = win_getid()
-      call candle#render#window#initialize(self)
-      call candle#render#autocmd#initialize(self)
-      let self.state.winid = win_getid()
-
-      doautocmd User candle#start
-
-      if self.option.start_input
-        call candle#render#input#open(self)
-      endif
-    endif
+    call self.refresh({ 'async': v:true })
 
   elseif a:notification.method ==# 'progress'
     let self.state.total = a:notification.params.total
@@ -175,38 +167,30 @@ function! s:Context.toggle_select() abort
   else
     let self.state.selected_ids += [l:item.id]
   endif
-  call self.down()
+  call self.move_cursor(1)
   call self.refresh()
 endfunction
 
 "
-" up
+" move_cursor
 "
-function! s:Context.up() abort
-  if self.state.cursor == 1
-    let self.state.index = max([0, self.state.index - 1])
-  else
-    if win_getid() == self.state.winid
-      normal! k
-    endif
-    let self.state.cursor -= 1
-  endif
-  call self.refresh()
-endfunction
-
-"
-" down
-"
-function! s:Context.down() abort
+function! s:Context.move_cursor(offset) abort
   let l:winheight = winheight(win_id2win(self.state.winid))
-  if l:winheight == self.state.cursor
-    let self.state.index = min([self.state.filtered_total - l:winheight, self.state.index + 1])
+
+  let l:index = self.state.index
+  let l:cursor = self.state.cursor + a:offset
+  if l:cursor > l:winheight
+    let l:index = min([self.state.filtered_total - l:winheight, l:index + l:cursor - l:winheight])
+    let l:cursor = l:winheight
+  elseif l:cursor < 1
+    let l:index = max([0, l:index + l:cursor - 1])
+    let l:cursor = 1
   else
-    if win_getid() == self.state.winid
-      normal! j
-    endif
-    let self.state.cursor += 1
+    call cursor(l:cursor, col('.'))
   endif
+
+  let self.state.index = l:index
+  let self.state.cursor = l:cursor
   call self.refresh()
 endfunction
 
@@ -279,6 +263,20 @@ endfunction
 "
 function! s:Context.refresh(...) abort
   let l:option = extend({ 'async': v:false }, get(a:000, 0, {}))
+
+  " initialize window
+  if self.state.winid == -1
+    let self.state.prev_winid = win_getid()
+    call candle#render#window#initialize(self)
+    call candle#render#autocmd#initialize(self)
+    let self.state.winid = win_getid()
+
+    doautocmd User candle#start
+
+    if self.option.start_input
+      call candle#render#input#open(self)
+    endif
+  endif
 
   " update statusline
   call candle#render#statusline#initialize(self)

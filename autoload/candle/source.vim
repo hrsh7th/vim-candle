@@ -18,6 +18,7 @@ function! s:Source.new(server, source, params) abort
   let s:source_id += 1
   return extend(deepcopy(s:Source), {
         \   'id': string(s:source_id),
+        \   'name': a:source.name,
         \   'source': a:source,
         \   'params': a:params,
         \   'server': a:server,

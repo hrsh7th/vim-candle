@@ -21,6 +21,11 @@ func Start(process *candle.Process) {
 		return
 	}
 
+	ignorePatterns := make([]string, 0)
+	for i := 0; i < process.Len([]string{"ignore_patterns"}); i++ {
+		ignorePatterns = append(ignorePatterns, process.GetString([]string{"ignore_patterns", strconv.Itoa(i)}))
+	}
+
 	go func() {
 		process.NotifyStart()
 
@@ -29,6 +34,8 @@ func Start(process *candle.Process) {
 			return
 		}
 		defer file.Close()
+
+		ignoreMatcher := process.NewIgnoreMatcher(ignorePatterns)
 
 		// get file lines
 		var paths []string = make([]string, 0)
@@ -48,6 +55,10 @@ func Start(process *candle.Process) {
 		reversed := reverse(paths)
 		uniqued := unique(reversed)
 		for i, path := range uniqued {
+			// skip if ignore patterns matches.
+			if ignoreMatcher(path, true) {
+				continue
+			}
 			process.AddItem(toItem(i, path))
 		}
 

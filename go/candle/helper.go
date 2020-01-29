@@ -14,15 +14,12 @@ import (
 /**
  * Walk
  */
-func (process *Process) Walk(root string, patterns []string) chan string {
+func (process *Process) Walk(root string, callback func(pathname string, fi os.FileInfo) bool) chan string {
 	ch := make(chan string, 0)
-
-	reader := strings.NewReader(strings.Join(patterns, "\n"))
-	gitignore := gitignore.NewGitIgnoreFromReader("/", reader)
 
 	go func() {
 		walker.Walk(root, func(pathname string, fi os.FileInfo) error {
-			if gitignore.Match(pathname, fi.IsDir()) {
+			if !callback(pathname, fi) {
 				if fi.IsDir() {
 					return filepath.SkipDir
 				} else {
@@ -37,6 +34,15 @@ func (process *Process) Walk(root string, patterns []string) chan string {
 		close(ch)
 	}()
 	return ch
+}
+
+/**
+ * NewGitIgnore
+ */
+func (process *Process) NewIgnoreMatcher(patterns []string) func(pathname string, isDir bool) bool {
+	reader := strings.NewReader(strings.Join(patterns, "\n"))
+	gitignore := gitignore.NewGitIgnoreFromReader("/", reader)
+	return gitignore.Match
 }
 
 /**

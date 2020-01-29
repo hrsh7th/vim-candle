@@ -1,12 +1,6 @@
-function! candle#mapping#cursor_up() abort
+function! candle#mapping#cursor_move(offset) abort
   if has_key(b:, 'candle')
-    call b:candle.up()
-  endif
-endfunction
-
-function! candle#mapping#cursor_down() abort
-  if has_key(b:, 'candle')
-    call b:candle.down()
+    call b:candle.move_cursor(a:offset)
   endif
 endfunction
 
@@ -50,6 +44,7 @@ function! candle#mapping#input_close() abort
   if has_key(b:, 'candle')
     let l:candle = b:candle
     if &filetype ==# 'candle.input'
+      stopinsert
       quit
       call win_gotoid(l:candle.state.winid)
     endif

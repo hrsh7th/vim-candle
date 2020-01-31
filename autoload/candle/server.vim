@@ -77,27 +77,8 @@ function! s:command() abort
     return [printf('%s/bin/candle/candle-server', s:root_dir)]
   endif
 
-  " Pre built binary.
-  let l:cmd = printf('%s/bin/candle/%s/', s:root_dir, candle#version())
+  call candle#install#do()
 
-  if has('linux')
-    if trim(system('uname -m')) ==# 'x86_64'
-      return [l:cmd . 'candle-server_linux_amd64']
-    else
-      return [l:cmd . 'candle-server_linux_386']
-    endif
-  elseif has('mac')
-    if trim(system('uname -m')) ==# 'x86_64'
-      return [l:cmd . 'candle-server_darwin_amd64']
-    else
-      return [l:cmd . 'candle-server_darwin_386']
-    endif
-  elseif has('win32')
-    " TODO
-  elseif has('win64')
-    " TODO
-  endif
-
-  throw 'Can''t detect suitable binary.'
+  return [candle#install#get_binary_path()]
 endfunction
 

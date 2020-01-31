@@ -34,6 +34,22 @@ function! candle#start(option) abort
 endfunction
 
 "
+" candle#version
+"
+function! candle#version() abort
+  if strlen(s:state.version) > 0
+    return s:state.version
+  endif
+
+  try
+    let l:package_json = json_decode(join(readfile(resolve(s:root_dir . '/package.json')), ''))
+    let s:state.version = l:package_json.version
+  catch /.*/
+  endtry
+  return s:state.version
+endfunction
+
+"
 " candle#action
 "
 function! candle#action(name) abort
@@ -88,18 +104,11 @@ function! candle#log(...) abort
 endfunction
 
 "
-" candle#on_exception
-"
-function! candle#on_exception() abort
-  call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
-endfunction
-
-"
 " candle#echo
 "
 function! candle#echo(...) abort
   for l:msg in a:000
-    let l:msg = string(l:msg)
+    let l:msg = type(l:msg) != type('') ? string(l:msg) : l:msg
     let l:msg = substitute(l:msg, "\r\n", "\n", 'g')
     let l:msg = substitute(l:msg, "\r", "\n", 'g')
     for l:line in split(string(l:msg), "\n")
@@ -110,19 +119,27 @@ function! candle#echo(...) abort
 endfunction
 
 "
-" candle#version
+" candle#on_exception
 "
-function! candle#version() abort
-  if strlen(s:state.version) > 0
-    return s:state.version
+function! candle#on_exception() abort
+  if g:candle.debug
+    call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  else
+    call candle#echo(v:exception)
   endif
+endfunction
 
-  try
-    let l:package_json = json_decode(join(readfile(resolve(s:root_dir . '/package.json')), ''))
-    let s:state.version = l:package_json.version
-  catch /.*/
-  endtry
-  return s:state.version
+"
+" candle#yesno
+"
+function! candle#yesno(prompt) abort
+  let l:prompt = type(a:prompt) == type([]) ? join(a:prompt, "\n") : a:prompt
+  if index(['y', 'ye', 'yes'], input(l:prompt . "\ny[es]: ")) >= 0
+    echo "\n"
+    return v:true
+  endif
+    echo "\n"
+  return v:false
 endfunction
 
 "

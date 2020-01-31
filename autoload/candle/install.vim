@@ -1,4 +1,4 @@
-let s:root_dir = expand('<sfile>:p:h:h')
+let s:root_dir = expand('<sfile>:p:h:h:h')
 
 let s:download_path = 'https://github.com/hrsh7th/vim-candle/releases/download/%s/candle-server_%s_%s'
 
@@ -23,7 +23,7 @@ function! candle#install#get_download_path() abort
   \   candle#version(),
   \   l:platform.os,
   \   l:platform.arch
-  \ )
+  \ ) . (l:platform.os ==# 'windows' ? '.exe' : '')
 endfunction
 
 "
@@ -36,7 +36,7 @@ function! candle#install#get_binary_path() abort
   \   l:platform.os,
   \   l:platform.arch,
   \   candle#version(),
-  \ )
+  \ ) . (l:platform.os ==# 'windows' ? '.exe' : '')
 endfunction
 
 "
@@ -53,7 +53,7 @@ function! candle#install#get_platform() abort
   elseif has('mac')
     let l:os = 'darwin'
     if trim(system('uname -m')) ==# 'x86_64'
-      let l:arch = 'adm64'
+      let l:arch = 'amd64'
     else
       let l:arch = '386'
     endif
@@ -74,16 +74,39 @@ endfunction
 "
 " download
 "
-function! s:download(uri, path) abort
-  if executable('curl')
-    call system('curl %s > %s', shellescape(a:uri), shellescape(a:path))
+function! s:download(download_path, binary_path) abort
+  if !candle#yesno(['You have no binary.', 'Download?'])
+    throw '[CANDLE] Cancel.'
   endif
-  if executable('wget')
-    call system('wget %s > %s', shellescape(a:uri), shellescape(a:path))
+
+  call mkdir(fnamemodify(a:binary_path, ':p:h'), 'p')
+
+  if executable('curl')
+    echomsg printf('[CANDLE] Downloading binary from %s (using curl)', a:download_path)
+    echomsg system(printf('curl -L %s > %s', shellescape(a:download_path), shellescape(a:binary_path)))
+  elseif executable('wget')
+    echomsg printf('[CANDLE] Downloading binary from %s (using wget)', a:download_path)
+    echomsg system(printf('wget -O - %s > %s', shellescape(a:download_path), shellescape(a:binary_path)))
+  elseif has('win32') || has('win64')
+    try
+      let l:saved_shell = &shell
+      let l:saved_shellcmdflag = &shellcmdflag
+      set shell=powershell
+      set shellcmdflag=-c
+      echomsg printf('[CANDLE] Downloading binary from %s (using powershell)', a:download_path)
+      echomsg system(printf('iwr -outf %s %s', shellescape(a:binary_path), shellescape(a:download_path)))
+    finally
+      let &shell = l:saved_shell
+      let &shellcmdflag = l:saved_shellcmdflag
+    endtry
   endif
 
   if executable('chmod')
-    call system('chmod 700 %s', shellescape(a:path))
+    echomsg system(printf('chmod 700 %s', shellescape(a:binary_path)))
+  endif
+
+  if !filereadable(a:binary_path)
+    throw '[CANDLE] Can''t download binary. Please create new issue.'
   endif
 endfunction
 

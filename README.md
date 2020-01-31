@@ -15,10 +15,6 @@ You can create a custom source with golang.
 # Requirements
 
 - latest vim or latest nvim
-- candle server binary (Currently, binary should create by yourself)
-  - git clone git@github.com:hrsh7th/vim-candle /path/to/suitable/gopath
-  - cd /path/to/suitable/gopath
-  - cd ./go && go build && mv ./go ../bin/candle
 
 
 
@@ -95,5 +91,5 @@ No need neovim-rpc.
 
 
 ### Works any platforms
-Provide binary and auto-installer (in the future).
+Provide binary and auto-install
 

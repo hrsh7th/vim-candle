@@ -51,14 +51,21 @@ endfunction
 " action
 "
 function! s:Source.action(name, candle) abort
-  let l:config = get(g:candle.source, self.source.name, {})
+  let l:config = get(g:candle.source, self.name, {})
+
+  " override by global-config.
   if !empty(l:config) && has_key(l:config, 'action') && has_key(l:config.action, a:name)
+
+    " Redirect action.
     if type(l:config.action[a:name]) == type('')
       let l:Action = get(self.source.get_actions(), a:name, {})
+
+    " Function action.
     elseif type(l:config.action[a:name]) == type({ -> {} })
       let l:Action = l:config.action[a:name]
     endif
   else
+    " Source action.
     let l:Action = get(self.source.get_actions(), a:name, {})
   endif
 

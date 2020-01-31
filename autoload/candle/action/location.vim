@@ -35,26 +35,33 @@ endfunction
 " delete
 "
 function! s:delete(candle) abort
-  let l:item = a:candle.get_cursor_item()
-  if empty(l:item)
-    echomsg 'cursor item can''t detected'
-    return
+  let l:items = a:candle.get_action_items()
+  if empty(l:items)
+    throw 'Delete target is empty.'
   endif
 
-  echomsg printf('Delete: %s', l:item.path)
-  if index(['y', 'ye', 'yes'], input('y[es] > ')) >= 0
-    call delete(l:item.path)
+  let l:msgs = ['Following files will be deleted.']
+  for l:item in l:items
+    let l:msgs += ['  ' . l:item.path]
+  endfor
+
+  if candle#yesno(l:msgs)
+    for l:item in l:items
+      call delete(l:item.path)
+    endfor
+    return {
+    \   'restart': v:true,
+    \ }
+  else
+    throw 'Cancel.'
   endif
-  return {
-  \   'restart': v:true,
-  \ }
 endfunction
 
 "
 " open
 "
 function! s:open(candle, command) abort
-  let l:item = a:candle.get_cursor_item()
+  let l:item = get(a:candle.get_action_items(), 0, {})
   if empty(l:item)
     echomsg 'cursor item can''t detected'
     return

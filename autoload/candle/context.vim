@@ -49,6 +49,8 @@ function! s:Context.start() abort
   let self.state.status = 'progress'
   let self.state.total = 0
   let self.state.filtered_total = 0
+  let self.state.selected_ids = []
+  let self.state.is_selected_all = v:false
   let self.state.items = []
 
   try
@@ -232,13 +234,6 @@ function! s:Context.state_changed(names) abort
 endfunction
 
 "
-" flush
-"
-function! s:Context.flush() abort
-  let self.prev_state = copy(self.state)
-endfunction
-
-"
 " get_cursor_item
 "
 function! s:Context.get_cursor_item() abort
@@ -246,13 +241,22 @@ function! s:Context.get_cursor_item() abort
 endfunction
 
 "
-" get_selected_items
+" get_action_items
 "
-function! s:Context.get_selected_items() abort
-  if self.state.is_select_all
+function! s:Context.get_action_items() abort
+  if self.state.is_selected_all
     return candle#sync(self.fetch_all()).items
   endif
-  return filter(copy(self.state.items), { _, item -> index(self.selects, item.id) >= 0 })
+
+  if len(self.state.selected_ids) == 0
+    let l:item = self.get_cursor_item()
+    if empty(l:item)
+      return []
+    endif
+    return [l:item]
+  endif
+
+  return filter(copy(self.state.items), { _, item -> index(self.state.selected_ids, item.id) >= 0 })
 endfunction
 
 "

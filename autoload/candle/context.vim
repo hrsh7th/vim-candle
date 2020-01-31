@@ -1,3 +1,17 @@
+let s:initial_state = {
+\     'winid': -1,
+\     'prev_winid': -1,
+\     'total': 0,
+\     'filtered_total': 0,
+\     'items': [],
+\     'query': '',
+\     'index': 0,
+\     'cursor': 1,
+\     'selected_ids': [],
+\     'status': 'progress',
+\     'is_selected_all': v:false,
+\ }
+
 "
 " candle#context#import
 "
@@ -15,32 +29,8 @@ function! s:Context.new(context) abort
   let l:candle = extend(l:candle, a:context)
   let l:candle = extend(l:candle, {
         \   'request_id': 0,
-        \   'state': {
-        \     'winid': -1,
-        \     'prev_winid': -1,
-        \     'total': 0,
-        \     'filtered_total': 0,
-        \     'items': [],
-        \     'query': '',
-        \     'index': 0,
-        \     'cursor': 1,
-        \     'selected_ids': [],
-        \     'status': 'progress',
-        \     'is_selected_all': v:false,
-        \   },
-        \   'prev_state': {
-        \     'winid': -1,
-        \     'prev_winid': -1,
-        \     'total': 0,
-        \     'filtered_total': 0,
-        \     'items': [],
-        \     'query': '',
-        \     'index': -1,
-        \     'cursor': -1,
-        \     'selected_ids': [],
-        \     'status': 'progress',
-        \     'is_selected_all': v:false,
-        \   }
+        \   'state': deepcopy(s:initial_state),
+        \   'prev_state': deepcopy(s:initial_state),
         \ })
   call bufnr(a:context.bufname, v:true)
   call setbufvar(a:context.bufname, 'candle', l:candle)
@@ -56,8 +46,13 @@ endfunction
 "
 function! s:Context.start() abort
   call self.source.start({ n -> self.on_notification(n) })
+  let self.state.status = 'progress'
+  let self.state.total = 0
+  let self.state.filtered_total = 0
+  let self.state.items = []
+
   try
-    call candle#sync({ -> self.is_retrieved() }, 100)
+    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 100)
   catch /.*/
   endtry
   call self.refresh()
@@ -123,7 +118,9 @@ endfunction
 function! s:Context.action(name) abort
   try
     let l:after = self.source.action(a:name, self)
-    if get(l:after, 'quit', v:true)
+    if get(l:after, 'restart', v:false)
+      call self.start()
+    elseif get(l:after, 'quit', v:true)
       let l:current_winid = win_getid()
       call win_gotoid(self.state.winid)
       quit
@@ -340,12 +337,5 @@ function! s:Context.can_display_new_items() abort
   let l:has_enough_items = self.option.maxheight <= len(self.state.items)
   let l:has_new_items = self.state.index + len(self.state.items) < self.state.filtered_total
   return !l:has_enough_items && l:has_new_items
-endfunction
-
-"
-" is_retrieved
-"
-function! s:Context.is_retrieved() abort
-  return self.state.status ==# 'done' || len(self.state.total) >= self.option.maxheight
 endfunction
 

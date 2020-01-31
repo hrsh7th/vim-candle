@@ -3,10 +3,13 @@ let s:Server = candle#server#import()
 let s:Source = candle#source#import()
 let s:Context = candle#context#import()
 
+let s:root_dir = expand('<sfile>:p:h:h')
+
 let s:state = {
-      \   'id': -1,
-      \   'sources': {},
-      \ }
+\   'version': '',
+\   'session_id': -1,
+\   'sources': {},
+\ }
 
 call s:Promise.on_unhandled_rejection({ err -> candle#log('[ERROR]', err) })
 
@@ -107,10 +110,26 @@ function! candle#echo(...) abort
 endfunction
 
 "
+" candle#version
+"
+function! candle#version() abort
+  if strlen(s:state.version) > 0
+    return s:state.version
+  endif
+
+  try
+    let l:package_json = json_decode(join(readfile(resolve(s:root_dir . '/package.json')), ''))
+    let s:state.version = l:package_json.version
+  catch /.*/
+  endtry
+  return s:state.version
+endfunction
+
+"
 " context
 "
 function! s:context(option) abort
-  let s:state.id += 1
+  let s:state.session_id += 1
 
   let a:option.maxwidth = get(a:option, 'maxwidth', float2nr(&columns * 0.8))
   let a:option.maxheight = get(a:option, 'maxheight', float2nr(&lines * 0.2))
@@ -119,7 +138,7 @@ function! s:context(option) abort
   let a:option.start_input = get(a:option, 'start_input', v:false)
 
   let l:context = {}
-  let l:context.bufname = printf('candle-%s', s:state.id)
+  let l:context.bufname = printf('candle-%s', s:state.session_id)
   let l:context.option = copy(a:option)
   let l:context.source = s:Source.new(
         \   s:Server.new(),

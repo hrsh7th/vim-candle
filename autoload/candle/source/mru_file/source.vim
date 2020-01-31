@@ -53,6 +53,9 @@ function! s:on_touch() abort
   if empty(g:candle#source#mru_file#filepath)
     return
   endif
+  if &buftype !=# ''
+    return
+  endif
 
   let l:filepath = fnamemodify(bufname('%'), ':p')
 

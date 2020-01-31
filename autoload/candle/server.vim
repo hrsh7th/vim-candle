@@ -1,6 +1,7 @@
 let s:Promise = vital#candle#import('Async.Promise')
 let s:Channel = candle#server#channel#import()
-let s:dirname = expand('<sfile>:p:h')
+
+let s:root_dir= expand('<sfile>:p:h:h:h')
 
 "
 " candle#server#import
@@ -71,6 +72,32 @@ endfunction
 " command
 "
 function! s:command() abort
-  return [resolve(printf('%s/../../bin/candle', s:dirname))]
+  " Manual built binary.
+  if filereadable(printf('%s/bin/candle/candle-server', s:root_dir))
+    return [printf('%s/bin/candle/candle-server', s:root_dir)]
+  endif
+
+  " Pre built binary.
+  let l:cmd = printf('%s/bin/candle/%s/', s:root_dir, candle#version())
+
+  if has('linux')
+    if trim(system('uname -m')) ==# 'x86_64'
+      return [l:cmd . 'candle-server_linux_amd64']
+    else
+      return [l:cmd . 'candle-server_linux_386']
+    endif
+  elseif has('mac')
+    if trim(system('uname -m')) ==# 'x86_64'
+      return [l:cmd . 'candle-server_darwin_amd64']
+    else
+      return [l:cmd . 'candle-server_darwin_386']
+    endif
+  elseif has('win32')
+    " TODO
+  elseif has('win64')
+    " TODO
+  endif
+
+  throw 'Can''t detect suitable binary.'
 endfunction
 

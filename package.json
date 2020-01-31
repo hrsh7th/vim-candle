@@ -1,11 +1,10 @@
 {
   "name": "vim-candle",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "This plugin created to learn golang.",
-  "main": "index.js",
   "scripts": {
     "watch": "chokidar '**/*.go' -c 'npm run build'",
-    "build": "cd ./go && go build && mv ./go ../bin/candle"
+    "build": "cd ./go && go build -ldflags '-s -w' && mkdir -p ../bin/candle && mv ./go ../bin/candle/candle-server"
   },
   "repository": {
     "type": "git",

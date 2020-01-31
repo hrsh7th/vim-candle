@@ -6,6 +6,7 @@ function! candle#action#location#get() abort
   \   'edit': function('s:edit'),
   \   'split': function('s:split'),
   \   'vsplit': function('s:vsplit'),
+  \   'delete': function('s:delete'),
   \ }
 endfunction
 
@@ -28,6 +29,25 @@ endfunction
 "
 function! s:vsplit(candle) abort
   return s:open(a:candle, 'vsplit')
+endfunction
+
+"
+" delete
+"
+function! s:delete(candle) abort
+  let l:item = a:candle.get_cursor_item()
+  if empty(l:item)
+    echomsg 'cursor item can''t detected'
+    return
+  endif
+
+  echomsg printf('Delete: %s', l:item.path)
+  if index(['y', 'ye', 'yes'], input('y[es] > ')) >= 0
+    call delete(l:item.path)
+  endif
+  return {
+  \   'restart': v:true,
+  \ }
 endfunction
 
 "

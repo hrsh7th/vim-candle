@@ -21,9 +21,8 @@ type Process struct {
 	lastProgressTime int64
 	allItems         []Item
 	filteredItems    []Item
-	id               string
-	script           string
-	params           map[string]interface{}
+	path             string
+	args             map[string]interface{}
 	interp           *interp.Interpreter
 }
 
@@ -46,11 +45,10 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*P
  * Start
  */
 func (process *Process) Start(params StartRequest) (StartResponse, error) {
-	process.id = params.Id
-	process.script = params.Script
-	process.params = params.Params
+	process.path = params.Path
+	process.args = params.Args
 
-	source, err := ioutil.ReadFile(process.script)
+	source, err := ioutil.ReadFile(process.path)
 	if err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, err
@@ -106,7 +104,6 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
 	}
 
 	return FetchResponse{
-		Id:            params.Id,
 		Items:         slice(process.filteredItems, params.Index, params.Index+params.Count),
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
@@ -118,7 +115,6 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
  */
 func (process *Process) NotifyStart() {
 	process.conn.Notify(context.Background(), "start", &ProgressMessage{
-		Id:            process.id,
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
 	})
@@ -129,7 +125,6 @@ func (process *Process) NotifyStart() {
  */
 func (process *Process) NotifyProgress() {
 	process.conn.Notify(context.Background(), "progress", &ProgressMessage{
-		Id:            process.id,
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
 	})
@@ -140,7 +135,6 @@ func (process *Process) NotifyProgress() {
  */
 func (process *Process) NotifyDone() {
 	process.conn.Notify(context.Background(), "done", &DoneMessage{
-		Id:            process.id,
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
 	})
@@ -151,7 +145,6 @@ func (process *Process) NotifyDone() {
  */
 func (process *Process) NotifyMessage(message string) {
 	process.conn.Notify(context.Background(), "message", &MessageMessage{
-		Id:      process.id,
 		Message: message,
 	})
 }
@@ -194,7 +187,7 @@ func (process *Process) filteredTotal() int {
  * filter
  */
 func (process *Process) filter(query string, items []Item) []Item {
-	switch process.params["filter"] {
+	switch process.args["filter"] {
 	case "fuzzy":
 		items = process.fuzzy(query, items)
 	case "regexp":

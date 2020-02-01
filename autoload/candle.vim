@@ -23,11 +23,11 @@ endfunction
 "
 " candle#start
 "
-function! candle#start(option) abort
+function! candle#start(args) abort
   try
     call candle#log('')
-    call candle#log('[START]', string(a:option))
-    call s:Context.new(s:context(a:option)).start()
+    call candle#log('[START]', string(a:args))
+    call s:Context.new(s:context(a:args)).start()
   catch /.*/
     call candle#on_exception()
   endtry
@@ -98,7 +98,7 @@ endfunction
 " candle#log
 "
 function! candle#log(...) abort
-  if g:candle.debug
+  if strlen(get(g:candle, 'debug', '')) > 0
     call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
   endif
 endfunction
@@ -122,7 +122,7 @@ endfunction
 " candle#on_exception
 "
 function! candle#on_exception() abort
-  if g:candle.debug
+  if strlen(get(g:candle, 'debug', '')) > 0
     call candle#echo({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   else
     call candle#echo(v:exception)
@@ -145,22 +145,21 @@ endfunction
 "
 " context
 "
-function! s:context(option) abort
+function! s:context(args) abort
   let s:state.session_id += 1
 
-  let a:option.maxwidth = get(a:option, 'maxwidth', float2nr(&columns * 0.8))
-  let a:option.maxheight = get(a:option, 'maxheight', float2nr(&lines * 0.2))
-  let a:option.layout = get(a:option, 'layout', 'split')
-  let a:option.filter = get(a:option, 'filter', 'substring')
-  let a:option.start_input = get(a:option, 'start_input', v:false)
+  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.8))
+  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
+  let a:args.layout = get(a:args, 'layout', 'split')
+  let a:args.filter = get(a:args, 'filter', 'substring')
+  let a:args.start_input = get(a:args, 'start_input', v:false)
 
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.session_id)
-  let l:context.option = copy(a:option)
+  let l:context.option = copy(a:args)
   let l:context.source = s:Source.new(
         \   s:Server.new(),
-        \   s:state.sources[a:option.source],
-        \   get(a:option, 'params')
+        \   s:state.sources[a:args.source].create(a:args.params)
         \ )
 
   return l:context

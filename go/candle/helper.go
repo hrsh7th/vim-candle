@@ -86,7 +86,7 @@ func (process *Process) GetString(keys []string) string {
  * Get
  */
 func (process *Process) Get(keys []string) interface{} {
-	var current interface{} = process.params
+	var current interface{} = process.args
 	for _, key := range keys {
 		switch reflect.TypeOf(current) {
 

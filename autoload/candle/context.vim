@@ -32,12 +32,12 @@ function! s:Context.new(context) abort
         \   'state': deepcopy(s:initial_state),
         \   'prev_state': deepcopy(s:initial_state),
         \ })
-  call bufnr(a:context.bufname, v:true)
-  call setbufvar(a:context.bufname, 'candle', l:candle)
-  call setbufvar(a:context.bufname, '&filetype', 'candle')
-  call setbufvar(a:context.bufname, '&buftype', 'nofile')
-  call setbufvar(a:context.bufname, '&number', 0)
-  call setbufvar(a:context.bufname, '&signcolumn', 'yes')
+  call bufnr(l:candle.bufname, v:true)
+  call setbufvar(l:candle.bufname, 'candle', l:candle)
+  call setbufvar(l:candle.bufname, '&filetype', 'candle')
+  call setbufvar(l:candle.bufname, '&buftype', 'nofile')
+  call setbufvar(l:candle.bufname, '&number', 0)
+  call setbufvar(l:candle.bufname, '&signcolumn', 'yes')
   return l:candle
 endfunction
 
@@ -119,7 +119,13 @@ endfunction
 "
 function! s:Context.action(name) abort
   try
+    " action before.
+    call win_gotoid(self.state.prev_winid)
+
+    " action execute.
     let l:after = self.source.action(a:name, self)
+
+    " action after
     if get(l:after, 'restart', v:false)
       call self.start()
     elseif get(l:after, 'quit', v:true)
@@ -130,6 +136,10 @@ function! s:Context.action(name) abort
     endif
   catch /.*/
     call candle#on_exception()
+
+    if win_id2win(self.state.winid) != -1
+      call win_gotoid(self.state.winid)
+    endif
   endtry
 endfunction
 
@@ -309,7 +319,6 @@ function! s:Context.refresh(...) abort
       endtry
     endif
   else
-    call candle#log('[SKIP]', 'fetch skipped.', self.state, self.prev_state)
     call candle#render#window#resize(self)
   endif
 

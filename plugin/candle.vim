@@ -17,7 +17,7 @@ let g:candle.source = get(g:candle, 'source', {})
 call candle#register(candle#source#files#source#definition())
 call candle#register(candle#source#grep#source#definition())
 call candle#register(candle#source#mru_file#source#definition())
-call candle#register(candle#source#item#source#definition())
+call candle#register(candle#source#items#source#definition())
 
 doautocmd User candle#initialize
 

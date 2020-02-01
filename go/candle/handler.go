@@ -17,14 +17,13 @@ func NewHandler(logfile string) *Handler {
 	}
 
 	return &Handler{
-		Logger:     log.New(file, "[CANDLE]", log.LstdFlags|log.Ldate|log.Lshortfile),
-		ProcessMap: make(map[string]*Process),
+		Logger: log.New(file, "[CANDLE]", log.LstdFlags|log.Ldate|log.Lshortfile),
 	}
 }
 
 type Handler struct {
-	Logger     *log.Logger
-	ProcessMap map[string]*Process
+	Logger  *log.Logger
+	Process *Process
 }
 
 func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
@@ -40,10 +39,3 @@ func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	}
 }
 
-func (h *Handler) GetProcess(id string) *Process {
-	process, ok := h.ProcessMap[id]
-	if ok {
-		return process
-	}
-	return nil
-}

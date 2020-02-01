@@ -1,7 +1,5 @@
 let s:Server = candle#server#import()
 
-let s:source_id = 0
-
 "
 " candle#process#import
 "
@@ -14,14 +12,10 @@ let s:Source = {}
 "
 " new
 "
-function! s:Source.new(server, source, params) abort
-  let s:source_id += 1
+function! s:Source.new(server, source) abort
   return extend(deepcopy(s:Source), {
-        \   'id': string(s:source_id),
-        \   'name': a:source.name,
-        \   'source': a:source,
-        \   'params': a:params,
         \   'server': a:server,
+        \   'source': a:source,
         \ })
 endfunction
 
@@ -34,9 +28,8 @@ function! s:Source.start(callback) abort
   \   self.on_notification(notification)
   \ })
   return self.server.request('start', {
-  \   'id': self.id,
-  \   'script': self.source.script,
-  \   'params': self.params,
+  \   'path': self.source.script.path,
+  \   'args': self.source.script.args,
   \ })
 endfunction
 
@@ -51,30 +44,30 @@ endfunction
 " action
 "
 function! s:Source.action(name, candle) abort
-  let l:config = get(g:candle.source, self.name, {})
+  let l:config = get(g:candle.source, self.source.name, {})
 
   " override by global-config.
-  if !empty(l:config) && has_key(l:config, 'action') && has_key(l:config.action, a:name)
+  if !empty(l:config) && has_key(l:config, 'actions') && has_key(l:config.actions, a:name)
 
     " Redirect action.
-    if type(l:config.action[a:name]) == type('')
-      let l:Action = get(self.source.get_actions(), a:name, {})
+    if type(l:config.actions[a:name]) == type('')
+      let l:Action = get(self.source.actions, a:name, {})
 
     " Function action.
-    elseif type(l:config.action[a:name]) == type({ -> {} })
-      let l:Action = l:config.action[a:name]
+    elseif type(l:config.actions[a:name]) == type({ -> {} })
+      let l:Action = l:config.actions[a:name]
     endif
   else
     " Source action.
-    let l:Action = get(self.source.get_actions(), a:name, {})
+    let l:Action = get(self.source.actions, a:name, {})
   endif
 
-  if empty(l:Action)
+  if type(l:Action) != type({ -> {} })
     throw printf('No such action: `%s`', a:name)
   endif
 
   let l:after = l:Action(a:candle)
-  return empty(l:after) ? {} : l:after
+  return type(l:after) != type({}) ? {} : l:after
 endfunction
 
 "
@@ -82,7 +75,6 @@ endfunction
 "
 function! s:Source.fetch(args) abort
   return self.server.request('fetch', {
-  \   'id': self.id,
   \   'query': a:args.query,
   \   'index': a:args.index,
   \   'count': a:args.count
@@ -107,8 +99,6 @@ endfunction
 " on_notification
 "
 function! s:Source.on_notification(notification) abort
-  if self.id == a:notification.params.id
-    call self.callback(a:notification)
-  endif
+  call self.callback(a:notification)
 endfunction
 

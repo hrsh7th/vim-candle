@@ -20,7 +20,7 @@ func (h *Handler) HandleStart(ctx context.Context, conn *jsonrpc2.Conn, req *jso
 		return nil, err
 	}
 
-	h.ProcessMap[params.Id] = process
+	h.Process = process
 
 	return process.Start(params)
 }

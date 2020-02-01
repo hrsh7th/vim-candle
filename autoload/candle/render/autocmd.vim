@@ -6,7 +6,7 @@ let s:next_winid = -1
 function! candle#render#autocmd#initialize(context) abort
   execute printf('augroup candle#render:%s', a:context.bufname)
     autocmd!
-    autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
+    autocmd BufWinLeave * call s:on_buf_win_leave()
     autocmd CursorMoved <buffer> call s:on_cursor_moved()
     autocmd BufEnter <buffer> call s:on_buf_enter()
     autocmd WinEnter * call s:on_win_enter_all()
@@ -16,9 +16,23 @@ endfunction
 "
 " on_buf_win_leave
 "
+" It uses to detect `WinClose` to kill candle processes.
+"
 function! s:on_buf_win_leave() abort
-  call candle#log('[AUTOCMD] on_buf_win_leave')
-  call b:candle.stop()
+  let l:ctx = {}
+  function! l:ctx.callback() abort
+    for l:bufnr in range(0, bufnr('$'))
+      let l:candle = getbufvar(l:bufnr, 'candle', {})
+      if empty(l:candle)
+        continue
+      endif
+
+      if win_id2win(l:candle.state.winid) == 0
+        execute printf('%sbdelete!', l:bufnr)
+      endif
+    endfor
+  endfunction
+  call timer_start(0, { -> l:ctx.callback() })
 endfunction
 
 "
@@ -36,7 +50,6 @@ endfunction
 " on_buf_enter
 "
 function! s:on_buf_enter() abort
-  call candle#log('[AUTOCMD] on_buf_enter')
   call cursor([b:candle.state.cursor, col('.')])
 
   " NOTE: This refresh is needed to fix window height when left from query buffer.

@@ -6,26 +6,31 @@ let s:dirname = expand('<sfile>:p:h')
 function! candle#source#files#source#definition() abort
   return {
         \   'name': 'files',
-        \   'script': s:dirname . '/source.go',
-        \   'get_script_params': { params -> s:get_script_params(params) },
-        \   'get_actions': { -> s:get_actions() },
+        \   'create': function('s:create', ['files'])
         \ }
 endfunction
 
 "
-" get_script_params
+" create
 "
-function! s:get_script_params(params) abort
+function! s:create(name, args) abort
   return {
-  \   'root_path': get(a:params, 'root_path', getcwd()),
-  \   'ignore_patterns': get(a:params, 'ignore_patterns', [])
+  \   'name': a:name,
+  \   'script': {
+  \     'path': s:dirname . '/source.go',
+  \     'args': {
+  \       'root_path': get(a:args, 'root_path', getcwd()),
+  \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
+  \     }
+  \   },
+  \   'actions': s:actions()
   \ }
 endfunction
 
 "
-" get_actions
+" actions
 "
-function! s:get_actions() abort
+function! s:actions() abort
   let l:actions = {}
   let l:actions = extend(l:actions, candle#action#location#get())
   let l:actions.default = l:actions.edit

@@ -2,41 +2,47 @@ let s:dirname = expand('<sfile>:p:h')
 
 let g:candle#source#mru_file#filepath = expand('~/.candle_mru_file')
 
-let s:state = {
-      \   'recent': '',
-      \ }
-
 "
 " candle#source#mru_file#source#definition
 "
 function! candle#source#mru_file#source#definition() abort
   return {
         \   'name': 'mru_file',
-        \   'script': s:dirname . '/source.go',
-        \   'get_script_params': { params -> s:get_script_params(params) },
-        \   'get_actions': { -> s:get_actions() },
+        \   'create': function('s:create', ['mru_file'])
         \ }
 endfunction
 
 "
-" get_script_params
+" create
 "
-function! s:get_script_params(params) abort
+function! s:create(name, args) abort
   return {
-  \   'filepath': get(a:params, 'filepath', g:candle#source#mru_file#filepath),
-  \   'ignore_patterns': get(a:params, 'ignore_patterns', []),
+  \   'name': a:name,
+  \   'script': {
+  \     'path': s:dirname . '/source.go',
+  \     'args': {
+  \       'filepath': get(a:args, 'filepath', g:candle#source#mru_file#filepath),
+  \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
+  \     }
+  \   },
+  \   'actions': s:actions()
   \ }
 endfunction
 
 "
-" get_actions
+" actions
 "
-function! s:get_actions() abort
+function! s:actions() abort
   let l:actions = {}
   let l:actions = extend(l:actions, candle#action#location#get())
   let l:actions.default = l:actions.edit
   return l:actions
 endfunction
+
+
+let s:state = {
+      \   'recent': '',
+      \ }
 
 "
 " events.

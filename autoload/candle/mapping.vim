@@ -28,6 +28,12 @@ function! candle#mapping#toggle_select_all() abort
   endif
 endfunction
 
+function! candle#mapping#choose_action() abort
+  if has_key(b:, 'candle')
+    call b:candle.choose_action()
+  endif
+endfunction
+
 function! candle#mapping#action(name) abort
   if has_key(b:, 'candle')
     call b:candle.action(a:name)

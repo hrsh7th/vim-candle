@@ -115,6 +115,34 @@ function! s:Context.fetch_all() abort
 endfunction
 
 "
+" choose_action
+"
+function! s:Context.choose_action()
+  let l:prev_candle = self
+
+  let l:ctx = {}
+  let l:ctx.prev_candle = l:prev_candle
+  function! l:ctx.callback(candle) abort
+    call self.prev_candle.action(a:candle.get_cursor_item().title)
+    return {
+    \   'quit': v:false,
+    \ }
+  endfunction
+
+  call candle#start({
+  \   'source': 'items',
+  \   'layout': 'edit',
+  \   'start_input': v:true,
+  \   'params': {
+  \     'items': map(keys(l:prev_candle.source.source.actions), { i, action_name -> { 'id': string(i), 'title': action_name } }),
+  \     'actions': {
+  \       'default': { candle -> l:ctx.callback(candle) }
+  \     }
+  \   }
+  \ })
+endfunction
+
+"
 " action
 "
 function! s:Context.action(name) abort

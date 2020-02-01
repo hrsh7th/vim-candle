@@ -50,16 +50,6 @@ function! candle#version() abort
 endfunction
 
 "
-" candle#action
-"
-function! candle#action(name) abort
-  if !has_key(b:, 'candle')
-    return
-  endif
-  call b:candle.action(a:name)
-endfunction
-
-"
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort

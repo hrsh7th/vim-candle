@@ -123,7 +123,8 @@ function! s:Context.choose_action()
   let l:ctx = {}
   let l:ctx.prev_candle = l:prev_candle
   function! l:ctx.callback(candle) abort
-    call self.prev_candle.action(a:candle.get_cursor_item().title)
+    " Apply after this action excution.
+    call timer_start(0, { -> self.prev_candle.action(a:candle.get_cursor_item().title) })
     return {
     \   'quit': v:false,
     \ }

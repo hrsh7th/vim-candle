@@ -7,7 +7,7 @@ let s:root_dir = expand('<sfile>:p:h:h')
 
 let s:state = {
 \   'version': '',
-\   'session_id': -1,
+\   'context_id': -1,
 \   'sources': {},
 \ }
 
@@ -124,7 +124,7 @@ endfunction
 "
 function! candle#yesno(prompt) abort
   let l:prompt = type(a:prompt) == type([]) ? join(a:prompt, "\n") : a:prompt
-  if index(['y', 'ye', 'yes'], input(l:prompt . "\ny[es]: ")) >= 0
+  if index(['y', 'ye', 'yes'], input(l:prompt . "\n" . '[yes/no] > ')) >= 0
     echo "\n"
     return v:true
   endif
@@ -136,7 +136,7 @@ endfunction
 " context
 "
 function! s:context(args) abort
-  let s:state.session_id += 1
+  let s:state.context_id += 1
 
   let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.8))
   let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
@@ -145,7 +145,7 @@ function! s:context(args) abort
   let a:args.start_input = get(a:args, 'start_input', v:false)
 
   let l:context = {}
-  let l:context.bufname = printf('candle-%s', s:state.session_id)
+  let l:context.bufname = printf('candle-%s', s:state.context_id)
   let l:context.option = copy(a:args)
   let l:context.source = s:Source.new(
         \   s:Server.new(),

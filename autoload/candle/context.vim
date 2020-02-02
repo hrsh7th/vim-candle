@@ -318,7 +318,7 @@ function! s:Context.refresh(...) abort
   endif
 
   " update statusline
-  call candle#render#statusline#initialize(self)
+  call candle#render#statusline#update(self)
 
   " update cursor
   if self.state_changed(['cursor']) || l:option.force

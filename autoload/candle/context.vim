@@ -87,8 +87,7 @@ function! s:Context.on_notification(notification) abort
     call self.refresh({ 'async': v:true })
 
   elseif a:notification.method ==# 'message'
-    redraw
-    echon a:notification.params.message . "\n"
+    echomsg a:notification.params.message . "\n"
   endif
 endfunction
 

@@ -3,39 +3,50 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/hrsh7th/vim-candle/go/candle"
 )
 
-var Items []candle.Item = make([]candle.Item, 0)
-
 func Start(process *candle.Process) {
+	rootPath := process.GetString([]string{"root_path"})
 	pattern := process.GetString([]string{"pattern"})
-	cwd := process.GetString([]string{"cwd"})
+
+	command := make([]string, 0)
+	for i := 0; i < process.Len([]string{"command"}); i++ {
+		part := process.GetString([]string{"command", strconv.Itoa(i)})
+		if part == "%PATTERN%" {
+			command = append(command, pattern)
+		} else if part == "%ROOT_PATH%" {
+			command = append(command, rootPath)
+		} else {
+			command = append(command, part)
+		}
+	}
 
 	go func() {
 		process.NotifyStart()
 
-		cmd := exec.Command("grep", "-rin", pattern, cwd)
+		cmd := process.Command(command)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			process.Logger.Println(err)
+			process.NotifyMessage(err.Error())
+			process.NotifyDone()
 			return
 		}
 
 		err = cmd.Start()
 		if err != nil {
-			process.Logger.Println(err)
+			process.NotifyMessage(err.Error())
+			process.NotifyDone()
 			return
 		}
 
 		index := 0
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			item := toItem(cwd, index, scanner.Text())
+			item := toItem(rootPath, index, scanner.Text())
 			if item != nil {
 				process.AddItem(item)
 				index += 1

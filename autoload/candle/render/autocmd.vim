@@ -21,14 +21,14 @@ endfunction
 function! s:on_buf_win_leave() abort
   let l:ctx = {}
   function! l:ctx.callback() abort
-    for l:bufnr in range(0, bufnr('$'))
+    for l:bufnr in range(1, bufnr('$'))
       let l:candle = getbufvar(l:bufnr, 'candle', {})
       if empty(l:candle)
         continue
       endif
 
       if win_id2win(l:candle.state.winid) == 0
-        execute printf('%sbdelete!', l:bufnr)
+        execute printf('bdelete! %s', l:bufnr)
       endif
     endfor
   endfunction

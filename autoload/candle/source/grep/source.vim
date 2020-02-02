@@ -25,6 +25,7 @@ function! s:create(name, args) abort
   \     'args': {
   \       'root_path': get(a:args, 'root_path', getcwd()),
   \       'pattern': get(a:args, 'pattern', ''),
+  \       'command': get(a:args, 'command', s:default_command()),
   \     }
   \   },
   \   'actions': s:actions()
@@ -41,3 +42,21 @@ function! s:actions() abort
   return l:actions
 endfunction
 
+"
+" default_command
+"
+function! s:default_command() abort
+  if executable('rg')
+    return ['rg', '-i', '--vimgrep', '--no-heading', '%PATTERN%', '%ROOT_PATH%']
+  endif
+  if executable('ag')
+    return ['ag', '-i', '--vimgrep', '%PATTERN%', '%ROOT_PATH%']
+  endif
+  if executable('pt')
+    return ['pt', '-i', '--nogroup', '--nocolor', '%PATTERN%', '%ROOT_PATH%']
+  endif
+  if executable('jvgrep')
+    return ['jvgrep', '-iR', '%PATTERN%', '%ROOT_PATH%']
+  endif
+  return ['grep', 'rin', '%PATTERN%', '%ROOT_PATH%']
+endfunction

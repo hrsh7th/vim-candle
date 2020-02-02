@@ -56,7 +56,7 @@ function! candle#sync(promise_or_fn, ...) abort
   let l:timeout = get(a:000, 0, lamp#config('global.timeout'))
   let l:reltime = reltime()
 
-  if type(a:promise_or_fn) == type({ -> {} })
+  if type(a:promise_or_fn) == v:t_func
     while v:true
       if  a:promise_or_fn()
         return

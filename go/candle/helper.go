@@ -2,6 +2,7 @@ package candle
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -34,6 +35,13 @@ func (process *Process) Walk(root string, callback func(pathname string, fi os.F
 		close(ch)
 	}()
 	return ch
+}
+
+/**
+ * Command
+ */
+func (process *Process) Command(command []string) *exec.Cmd {
+	return exec.Command(command[0], command[1:len(command)]...)
 }
 
 /**

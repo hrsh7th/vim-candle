@@ -14,16 +14,18 @@ import (
 )
 
 type Process struct {
-	ctx              *context.Context
-	conn             *jsonrpc2.Conn
-	Logger           *log.Logger
-	query            string
+	ctx    *context.Context
+	conn   *jsonrpc2.Conn
+	Logger *log.Logger
+
 	lastProgressTime int64
+	query            string
 	allItems         []Item
 	filteredItems    []Item
-	path             string
-	args             map[string]interface{}
-	interp           *interp.Interpreter
+
+	path   string
+	args   map[string]interface{}
+	interp *interp.Interpreter
 }
 
 /**
@@ -36,8 +38,8 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*P
 		Logger:           handler.Logger,
 		lastProgressTime: now(),
 		query:            "",
-		allItems:         make([]Item, 0),
-		filteredItems:    make([]Item, 0),
+		allItems:         []Item{},
+		filteredItems:    []Item{},
 	}, nil
 }
 
@@ -114,6 +116,10 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
  * NotifyStart
  */
 func (process *Process) NotifyStart() {
+	process.lastProgressTime = now()
+	process.query = ""
+	process.allItems = []Item{}
+	process.filteredItems = []Item{}
 	process.conn.Notify(context.Background(), "start", &ProgressMessage{
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),

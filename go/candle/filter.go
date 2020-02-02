@@ -17,7 +17,7 @@ func (process *Process) regexp(query string, items []Item) []Item {
 			continue
 		}
 
-		matches := make([]Item, 0)
+		matches := []Item{}
 		for _, item := range items {
 			if match, err := regexp.MatchString(q, item["title"].(string)); match {
 				matches = append(matches, item)
@@ -65,7 +65,7 @@ func (process *Process) substring(query string, items []Item) []Item {
 			continue
 		}
 
-		matches := make([]Item, 0)
+		matches := []Item{}
 		for _, item := range items {
 			negate := strings.HasPrefix(q, "!")
 			if negate {

@@ -60,3 +60,4 @@ function! s:default_command() abort
   endif
   return ['grep', 'rin', '%PATTERN%', '%ROOT_PATH%']
 endfunction
+

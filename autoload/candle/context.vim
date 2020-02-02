@@ -57,7 +57,7 @@ function! s:Context.start() abort
     call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 100)
   catch /.*/
   endtry
-  call self.refresh()
+  call self.refresh({ 'force': v:true })
 endfunction
 
 "
@@ -301,7 +301,7 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
-  let l:option = extend({ 'async': v:false }, get(a:000, 0, {}))
+  let l:option = extend({ 'async': v:false, 'force': v:false }, get(a:000, 0, {}))
 
   " initialize window
   if self.state.winid == -1
@@ -321,7 +321,7 @@ function! s:Context.refresh(...) abort
   call candle#render#statusline#initialize(self)
 
   " update cursor
-  if self.state_changed(['cursor'])
+  if self.state_changed(['cursor']) || l:option.force
     if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
       call cursor([self.state.cursor, col('.')])
     endif
@@ -329,12 +329,12 @@ function! s:Context.refresh(...) abort
   endif
 
   " update selected_ids
-  if self.state_changed(['selected_ids', 'is_selected_all'])
+  if self.state_changed(['selected_ids', 'is_selected_all']) || l:option.force
     call candle#render#signs#selected_ids(self)
   endif
 
   " update items
-  if self.state_changed(['query', 'index']) || self.can_display_new_items()
+  if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
     let self.request_id += 1
     let l:id = self.request_id
 

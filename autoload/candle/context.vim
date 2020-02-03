@@ -177,7 +177,6 @@ endfunction
 function! s:Context.query(query) abort
   if self.state.query != a:query
     let self.state.query = a:query
-    call self.top()
   endif
   call self.refresh()
 endfunction
@@ -320,19 +319,6 @@ function! s:Context.refresh(...) abort
   " update statusline
   call candle#render#statusline#update(self)
 
-  " update cursor
-  if self.state_changed(['cursor']) || l:option.force
-    if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
-      call cursor([self.state.cursor, col('.')])
-    endif
-    call candle#render#signs#cursor(self)
-  endif
-
-  " update selected_ids
-  if self.state_changed(['selected_ids', 'is_selected_all']) || l:option.force
-    call candle#render#signs#selected_ids(self)
-  endif
-
   " update items
   if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
     let self.request_id += 1
@@ -348,6 +334,19 @@ function! s:Context.refresh(...) abort
     endif
   else
     call candle#render#window#resize(self)
+  endif
+
+  " update cursor
+  if self.state_changed(['cursor']) || l:option.force
+    if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
+      call cursor([self.state.cursor, col('.')])
+    endif
+    call candle#render#signs#cursor(self)
+  endif
+
+  " update selected_ids
+  if self.state_changed(['selected_ids', 'is_selected_all']) || l:option.force
+    call candle#render#signs#selected_ids(self)
   endif
 
   let self.prev_state = deepcopy(self.state)

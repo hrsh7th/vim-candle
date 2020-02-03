@@ -12,7 +12,7 @@ function! candle#render#input#open(candle) abort
   " NOTE: This line is needs by right resize window when query changed.
   " Vim show cursor as much as possible when window resizing.
   " So cursor should be top at input window.
-  normal! gg
+  call a:candle.top()
 
   execute printf('new | resize %s', 1)
   call setbufvar('%', 'candle', a:candle)
@@ -39,17 +39,12 @@ endfunction
 " on_text_changed
 "
 function! s:on_text_changed() abort
-  let l:ctx = {}
-  let l:ctx.candle = b:candle
-  function! l:ctx.callback() abort
-    if has_key(b:, 'candle') && self.candle.state.query !=# getline('.')
-      call self.candle.top()
-      call self.candle.query(getline('.'))
-    endif
-  endfunction
-  call timer_stop(s:input_debounce_timer_id)
-  let s:input_debounce_timer_id = timer_start(100, { -> l:ctx.callback() })
+  if b:candle.state.query !=# getline('.')
+    call b:candle.top()
+    call b:candle.query(getline('.'))
+  endif
 
+  " NOTE: This line was needed to fix window height when enter input buffer.
   call b:candle.refresh()
 endfunction
 

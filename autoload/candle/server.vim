@@ -73,8 +73,8 @@ endfunction
 "
 function! s:command() abort
   " Manual built binary.
-  if filereadable(printf('%s/bin/candle/candle-server', s:root_dir))
-    return [printf('%s/bin/candle/candle-server', s:root_dir)]
+  if filereadable(printf('%s/bin/candle-server/candle-server', s:root_dir))
+    return [printf('%s/bin/candle-server/candle-server', s:root_dir)]
   endif
 
   call candle#install#do()

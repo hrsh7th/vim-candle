@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/hrsh7th/vim-candle/go/candle"
+	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
 	"github.com/sourcegraph/jsonrpc2"
 )
 

@@ -31,7 +31,7 @@ endfunction
 "
 function! candle#install#get_binary_path() abort
   let l:platform = candle#install#get_platform()
-  return printf('%s/bin/candle/candle-server_%s_%s_%s',
+  return printf('%s/bin/candle-server/candle-server_%s_%s_%s',
   \   s:root_dir,
   \   l:platform.os,
   \   l:platform.arch,

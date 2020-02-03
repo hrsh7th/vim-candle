@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 
-	"github.com/hrsh7th/vim-candle/go/candle"
+	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
 )
 
 func Start(process *candle.Process) {

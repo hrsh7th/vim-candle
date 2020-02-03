@@ -4,7 +4,7 @@
   "description": "This plugin created to learn golang.",
   "scripts": {
     "watch": "chokidar '**/*.go' -c 'npm run build'",
-    "build": "cd ./go && go build -ldflags '-s -w' && mkdir -p ../bin/candle && mv ./go ../bin/candle/candle-server"
+    "build": "cd ./go/candle-server && go build -ldflags '-s -w' && mkdir -p ../../bin/candle-server/ && mv ./candle-server ../../bin/candle-server/candle-server"
   },
   "repository": {
     "type": "git",

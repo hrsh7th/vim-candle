@@ -58,7 +58,7 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 
 	i := interp.New(interp.Options{})
 
-	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle"] = map[string]reflect.Value{
+	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle-server/candle"] = map[string]reflect.Value{
 		"Process": reflect.ValueOf((*Process)(nil)),
 		"Item":    reflect.ValueOf((*Item)(nil)),
 	}

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hrsh7th/vim-candle/go/candle"
+	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
 )
 
 var Items []candle.Item = make([]candle.Item, 0)

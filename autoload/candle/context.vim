@@ -147,24 +147,9 @@ endfunction
 "
 function! s:Context.action(name) abort
   try
-    " action before.
-    call win_gotoid(self.state.prev_winid)
-
-    " action execute.
-    let l:after = self.source.action(a:name, self)
-
-    " action after
-    if get(l:after, 'restart', v:false)
-      call self.start()
-    elseif get(l:after, 'quit', v:true)
-      let l:current_winid = win_getid()
-      call win_gotoid(self.state.winid)
-      quit
-      call win_gotoid(l:current_winid)
-    endif
+    call self.source.action(a:name, self)
   catch /.*/
     call candle#on_exception()
-
     if win_id2win(self.state.winid) != -1
       call win_gotoid(self.state.winid)
     endif

@@ -49,9 +49,7 @@ function! s:delete(candle) abort
     for l:item in l:items
       call delete(l:item.path)
     endfor
-    return {
-    \   'restart': v:true,
-    \ }
+    call a:candle.start()
   else
     throw 'Cancel.'
   endif
@@ -67,15 +65,12 @@ function! s:open(candle, command) abort
     return
   endif
 
+  quit
+
   call win_gotoid(a:candle.state.prev_winid)
   execute printf('%s %s', a:command, l:item.path)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', col('.'))])
   endif
-
-  return {
-  \   'quit': v:true
-  \ }
 endfunction
-
 

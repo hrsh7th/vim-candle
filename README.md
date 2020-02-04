@@ -26,19 +26,19 @@ augroup vimrc
  autocmd!
 augroup END
 
-nnoremap <silent>files :<C-u>call candle#start({
-\   'source': 'files',
-\   'layout': 'split',
-\   'params': {
-\     'root_path': 'path to root dir',
-\     'ignore_patterns': ['.git/', 'node_modules'],
-\   }
-\ })<CR>
 nnoremap <silent>mru_file :<C-u>call candle#start({
 \   'source': 'mru_file',
 \   'layout': 'split',
 \   'params': {
 \     'filepath': g:candle#source#mru_file#filepath,
+\     'ignore_patterns': ['.git/', 'node_modules'],
+\   }
+\ })<CR>
+nnoremap <silent>files :<C-u>call candle#start({
+\   'source': 'files',
+\   'layout': 'split',
+\   'params': {
+\     'root_path': 'path to root dir',
 \     'ignore_patterns': ['.git/', 'node_modules'],
 \   }
 \ })<CR>
@@ -53,6 +53,9 @@ nnoremap <silent>grep :<C-u>call candle#start({
 nnoremap <silent>menu :<C-u>call candle#start({
 \   'source': 'items',
 \   'layout': 'split',
+\   'actions': {
+\     'default': { candle -> execute(candle.get_cursor_item().execute) }
+\   },
 \   'params': {
 \     'items': [{
 \       'id': 1,
@@ -63,9 +66,6 @@ nnoremap <silent>menu :<C-u>call candle#start({
 \       'title': 'Open .vimrc',
 \       'execute': 'vsplit $MYVIMRC'
 \     }],
-\     'actions': {
-\       'default': { candle -> execute(candle.get_cursor_item().execute) }
-\     }
 \   }
 \ })<CR>
 

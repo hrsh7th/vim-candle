@@ -31,7 +31,9 @@ nnoremap <silent>mru_file :<C-u>call candle#start({
 \   'layout': 'split',
 \   'params': {
 \     'filepath': g:candle#source#mru_file#filepath,
-\     'ignore_patterns': ['.git/', 'node_modules'],
+\     'ignore_patterns': map(range(1, tabpagewinnr(tabpagenr(), '$')), { i, winnr ->
+\       fnamemodify(bufname(winbufnr(winnr)), ':p')
+\     })
 \   }
 \ })<CR>
 nnoremap <silent>file :<C-u>call candle#start({
@@ -66,7 +68,7 @@ nnoremap <silent>menu :<C-u>call candle#start({
 \       'title': 'Open .vimrc',
 \       'execute': 'vsplit $MYVIMRC'
 \     }],
-\   }
+\   },
 \ })<CR>
 
 autocmd vimrc User candle#initialize call s:on_candle_initialize()

@@ -3,15 +3,15 @@
 "
 function! candle#action#register(action) abort
   if !has_key(a:action, 'name')
-    throw '[CANDLE] `name` is required.'
+    throw '`name` is required.'
   endif
 
   if !has_key(a:action, 'accept')
-    throw '[CANDLE] `accept` is required.'
+    throw '`accept` is required.'
   endif
 
   if !has_key(a:action, 'invoke')
-    throw '[CANDLE] `invoke` is required.'
+    throw '`invoke` is required.'
   endif
 
   let s:actions += [a:action]

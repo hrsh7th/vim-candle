@@ -101,7 +101,7 @@ function! candle#echo(...) abort
     let l:msg = substitute(l:msg, "\r\n", "\n", 'g')
     let l:msg = substitute(l:msg, "\r", "\n", 'g')
     for l:line in split(string(l:msg), "\n")
-      echomsg l:line
+      echomsg '[CANDLE] ' . l:line
     endfor
     echomsg ' '
   endfor
@@ -160,19 +160,19 @@ function! s:source(args) abort
   let l:source = s:state.sources[a:args.source].create(get(a:args, 'params', {}))
 
   if !has_key(l:source, 'name')
-    throw '[CANDLE] `name` is requried.'
+    throw '`name` is requried.'
   endif
 
   if !has_key(l:source, 'script')
-    throw '[CANDLE] `script` is requried.'
+    throw '`script` is requried.'
   endif
 
   if !has_key(l:source.script, 'path')
-    throw '[CANDLE] `script.path` is requried.'
+    throw '`script.path` is requried.'
   endif
 
   if !has_key(l:source.script, 'args')
-    throw '[CANDLE] `script.args` is requried.'
+    throw '`script.args` is requried.'
   endif
 
   let l:source.actions = extend(get(l:source, 'actions', {}), get(a:args, 'actions', {}))

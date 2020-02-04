@@ -138,18 +138,22 @@ endfunction
 " action
 "
 function! s:Context.action(name) abort
-  let l:actions = candle#action#resolve(self)
-  let l:actions = filter(l:actions, { i, action -> action.name ==# a:name })
+  try
+    let l:actions = candle#action#resolve(self)
+    let l:actions = filter(l:actions, { i, action -> action.name ==# a:name })
 
-  if len(l:actions) == 0
-    throw printf('No such action: `%s`', a:name)
-  endif
+    if len(l:actions) == 0
+      throw printf('No such action: `%s`', a:name)
+    endif
 
-  if len(l:actions) > 1
-    throw printf('Too many actions detected: `%s`', a:name)
-  endif
+    if len(l:actions) > 1
+      throw printf('Too many actions detected: `%s`', a:name)
+    endif
 
-  call l:actions[0].invoke(self)
+    call l:actions[0].invoke(self)
+  catch /.*/
+    call candle#on_exception()
+  endtry
 endfunction
 
 "

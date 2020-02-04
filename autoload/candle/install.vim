@@ -76,16 +76,16 @@ endfunction
 "
 function! s:download(download_path, binary_path) abort
   if !candle#yesno(['You have no binary.', 'Download?'])
-    throw '[CANDLE] Cancel.'
+    throw 'Cancel.'
   endif
 
   call mkdir(fnamemodify(a:binary_path, ':p:h'), 'p')
 
   if executable('curl')
-    echomsg printf('[CANDLE] Downloading binary from %s (using curl)', a:download_path)
+    call candle#echo(printf('Downloading binary from %s (using curl)', a:download_path))
     echomsg system(printf('curl -L %s > %s', shellescape(a:download_path), shellescape(a:binary_path)))
   elseif executable('wget')
-    echomsg printf('[CANDLE] Downloading binary from %s (using wget)', a:download_path)
+    call candle#echo(printf('Downloading binary from %s (using wget)', a:download_path))
     echomsg system(printf('wget -O - %s > %s', shellescape(a:download_path), shellescape(a:binary_path)))
   elseif has('win32') || has('win64')
     try
@@ -93,7 +93,7 @@ function! s:download(download_path, binary_path) abort
       let l:saved_shellcmdflag = &shellcmdflag
       set shell=powershell
       set shellcmdflag=-c
-      echomsg printf('[CANDLE] Downloading binary from %s (using powershell)', a:download_path)
+      call candle#echo(printf('Downloading binary from %s (using powershell)', a:download_path))
       echomsg system(printf('iwr -outf %s %s', shellescape(a:binary_path), shellescape(a:download_path)))
     finally
       let &shell = l:saved_shell
@@ -106,7 +106,7 @@ function! s:download(download_path, binary_path) abort
   endif
 
   if !filereadable(a:binary_path)
-    throw '[CANDLE] Can''t download binary. Please create new issue.'
+    throw 'Can''t download binary. Please create new issue.'
   endif
 endfunction
 

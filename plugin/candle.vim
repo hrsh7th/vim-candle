@@ -7,7 +7,7 @@ let g:loaded_candle = v:true
 " config
 "
 let g:candle = get(g:, 'candle', {})
-let g:candle.debug = get(g:candle, 'debug', v:false)
+let g:candle.debug = get(g:candle, 'debug', '')
 
 "
 " built-in sources

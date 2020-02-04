@@ -123,7 +123,7 @@ endfunction
 "
 function! s:Context.choose_action()
   call candle#start({
-  \   'source': 'items',
+  \   'source': 'item',
   \   'layout': 'edit',
   \   'params': {
   \     'items': map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } }),

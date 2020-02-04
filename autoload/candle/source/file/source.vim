@@ -1,12 +1,12 @@
 let s:dirname = expand('<sfile>:p:h')
 
 "
-" candle#source#files#source#definition
+" candle#source#file#source#definition
 "
-function! candle#source#files#source#definition() abort
+function! candle#source#file#source#definition() abort
   return {
-        \   'name': 'files',
-        \   'create': function('s:create', ['files'])
+        \   'name': 'file',
+        \   'create': function('s:create', ['file'])
         \ }
 endfunction
 

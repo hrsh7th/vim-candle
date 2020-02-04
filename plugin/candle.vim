@@ -12,11 +12,11 @@ let g:candle.debug = get(g:candle, 'debug', '')
 "
 " built-in sources
 "
-call candle#register(candle#source#files#source#definition())
+call candle#register(candle#source#file#source#definition())
 call candle#register(candle#source#grep#source#definition())
-call candle#register(candle#source#mru_files#source#definition())
-call candle#register(candle#source#mru_dirs#source#definition())
-call candle#register(candle#source#items#source#definition())
+call candle#register(candle#source#mru_file#source#definition())
+call candle#register(candle#source#mru_dir#source#definition())
+call candle#register(candle#source#item#source#definition())
 
 doautocmd User candle#initialize
 

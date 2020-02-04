@@ -34,8 +34,8 @@ nnoremap <silent>mru_file :<C-u>call candle#start({
 \     'ignore_patterns': ['.git/', 'node_modules'],
 \   }
 \ })<CR>
-nnoremap <silent>files :<C-u>call candle#start({
-\   'source': 'files',
+nnoremap <silent>file :<C-u>call candle#start({
+\   'source': 'file',
 \   'layout': 'split',
 \   'params': {
 \     'root_path': 'path to root dir',
@@ -51,7 +51,7 @@ nnoremap <silent>grep :<C-u>call candle#start({
 \   }
 \ })<CR>
 nnoremap <silent>menu :<C-u>call candle#start({
-\   'source': 'items',
+\   'source': 'item',
 \   'layout': 'split',
 \   'actions': {
 \     'default': { candle -> execute(candle.get_cursor_item().execute) }

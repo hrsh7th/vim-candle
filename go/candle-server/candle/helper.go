@@ -12,11 +12,16 @@ import (
 	"github.com/saracen/walker"
 )
 
+type WalkEntry = struct {
+	Pathname string
+	FileInfo os.FileInfo
+}
+
 /**
  * Walk
  */
-func (process *Process) Walk(root string, callback func(pathname string, fi os.FileInfo) bool) chan string {
-	ch := make(chan string, 0)
+func (process *Process) Walk(root string, callback func(pathname string, fi os.FileInfo) bool) chan WalkEntry {
+	ch := make(chan WalkEntry, 0)
 
 	go func() {
 		walker.Walk(root, func(pathname string, fi os.FileInfo) error {
@@ -28,7 +33,7 @@ func (process *Process) Walk(root string, callback func(pathname string, fi os.F
 				}
 			}
 
-			ch <- pathname
+			ch <- WalkEntry{Pathname: pathname, FileInfo: fi}
 
 			return nil
 		})

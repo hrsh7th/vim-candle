@@ -44,7 +44,7 @@ func Start(process *candle.Process) {
 			path := scanner.Text()
 
 			// skip already deleted file
-			if _, err := os.Stat(path); err != nil {
+			if stat, err := os.Stat(path); err != nil || stat.IsDir() {
 				continue
 			}
 

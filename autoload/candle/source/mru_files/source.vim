@@ -1,14 +1,14 @@
 let s:dirname = expand('<sfile>:p:h')
 
-let g:candle#source#mru_file#filepath = expand('~/.candle_mru_file')
+let g:candle#source#mru_files#filepath = expand('~/.candle_mru_files')
 
 "
-" candle#source#mru_file#source#definition
+" candle#source#mru_files#source#definition
 "
-function! candle#source#mru_file#source#definition() abort
+function! candle#source#mru_files#source#definition() abort
   return {
-        \   'name': 'mru_file',
-        \   'create': function('s:create', ['mru_file'])
+        \   'name': 'mru_files',
+        \   'create': function('s:create', ['mru_files'])
         \ }
 endfunction
 
@@ -21,22 +21,14 @@ function! s:create(name, args) abort
   \   'script': {
   \     'path': s:dirname . '/source.go',
   \     'args': {
-  \       'filepath': get(a:args, 'filepath', g:candle#source#mru_file#filepath),
+  \       'filepath': get(a:args, 'filepath', g:candle#source#mru_files#filepath),
   \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
   \     }
   \   },
-  \   'actions': s:actions()
+  \   'actions': {
+  \     'default': 'edit'
+  \   }
   \ }
-endfunction
-
-"
-" actions
-"
-function! s:actions() abort
-  let l:actions = {}
-  let l:actions = extend(l:actions, candle#action#location#get())
-  let l:actions.default = l:actions.edit
-  return l:actions
 endfunction
 
 
@@ -47,7 +39,7 @@ let s:state = {
 "
 " events.
 "
-augroup candle#source#mru_file#source
+augroup candle#source#mru_files#source
   autocmd!
   autocmd BufWinEnter,BufRead,BufNewFile * call <SID>on_touch()
 augroup END
@@ -56,7 +48,7 @@ augroup END
 " on_touch
 "
 function! s:on_touch() abort
-  if empty(g:candle#source#mru_file#filepath)
+  if empty(g:candle#source#mru_files#filepath)
     return
   endif
   if &buftype !=# ''
@@ -76,7 +68,7 @@ function! s:on_touch() abort
   endif
 
   " add mru entry
-  call writefile([l:filepath], g:candle#source#mru_file#filepath, 'a')
+  call writefile([l:filepath], g:candle#source#mru_files#filepath, 'a')
   let s:state.recent = l:filepath
 endfunction
 

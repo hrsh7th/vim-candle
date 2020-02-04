@@ -17,9 +17,6 @@ function! s:create(name, args) abort
   if len(a:args.items) == 0
     throw '[items] `items` is required.'
   endif
-  if len(keys(a:args.actions)) == 0
-    throw '[items] `actions` is required.'
-  endif
 
   return {
   \   'name': a:name,
@@ -28,8 +25,7 @@ function! s:create(name, args) abort
   \     'args': {
   \       'items': a:args.items,
   \     }
-  \   },
-  \   'actions': a:args.actions
+  \   }
   \ }
 endfunction
 

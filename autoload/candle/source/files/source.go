@@ -24,12 +24,14 @@ func Start(process *candle.Process) {
 		})
 		index := 0
 		for {
-			pathname, ok := <-ch
+			entry, ok := <-ch
 			if !ok {
 				break
 			}
-			process.AddItem(toItem(index, pathname))
-			index += 1
+			if !entry.FileInfo.IsDir() {
+				process.AddItem(toItem(index, entry.Pathname))
+				index += 1
+			}
 		}
 
 		process.NotifyDone()

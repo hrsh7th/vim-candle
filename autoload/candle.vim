@@ -1,6 +1,5 @@
 let s:Promise = vital#candle#import('Async.Promise')
 let s:Server = candle#server#import()
-let s:Source = candle#source#import()
 let s:Context = candle#context#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')
@@ -143,15 +142,41 @@ function! s:context(args) abort
   let a:args.layout = get(a:args, 'layout', 'split')
   let a:args.filter = get(a:args, 'filter', 'substring')
   let a:args.start_input = get(a:args, 'start_input', v:false)
+  let a:args.actions = get(a:args, 'actions', {})
 
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.context_id)
   let l:context.option = copy(a:args)
-  let l:context.source = s:Source.new(
-        \   s:Server.new(),
-        \   s:state.sources[a:args.source].create(a:args.params)
-        \ )
+  let l:context.server = s:Server.new()
+  let l:context.source = s:source(a:args)
 
   return l:context
+endfunction
+
+"
+" source
+"
+function! s:source(args) abort
+  let l:source = s:state.sources[a:args.source].create(get(a:args, 'params', {}))
+
+  if !has_key(l:source, 'name')
+    throw '[CANDLE] `name` is requried.'
+  endif
+
+  if !has_key(l:source, 'script')
+    throw '[CANDLE] `script` is requried.'
+  endif
+
+  if !has_key(l:source.script, 'path')
+    throw '[CANDLE] `script.path` is requried.'
+  endif
+
+  if !has_key(l:source.script, 'args')
+    throw '[CANDLE] `script.args` is requried.'
+  endif
+
+  let l:source.actions = extend(get(l:source, 'actions', {}), get(a:args, 'actions', {}))
+
+  return l:source
 endfunction
 

@@ -23,17 +23,9 @@ function! s:create(name, args) abort
   \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
   \     }
   \   },
-  \   'actions': s:actions()
+  \   'actions': {
+  \     'default': 'edit'
+  \   }
   \ }
-endfunction
-
-"
-" actions
-"
-function! s:actions() abort
-  let l:actions = {}
-  let l:actions = extend(l:actions, candle#action#location#get())
-  let l:actions.default = l:actions.edit
-  return l:actions
 endfunction
 

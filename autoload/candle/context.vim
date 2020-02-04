@@ -45,13 +45,18 @@ endfunction
 " start
 "
 function! s:Context.start() abort
-  call self.source.start({ n -> self.on_notification(n) })
   let self.state.status = 'progress'
   let self.state.total = 0
   let self.state.filtered_total = 0
   let self.state.selected_ids = []
   let self.state.is_selected_all = v:false
   let self.state.items = []
+
+  call self.server.start({ n -> self.on_notification(n) })
+  call self.server.request('start', {
+  \   'path': self.source.script.path,
+  \   'args': self.source.script.args,
+  \ })
 
   try
     call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 100)
@@ -64,7 +69,7 @@ endfunction
 " stop
 "
 function! s:Context.stop() abort
-  call self.source.stop()
+  call self.server.stop()
 endfunction
 
 "
@@ -95,7 +100,7 @@ endfunction
 " fetch
 "
 function! s:Context.fetch() abort
-  return self.source.fetch({
+  return self.server.request('fetch', {
         \   'query': self.state.query,
         \   'index': self.state.index,
         \   'count': self.option.maxheight,
@@ -106,10 +111,10 @@ endfunction
 " fetch_all
 "
 function! s:Context.fetch_all() abort
-  return self.source.fetch({
+  return self.server.request('fetch', {
         \   'query': self.state.query,
         \   'index': 0,
-        \   'count': -1,
+        \   'count': self.state.filtered_total,
         \ })
 endfunction
 
@@ -117,27 +122,15 @@ endfunction
 " choose_action
 "
 function! s:Context.choose_action()
-  let l:prev_candle = self
-
-  let l:ctx = {}
-  let l:ctx.prev_candle = l:prev_candle
-  function! l:ctx.callback(candle) abort
-    " Apply after this action excution.
-    call timer_start(0, { -> self.prev_candle.action(a:candle.get_cursor_item().title) })
-    return {
-    \   'quit': v:false,
-    \ }
-  endfunction
-
   call candle#start({
   \   'source': 'items',
   \   'layout': 'edit',
   \   'start_input': v:true,
   \   'params': {
-  \     'items': map(keys(l:prev_candle.source.source.actions), { i, action_name -> { 'id': string(i), 'title': action_name } }),
-  \     'actions': {
-  \       'default': { candle -> l:ctx.callback(candle) }
-  \     }
+  \     'items': map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } }),
+  \   },
+  \   'actions': {
+  \     'default': { candle -> self.action(candle.get_cursor_item().title) }
   \   }
   \ })
 endfunction
@@ -146,14 +139,18 @@ endfunction
 " action
 "
 function! s:Context.action(name) abort
-  try
-    call self.source.action(a:name, self)
-  catch /.*/
-    call candle#on_exception()
-    if win_id2win(self.state.winid) != -1
-      call win_gotoid(self.state.winid)
-    endif
-  endtry
+  let l:actions = candle#action#resolve(self)
+  let l:actions = filter(l:actions, { i, action -> action.name ==# a:name })
+
+  if len(l:actions) == 0
+    throw printf('No such action: `%s`', a:name)
+  endif
+
+  if len(l:actions) > 1
+    throw printf('Too many actions detected: `%s`', a:name)
+  endif
+
+  call l:actions[0].invoke(self)
 endfunction
 
 "

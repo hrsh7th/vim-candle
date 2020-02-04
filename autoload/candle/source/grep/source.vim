@@ -28,18 +28,10 @@ function! s:create(name, args) abort
   \       'command': get(a:args, 'command', s:default_command()),
   \     }
   \   },
-  \   'actions': s:actions()
+  \   'actions': {
+  \     'default': 'edit'
+  \   }
   \ }
-endfunction
-
-"
-" actions
-"
-function! s:actions() abort
-  let l:actions = {}
-  let l:actions = extend(l:actions, candle#action#location#get())
-  let l:actions.default = l:actions.edit
-  return l:actions
 endfunction
 
 "
@@ -58,6 +50,6 @@ function! s:default_command() abort
   if executable('jvgrep')
     return ['jvgrep', '-iR', '%PATTERN%', '%ROOT_PATH%']
   endif
-  return ['grep', 'rin', '%PATTERN%', '%ROOT_PATH%']
+  return ['grep', '-rin', '%PATTERN%', '%ROOT_PATH%']
 endfunction
 

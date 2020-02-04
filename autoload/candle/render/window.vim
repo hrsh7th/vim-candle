@@ -2,20 +2,8 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  if a:candle.option.layout ==# 'floating'
-    call nvim_open_win(bufnr(a:candle.bufname), v:true, {
-    \   'relative': 'editor',
-    \   'width': 1,
-    \   'height': 1,
-    \   'col': float2nr(&columns / 2 - a:candle.option.maxwidth / 2),
-    \   'row': float2nr(&lines / 2 - a:candle.option.maxheight / 2),
-    \   'focusable': v:true,
-    \   'style': 'minimal',
-    \ })
-  else
-    execute printf('botright %s #%s', a:candle.option.layout, bufnr(a:candle.bufname))
-    call candle#render#window#resize(a:candle)
-  endif
+  execute printf('botright %s #%s', a:candle.option.layout, bufnr(a:candle.bufname))
+  call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')
 endfunction

@@ -56,7 +56,7 @@ function! s:on_touch() abort
     return
   endif
 
-  let l:path = fnamemodify(bufname('%'), ':p')
+  let l:path = substitute(fnamemodify(bufname('%'), ':p'), '/$', '', 'g')
 
   " skip same to recently added
   if s:state.recent == l:path

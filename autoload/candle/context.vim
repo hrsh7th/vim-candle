@@ -125,7 +125,6 @@ function! s:Context.choose_action()
   call candle#start({
   \   'source': 'items',
   \   'layout': 'edit',
-  \   'start_input': v:true,
   \   'params': {
   \     'items': map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } }),
   \   },

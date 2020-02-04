@@ -137,7 +137,7 @@ endfunction
 function! s:context(args) abort
   let s:state.context_id += 1
 
-  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.8))
+  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.2))
   let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
   let a:args.layout = get(a:args, 'layout', 'split')
   let a:args.filter = get(a:args, 'filter', 'substring')

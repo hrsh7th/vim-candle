@@ -349,9 +349,7 @@ function! s:Context.on_response(id, response) abort
   let self.state.total = a:response.total
   let self.state.filtered_total = a:response.filtered_total
   call candle#render#window#resize(self)
-  call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item ->
-  \   item.title
-  \ }))
+  call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
   call deletebufline(self.bufname, len(self.state.items) + 1, '$')
 endfunction
 

@@ -3,6 +3,24 @@ if exists('g:loaded_candle')
 endif
 let g:loaded_candle = v:true
 
+if has('nvim')
+  if !exists('*deletebufline')
+    echomsg '[CANDLE] candle disabled.'
+    echomsg '[CANDLE] exists(''*deletebufline'') is not returns 1.'
+    echomsg '[CANDLE] Please update to nvim.'
+    finish
+  endif
+endif
+
+if !has('nvim')
+  if !exists('*win_execute')
+    echomsg '[CANDLE] candle disabled.'
+    echomsg '[CANDLE] exists(''*win_execute'') is not returns 1.'
+    echomsg '[CANDLE] Please update to nvim.'
+    finish
+  endif
+endif
+
 "
 " config
 "

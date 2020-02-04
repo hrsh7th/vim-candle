@@ -1,5 +1,3 @@
-let s:input_debounce_timer_id = -1
-
 "
 " candle#render#input#open
 "
@@ -19,43 +17,30 @@ function! candle#render#input#open(candle) abort
   call setbufvar('%', '&filetype', 'candle.input')
   call setbufvar('%', '&buftype', 'nofile')
   call setbufvar('%', '&bufhidden', 'delete')
+  call setline('.', a:candle.state.query)
+  call cursor([1, strlen(a:candle.state.query) + 1])
   setlocal winheight=1
   setlocal winfixheight
   startinsert!
 
   augroup printf('candle#render#input:%s', l:candle.bufname)
     autocmd!
-    autocmd TextChanged,TextChangedI,TextChangedP <buffer> call s:on_text_changed()
-    autocmd BufWinLeave <buffer> call s:on_buf_win_leave()
+    autocmd TextChanged,TextChangedI,TextChangedP <buffer> call s:on_query_change()
   augroup END
-
-  call setline('.', a:candle.state.query)
-  call cursor([1, strlen(a:candle.state.query) + 1])
 
   doautocmd User candle#input#start
 endfunction
 
 "
-" on_text_changed
+" s:on_query_change
 "
-function! s:on_text_changed() abort
+function! s:on_query_change() abort
   if b:candle.state.query !=# getline('.')
     call b:candle.top()
     call b:candle.query(getline('.'))
   endif
 
-  " NOTE: This line was needed to fix window height when enter input buffer.
+  " NOTE: This line is needed to fix window height when enter input buffer.
   call b:candle.refresh()
-endfunction
-
-"
-" on_buf_win_leave
-"
-function! s:on_buf_win_leave() abort
-  for l:winid in win_findbuf(bufnr(b:candle.bufname))
-    call win_gotoid(l:winid)
-    doautocmd BufEnter
-    break
-  endfor
 endfunction
 

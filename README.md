@@ -30,14 +30,14 @@ Concept
 fuzzy/substring/regex filter written in golang.
 
 ### Works on vim/neovim
-Use `job` API only.
+use `job` API only.
+
+### Use function, not command.
+The reason is that command can't pass complex object.
 
 
 Setting
 ===
-
-<details>
-  <summary>Example settings</summary>
 
 ```viml
 augroup vimrc
@@ -80,22 +80,61 @@ function! s:on_candle_input_start()
   inoremap <silent><buffer> <C-j> <C-o>:<C-u>call candle#mapping#cursor_move(1)<CR>
 endfunction
 
-"
-" file mru (ignore displayed buffers)
-"
+```
+
+# Recipes
+
+### mru files
+
+Recently opened files (and exclude displayed files).
+
+```viml
 nnoremap <silent>mru_file :<C-u>call candle#start({
 \   'source': 'mru_file',
 \   'params': {
-\     'filepath': g:candle#source#mru_file#filepath,
 \     'ignore_patterns': map(range(1, tabpagewinnr(tabpagenr(), '$')), { i, winnr ->
 \       fnamemodify(bufname(winbufnr(winnr)), ':p')
 \     })
 \   }
 \ })<CR>
+```
 
-"
-" all files in your project
-"
+
+### mru projects
+
+Recently projects (When choose one project, listing all files).
+
+```viml
+  nnoremap <silent><Leader>mru_project :<C-u>call candle#start({
+  \   'source': 'mru_dir',
+  \   'params': {
+  \     'ignore_patterns': map(
+  \       range(1, tabpagewinnr(tabpagenr(), '$')),
+  \       { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
+  \     )
+  \   },
+  \   'actions': {
+  \     'default': { candle -> [
+  \       execute('quit'),
+  \       win_gotoid(cnadle.state.prev_winid)
+  \       candle#start({
+  \         'source': 'file',
+  \         'params': {
+  \           'root_path': candle.get_action_items()[0].path,
+  \           'ignore_patterns': ['.git/', 'node_modules'],
+  \         }
+  \       })
+  \     ] }
+  \   }
+  \ })<CR>
+```
+
+
+### files
+
+All files under specified root.
+
+```viml
 nnoremap <silent>file :<C-u>call candle#start({
 \   'source': 'file',
 \   'params': {
@@ -103,10 +142,14 @@ nnoremap <silent>file :<C-u>call candle#start({
 \     'ignore_patterns': ['.git/', 'node_modules'],
 \   }
 \ })<CR>
+```
 
-"
-" grep (auto-detect ripgrep, ag, pt, jvgrep, grep)
-"
+
+### grep
+
+Invoke ripgrep/ag/pt/jvgrep/grep.
+
+```viml
 nnoremap <silent>grep :<C-u>call candle#start({
 \   'source': 'grep',
 \   'params': {
@@ -114,15 +157,15 @@ nnoremap <silent>grep :<C-u>call candle#start({
 \     'pattern': input('PATTERN: '),
 \   }
 \ })<CR>
+```
 
-"
-" any items and any action
-"
+### menus
+
+Your custom menu.
+
+```viml
 nnoremap <silent>menu :<C-u>call candle#start({
 \   'source': 'item',
-\   'actions': {
-\     'default': { candle -> execute(candle.get_cursor_item().execute) }
-\   },
 \   'params': {
 \     'items': [{
 \       'id': 1,
@@ -134,7 +177,9 @@ nnoremap <silent>menu :<C-u>call candle#start({
 \       'execute': 'vsplit $MYVIMRC'
 \     }],
 \   },
+\   'actions': {
+\     'default': { candle -> execute(candle.get_cursor_item().execute) }
+\   },
 \ })<CR>
 ```
-</details>
 

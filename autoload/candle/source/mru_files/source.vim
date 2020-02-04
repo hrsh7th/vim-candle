@@ -1,6 +1,8 @@
-let s:dirname = expand('<sfile>:p:h')
-
 let g:candle#source#mru_files#filepath = expand('~/.candle_mru_files')
+
+let s:dirname = expand('<sfile>:p:h')
+let s:state = {}
+let s:state.recent = ''
 
 "
 " candle#source#mru_files#source#definition
@@ -26,15 +28,32 @@ function! s:create(name, args) abort
   \     }
   \   },
   \   'actions': {
-  \     'default': 'edit'
+  \     'default': 'edit',
+  \     'delete': function('s:action_delete'),
   \   }
   \ }
 endfunction
 
+"
+" action_delete
+"
+function! s:action_delete(candle) abort
+  let l:msgs = ['Following mru entry will be removed.']
+  for l:item in a:candle.get_action_items()
+    let l:msgs += [printf('  %s', l:item.title)]
+  endfor
 
-let s:state = {
-      \   'recent': '',
-      \ }
+  if !candle#yesno(l:msgs)
+    throw 'Cancel.'
+  endif
+
+  let l:paths = map(a:candle.get_action_items(), { _, item -> fnamemodify(item.title, ':p') })
+  let l:lines = readfile(a:candle.source.script.args.filepath)
+  let l:lines = filter(l:lines, { _, line -> index(l:paths, line) == -1 })
+  call writefile(l:lines, a:candle.source.script.args.filepath)
+
+  call a:candle.start()
+endfunction
 
 "
 " events.

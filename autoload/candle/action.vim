@@ -53,7 +53,28 @@ endfunction
 function! s:normalize(actions) abort
   let l:actions = copy(a:actions)
   let l:actions = reverse(l:actions)
+  let l:actions = sort(l:actions, function('s:compare'))
+  let l:actions = uniq(l:actions, function('s:compare'))
   return l:actions
+endfunction
+
+"
+" compare
+"
+function! s:compare(action1, action2) abort
+  let l:len1 = strchars(a:action1.name)
+  let l:len2 = strchars(a:action2.name)
+
+  let l:i = 0
+  while l:i < min([l:len1, l:len2])
+    let l:diff = strgetchar(a:action1.name, l:i) - strgetchar(a:action2.name, l:i)
+    if l:diff != 0
+      return l:diff
+    endif
+    let l:i += 1
+  endwhile
+
+  return l:len1 - l:len2
 endfunction
 
 "

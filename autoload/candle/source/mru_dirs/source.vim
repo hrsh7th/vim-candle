@@ -56,7 +56,7 @@ function! s:on_touch() abort
     return
   endif
 
-  let l:path = substitute(fnamemodify(bufname('%'), ':p'), '/$', '', 'g')
+  let l:path = fnamemodify(bufname('%'), ':p')
 
   " skip same to recently added
   if s:state.recent == l:path
@@ -67,7 +67,7 @@ function! s:on_touch() abort
 
   " add mru entry
   if l:root !=# ''
-    call writefile([l:root], g:candle#source#mru_dirs#filepath, 'a')
+    call writefile([substitute(l:root, '\/$', '', 'g')], g:candle#source#mru_dirs#filepath, 'a')
   endif
   let s:state.recent = l:path
 endfunction

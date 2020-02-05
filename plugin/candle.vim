@@ -7,7 +7,7 @@ if has('nvim')
   if !exists('*deletebufline')
     echomsg '[CANDLE] candle disabled.'
     echomsg '[CANDLE] exists(''*deletebufline'') is not returns 1.'
-    echomsg '[CANDLE] Please update to nvim.'
+    echomsg '[CANDLE] Please update nvim.'
     finish
   endif
 endif
@@ -16,7 +16,7 @@ if !has('nvim')
   if !exists('*win_execute')
     echomsg '[CANDLE] candle disabled.'
     echomsg '[CANDLE] exists(''*win_execute'') is not returns 1.'
-    echomsg '[CANDLE] Please update to nvim.'
+    echomsg '[CANDLE] Please update vim.'
     finish
   endif
 endif

@@ -1,6 +1,12 @@
 "
 " candle#action#location#get
 "
+" expected each items has below keys.
+"
+" - path (required)
+" - lnum (optional)
+" - col  (optional)
+"
 function! candle#action#location#get() abort
   return [{
   \   'name': 'edit',

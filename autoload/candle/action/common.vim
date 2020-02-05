@@ -1,3 +1,6 @@
+"
+" candle#action#common#get
+"
 function! candle#action#common#get() abort
   return [{
   \   'name': 'echo',

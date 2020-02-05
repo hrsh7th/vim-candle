@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -56,7 +57,9 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 		return StartResponse{}, err
 	}
 
-	i := interp.New(interp.Options{})
+	i := interp.New(interp.Options{
+		GoPath: os.Getenv("GOPATH"),
+	})
 
 	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle-server/candle"] = map[string]reflect.Value{
 		"Process": reflect.ValueOf((*Process)(nil)),
@@ -64,6 +67,7 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 	}
 
 	i.Use(stdlib.Symbols)
+
 	if _, err := i.Eval(string(source)); err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil

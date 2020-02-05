@@ -81,5 +81,6 @@ endfunction
 " Built-in actions
 "
 let s:actions = []
+let s:actions += candle#action#common#get()
 let s:actions += candle#action#location#get()
 

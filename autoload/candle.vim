@@ -123,7 +123,7 @@ endfunction
 "
 function! candle#yesno(prompt) abort
   let l:prompt = type(a:prompt) == type([]) ? join(a:prompt, "\n") : a:prompt
-  if index(['y', 'ye', 'yes'], input(l:prompt . "\n" . '[yes/no] > ')) >= 0
+  if index(['y', 'ye', 'yes'], input(l:prompt . "\n" . 'yes/no > ')) >= 0
     echo "\n"
     return v:true
   endif

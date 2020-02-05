@@ -48,7 +48,7 @@ function! s:action_delete(candle) abort
     throw 'Cancel.'
   endif
 
-  let l:paths = map(a:candle.get_action_items(), { _, item -> fnamemodify(item.title, ':p') })
+  let l:paths = map(a:candle.get_action_items(), { _, item -> item.path })
   let l:lines = readfile(a:candle.source.script.args.filepath)
   let l:lines = filter(l:lines, { _, line -> index(l:paths, line) == -1 })
   call writefile(l:lines, a:candle.source.script.args.filepath)

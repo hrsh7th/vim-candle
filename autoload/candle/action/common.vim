@@ -27,8 +27,7 @@ function! s:yank(item) abort
   endfor
   let l:msgs += ['Choose key to yank (default: title) > ']
 
-  let l:key = input(join(l:msgs, "\n"))
-  let l:key = empty(l:key) ? 'title' : l:key
+  let l:key = input(join(l:msgs, "\n"), 'title')
   if has_key(a:item, l:key)
     call setreg('*', a:item[l:key])
   endif

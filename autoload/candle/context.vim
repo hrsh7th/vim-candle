@@ -123,14 +123,9 @@ endfunction
 "
 function! s:Context.choose_action()
   call candle#start({
-  \   'source': 'item',
-  \   'layout': 'edit',
-  \   'params': {
-  \     'items': map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } }),
-  \   },
-  \   'actions': {
-  \     'default': { candle -> self.action(candle.get_cursor_item().title) }
-  \   }
+  \   'item':  map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } })
+  \ }, {
+  \   'layout': 'edit'
   \ })
 endfunction
 

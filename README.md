@@ -90,12 +90,10 @@ Recently opened files (and exclude displayed files).
 
 ```viml
 nnoremap <silent>mru_file :<C-u>call candle#start({
-\   'source': 'mru_file',
-\   'params': {
+\   'mru_file': {
 \     'ignore_patterns': map(range(1, tabpagewinnr(tabpagenr(), '$')), { i, winnr ->
 \       fnamemodify(bufname(winbufnr(winnr)), ':p')
 \     })
-\   }
 \ })<CR>
 ```
 
@@ -106,14 +104,9 @@ Recently projects (When choose one project, listing all files).
 
 ```viml
   nnoremap <silent><Leader>mru_project :<C-u>call candle#start({
-  \   'source': 'mru_dir',
-  \   'params': {
-  \     'ignore_patterns': map(
-  \       range(1, tabpagewinnr(tabpagenr(), '$')),
-  \       { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
-  \     )
-  \   },
-  \   'actions': {
+  \   'mru_dir': {},
+  \ }, {
+  \   'action': {
   \     'default': { candle -> [
   \       execute('quit'),
   \       win_gotoid(cnadle.state.prev_winid)
@@ -136,8 +129,7 @@ All files under specified root.
 
 ```viml
 nnoremap <silent>file :<C-u>call candle#start({
-\   'source': 'file',
-\   'params': {
+\   'file': {
 \     'root_path': 'path to root dir',
 \     'ignore_patterns': ['.git/', 'node_modules'],
 \   }
@@ -151,8 +143,7 @@ Invoke ripgrep/ag/pt/jvgrep/grep.
 
 ```viml
 nnoremap <silent>grep :<C-u>call candle#start({
-\   'source': 'grep',
-\   'params': {
+\   'grep': {
 \     'root_path': 'path to root dir',
 \     'pattern': input('PATTERN: '),
 \   }
@@ -165,21 +156,19 @@ Your custom menu.
 
 ```viml
 nnoremap <silent>menu :<C-u>call candle#start({
-\   'source': 'item',
-\   'params': {
-\     'items': [{
-\       'id': 1,
-\       'title': 'PlugUpdate',
-\       'execute': 'PlugUpdate'
-\     }, {
-\       'id': 2,
-\       'title': 'Open .vimrc',
-\       'execute': 'vsplit $MYVIMRC'
-\     }],
-\   },
-\   'actions': {
+\   'item': [{
+\     'id': 1,
+\     'title': 'PlugUpdate',
+\     'execute': 'PlugUpdate'
+\   }, {
+\     'id': 2,
+\     'title': 'Open .vimrc',
+\     'execute': 'vsplit $MYVIMRC'
+\   }]
+\ }, {
+\   'action': {
 \     'default': { candle -> execute(candle.get_cursor_item().execute) }
-\   },
+\   }
 \ })<CR>
 ```
 

@@ -22,11 +22,12 @@ endfunction
 "
 " candle#start
 "
-function! candle#start(args) abort
+function! candle#start(source, ...) abort
+  let l:option = get(a:000, 0, {})
   try
     call candle#log('')
-    call candle#log('[START]', string(a:args))
-    call s:Context.new(s:context(a:args)).start()
+    call candle#log('[START]', string({ 'source': a:source, 'option': l:option }))
+    call s:Context.new(s:context(a:source, l:option)).start()
   catch /.*/
     call candle#on_exception()
   endtry
@@ -134,21 +135,21 @@ endfunction
 "
 " context
 "
-function! s:context(args) abort
+function! s:context(source, option) abort
   let s:state.context_id += 1
-
-  let a:args.maxwidth = get(a:args, 'maxwidth', float2nr(&columns * 0.2))
-  let a:args.maxheight = get(a:args, 'maxheight', float2nr(&lines * 0.2))
-  let a:args.layout = get(a:args, 'layout', 'split')
-  let a:args.filter = get(a:args, 'filter', 'substring')
-  let a:args.start_input = get(a:args, 'start_input', v:false)
-  let a:args.actions = get(a:args, 'actions', {})
 
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.context_id)
-  let l:context.option = copy(a:args)
+  let l:context.option = extend({
+  \   'layout': 'split',
+  \   'filter': 'substring',
+  \   'start_input': v:false,
+  \   'maxwidth': float2nr(&columns * 0.2),
+  \   'maxheight': float2nr(&lines * 0.2),
+  \   'action': {},
+  \ }, a:option)
   let l:context.server = s:Server.new()
-  let l:context.source = s:source(a:args)
+  let l:context.source = s:source(a:source)
 
   return l:context
 endfunction
@@ -156,8 +157,10 @@ endfunction
 "
 " source
 "
-function! s:source(args) abort
-  let l:source = s:state.sources[a:args.source].create(get(a:args, 'params', {}))
+function! s:source(source) abort
+  let  [l:source, l:params] = items(a:source)[0]
+
+  let l:source = s:state.sources[l:source].create(l:params)
 
   if !has_key(l:source, 'name')
     throw '`name` is requried.'
@@ -174,8 +177,6 @@ function! s:source(args) abort
   if !has_key(l:source.script, 'args')
     throw '`script.args` is requried.'
   endif
-
-  let l:source.actions = extend(get(l:source, 'actions', {}), get(a:args, 'actions', {}))
 
   return l:source
 endfunction

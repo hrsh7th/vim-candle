@@ -28,7 +28,7 @@ function! s:create(name, args) abort
   \       'command': get(a:args, 'command', s:default_command()),
   \     }
   \   },
-  \   'actions': {
+  \   'action': {
   \     'default': 'edit'
   \   }
   \ }

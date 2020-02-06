@@ -28,7 +28,7 @@ function! s:create(name, args) abort
   \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
   \     }
   \   },
-  \   'actions': {
+  \   'action': {
   \     'default': 'edit',
   \     'delete': function('s:action_delete'),
   \   }

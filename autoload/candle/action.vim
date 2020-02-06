@@ -25,8 +25,11 @@ function! candle#action#resolve(candle) abort
   let l:actions = copy(s:actions)
   let l:actions = filter(l:actions, { i, action -> action.accept(a:candle) })
 
-  " Source specific actions
-  for [l:action_name, l:Invoke_or_redirect_action_name] in items(a:candle.source.actions)
+  " Source or Argumented actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(extend(
+  \   copy(get(a:candle.source, 'action', {})),
+  \   copy(a:candle.option.action),
+  \ ))
 
     " Source specific action.
     if type(l:Invoke_or_redirect_action_name) == v:t_func

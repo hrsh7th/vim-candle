@@ -157,6 +157,8 @@ function! s:Context.choose_action()
   \ }, {
   \   'layout': 'edit',
   \   'close_on': 'BufWinLeave',
+  \   'keepjumps': v:true,
+  \   'start_input': g:candle.option.start_input,
   \   'action': {
   \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
   \   }

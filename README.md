@@ -150,6 +150,34 @@ nnoremap <silent>grep :<C-u>call candle#start({
 \ })<CR>
 ```
 
+### grep + [vim-qfreplace](https://github.com/thinca/vim-qfreplace)
+
+Modify grep results with qfreplace.
+
+```viml
+
+function! s:qfreplace_accept(candle) abort
+  return len(filter(a:candle.get_action_items()), { _, item ->
+  \   !has_key(item, 'path') || !has_key(item, 'lnum') || !has_key(item, 'text')
+  \ }) == 0
+endfunction
+
+function! s:qfreplace_invoke(candle) abort
+  call setqflist(map(a:candle.get_action_items(), { _, item -> {
+  \   'filename': item.path,
+  \   'lnum': item.lnum,
+  \   'text': item.text
+  \ } }))
+  call qfreplace#start('')
+endfunction
+
+call candle#action#register({
+\   'name': 'qfreplace',
+\   'accept': function('s:qfreplace_accept'),
+\   'invoke': function('s:qfreplace_invoke'),
+\ })
+```
+
 ### menus
 
 Your custom menu.

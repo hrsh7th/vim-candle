@@ -2,7 +2,18 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  execute printf('botright %s #%s', a:candle.option.layout, bufnr(a:candle.bufname))
+  let l:prev_candle = getbufvar('%', 'candle', {})
+  if !empty(l:prev_candle)
+    let l:keepjumps = l:prev_candle.option.keepjumps
+  else
+    let l:keepjumps = v:false
+  endif
+
+  execute printf('botright %s %s #%s',
+  \   l:keepjumps ? 'keepjumps' : '',
+  \   a:candle.option.layout,
+  \   bufnr(a:candle.bufname)
+  \ )
   call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')

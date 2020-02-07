@@ -25,7 +25,7 @@ function! s:create(name, args) abort
   \     'args': {
   \       'items': a:args,
   \     }
-  \   }
+  \   },
   \ }
 endfunction
 

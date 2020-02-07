@@ -78,5 +78,6 @@ func toItem(prefix string, index int, line string) map[string]interface{} {
 		),
 		"path": sub[0],
 		"lnum": lnum,
+		"text": sub[2],
 	}
 }

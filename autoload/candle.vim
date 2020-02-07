@@ -146,6 +146,7 @@ function! s:context(source, option) abort
   \   'start_input': v:false,
   \   'maxwidth': float2nr(&columns * 0.2),
   \   'maxheight': float2nr(&lines * 0.2),
+  \   'close_on': 'WinClosed',
   \   'action': {},
   \ }, a:option)
   let l:context.server = s:Server.new()

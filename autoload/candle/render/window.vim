@@ -12,7 +12,7 @@ endfunction
 " candle#render#window#resize
 "
 function! candle#render#window#resize(candle) abort
-  let l:winnr = win_id2win(a:candle.state.winid)
+  let l:winnr = win_id2win(a:candle.winid)
 
   " width
   if a:candle.option.layout !=# 'split'

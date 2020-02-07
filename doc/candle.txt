@@ -1,0 +1,161 @@
+*candle.txt*                       Candidate listing engine written in Golang
+
+=============================================================================
+CONTENTS                                                    *candle-contents*
+
+INTRODUCTION                                            |candle-introduction|
+CONCEPT                                                      |candle-concept|
+USAGE                                                          |candle-usage|
+INTERFACE                                                  |candle-interface|
+  VARIABLE                                                  |candle-variable|
+  FUNCTION                                                  |candle-function|
+DESIGN                                                        |candle-design|
+  SOURCE                                               |candle-design-source|
+  ITEM                                                   |candle-design-item|
+  ACTION                                               |candle-design-action|
+CHANGELOG                                                  |candle-changelog|
+
+
+=============================================================================
+INTRODUCTION                                            *candle-introduction*
+
+The candidate listing engine written in golang.
+
+You can below things with built-in sources.
+
+    - Open mru files
+    - Open project files
+    - Open grep results ()
+    - Open your custom commands
+
+
+=============================================================================
+CONCEPT                                                      *candle-concept*
+
+Use jobstart/job_start API and one pre-built binary~
+    No use python or neovim-rpc for maximize portability for your vimrc.
+    candle has automatic binary download feature.
+
+Performance~
+    Performance is most top priority because listing plugin is call by user everyday many times.
+
+Function interface is primary~
+    Command can't pass complex arguments.
+
+
+=============================================================================
+USAGE                                                          *candle-usage*
+
+1. main buffer key mappings~
+
+    When start candle, You get the candle buffer.
+    You should define your favorite mappings
+
+>
+    autocmd User candle#start call s:on_candle_start()
+    function! s:on_candle_start()
+        nnoremap <silent><buffer> k     :<C-u>call candle#mapping#cursor_move(-1)<CR>
+        nnoremap <silent><buffer> j     :<C-u>call candle#mapping#cursor_move(1)<CR>
+        nnoremap <silent><buffer> gg    :<C-u>call candle#mapping#cursor_top()<CR>
+        nnoremap <silent><buffer> G     :<C-u>call candle#mapping#cursor_bottom()<CR>
+        nnoremap <silent><buffer> -     :<C-u>call candle#mapping#toggle_select()<CR>
+        nnoremap <silent><buffer> *     :<C-u>call candle#mapping#toggle_select_all()<CR>
+        nnoremap <silent><buffer> i     :<C-u>call candle#mapping#input_open()<CR>
+        nnoremap <silent><buffer> a     :<C-u>call candle#mapping#input_open()<CR>
+        nnoremap <silent><buffer> <Tab> :<C-u>call candle#mapping#choose_action()<CR>
+
+        nnoremap <silent><buffer> <CR>  :<C-u>call candle#mapping#action('default')<CR>
+    endfunction
+<
+
+2. input buffer key mappings~
+
+    When calle `call candle#mapping#input_open()`, You get input buffer.
+    You should define your favorite mappings
+
+>
+    autocmd User candle#input#start call s:on_candle_input_start()
+    function! s:on_candle_input_start()
+      inoremap <silent><buffer> <C-k> <C-o>:<C-u>call candle#mapping#cursor_move(-1)<CR>
+      inoremap <silent><buffer> <C-j> <C-o>:<C-u>call candle#mapping#cursor_move(1)<CR>
+      inoremap <silent><buffer> <Esc> <Esc>:<C-u>call candle#mapping#input_close()<CR>
+      inoremap <silent><buffer> <CR>  <Esc>:<C-u>quit \| call candle#mapping#action('default')<CR>
+      inoremap <silent><buffer> <Tab> <Esc>:<C-u>quit \| call candle#mapping#choose_action()<CR>
+    endfunction
+<
+
+3. call some candle source~
+
+    You finished prepare to call candle.
+    You can call some candle source.
+
+>
+    " Start mru files
+    call candle#start({
+        'mru_file': {
+          'ignore_patterns': map(
+            range(1, tabpagewinnr(tabpagenr(), '$')),
+            { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
+          )
+        }
+    })
+<
+
+
+=============================================================================
+INTERFACE                                                  *candle-interface*
+
+Currently, candle expose these function as public interface.
+The breaking-changes is your own risk, if you use other internal api.
+
+
+-----------------------------------------------------------------------------
+FUNCTION                                                    *candle-function*
+
+candle#start(source, [option])                               *candle#start()*
+
+    Start candle buffer.
+
+    source~
+        Type:
+            v:t_dict
+        Description:
+            key is `source-name` and props is `source-args`.
+            Currently, the key length must be one only.
+        Example:
+>
+            {
+                'grep': {
+                    'root_path': expand('%:p:h'),
+                    'pattern': input('pattern: ')
+                }
+            }
+<
+
+
+    option~
+        Type: v:t_dict
+        Description:
+            following properties now supported.
+                - maxwidth
+                - maxheight
+                - layout
+                - filter
+                - action
+                - start_input
+        Example:
+>
+    {
+        'action': {
+          'default': { candle -> execute(candle.get_action_items()[0].command) }
+        }
+    }
+>
+
+=============================================================================
+CHANGELOG                                                  *candle-changelog*
+
+
+=============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
+

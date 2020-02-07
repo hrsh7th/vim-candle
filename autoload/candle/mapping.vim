@@ -52,7 +52,7 @@ function! candle#mapping#input_close() abort
     if &filetype ==# 'candle.input'
       stopinsert
       quit
-      call win_gotoid(l:candle.state.winid)
+      call win_gotoid(l:candle.winid)
     endif
   endif
 endfunction

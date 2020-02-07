@@ -1,6 +1,4 @@
 let s:initial_state = {
-\     'winid': -1,
-\     'prev_winid': -1,
 \     'total': 0,
 \     'filtered_total': 0,
 \     'items': [],
@@ -29,13 +27,18 @@ function! s:Context.new(context) abort
   let l:candle = extend(l:candle, a:context)
   let l:candle = extend(l:candle, {
         \   'request_id': 0,
+        \   'winid': 0,
+        \   'winid_prev': 0,
         \   'state': deepcopy(s:initial_state),
         \   'prev_state': deepcopy(s:initial_state),
         \ })
   call bufnr(l:candle.bufname, v:true)
+  call bufload(l:candle.bufname)
   call setbufvar(l:candle.bufname, 'candle', l:candle)
   call setbufvar(l:candle.bufname, '&filetype', 'candle')
   call setbufvar(l:candle.bufname, '&buftype', 'nofile')
+  call setbufvar(l:candle.bufname, '&buflisted', 0)
+  call setbufvar(l:candle.bufname, '&bufhidden', 'hide')
   call setbufvar(l:candle.bufname, '&number', 0)
   call setbufvar(l:candle.bufname, '&signcolumn', 'yes')
   return l:candle
@@ -77,6 +80,33 @@ endfunction
 "
 function! s:Context.on_notification(notification) abort
   if a:notification.method ==# 'start'
+    if self.winid == 0
+
+      " initialize window.
+      let self.prev_winid = win_getid()
+      call candle#render#window#initialize(self)
+      let self.winid = win_getid()
+
+      " initialize events.
+      call candle#event#attach('BufEnter', { -> [
+      \   self.refresh()
+      \ ] })
+
+      call candle#event#attach('CursorMoved', { ->
+      \   self.set_cursor(line('.'))
+      \ })
+
+      call candle#event#attach(self.option.close_on, { -> [
+      \   self.stop(),
+      \   candle#event#clean(bufnr(self.bufname))
+      \ ] })
+
+      doautocmd User candle#start
+
+      if self.option.start_input
+        call candle#render#input#open(self)
+      endif
+    endif
     call self.refresh({ 'async': v:true })
 
   elseif a:notification.method ==# 'progress'
@@ -125,7 +155,11 @@ function! s:Context.choose_action()
   call candle#start({
   \   'item':  map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } })
   \ }, {
-  \   'layout': 'edit'
+  \   'layout': 'edit',
+  \   'close_on': 'BufWinLeave',
+  \   'action': {
+  \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
+  \   }
   \ })
 endfunction
 
@@ -191,7 +225,7 @@ endfunction
 " move_cursor
 "
 function! s:Context.move_cursor(offset) abort
-  let l:winheight = winheight(win_id2win(self.state.winid))
+  let l:winheight = winheight(win_id2win(self.winid))
 
   let l:index = self.state.index
   let l:cursor = self.state.cursor + a:offset
@@ -233,7 +267,7 @@ endfunction
 " bottom
 "
 function! s:Context.bottom() abort
-  let l:winheight = winheight(win_id2win(self.state.winid))
+  let l:winheight = winheight(win_id2win(self.winid))
   let self.state.index = self.state.filtered_total - l:winheight
   let self.state.cursor = l:winheight
   call self.refresh()
@@ -273,6 +307,7 @@ function! s:Context.get_action_items() abort
     return [l:item]
   endif
 
+  " TODO: resolve by server.
   return filter(copy(self.state.items), { _, item -> index(self.state.selected_ids, item.id) >= 0 })
 endfunction
 
@@ -281,20 +316,6 @@ endfunction
 "
 function! s:Context.refresh(...) abort
   let l:option = extend({ 'async': v:false, 'force': v:false }, get(a:000, 0, {}))
-
-  " initialize window
-  if self.state.winid == -1
-    let self.state.prev_winid = win_getid()
-    call candle#render#window#initialize(self)
-    call candle#render#autocmd#initialize(self)
-    let self.state.winid = win_getid()
-
-    doautocmd User candle#start
-
-    if self.option.start_input
-      call candle#render#input#open(self)
-    endif
-  endif
 
   " update statusline
   call candle#render#statusline#update(self)

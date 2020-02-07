@@ -109,7 +109,7 @@ Recently projects (When choose one project, listing all files).
   \   'action': {
   \     'default': { candle -> [
   \       execute('quit'),
-  \       win_gotoid(cnadle.state.prev_winid)
+  \       win_gotoid(cnadle.prev_winid)
   \       candle#start({
   \         'source': 'file',
   \         'params': {

@@ -45,7 +45,7 @@ endfunction
 function! s:invoke_open(command, candle) abort
   " Close candle window.
   quit
-  call win_gotoid(a:candle.state.prev_winid)
+  call win_gotoid(a:candle.prev_winid)
 
   " Open item.
   let l:item = a:candle.get_action_items()[0]

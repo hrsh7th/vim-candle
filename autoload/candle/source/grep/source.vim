@@ -38,17 +38,17 @@ endfunction
 " default_command
 "
 function! s:default_command() abort
-  if executable('rg')
-    return ['rg', '-i', '--vimgrep', '--no-heading', '%PATTERN%', '%ROOT_PATH%']
+  if v:false && executable('rg')
+    return ['rg', '-i', '--vimgrep', '--no-heading', '--no-column', '%PATTERN%', '%ROOT_PATH%']
   endif
   if executable('ag')
-    return ['ag', '-i', '--vimgrep', '%PATTERN%', '%ROOT_PATH%']
+    return ['ag', '-i', '--nocolor', '--noheading', '--nobreak', '%PATTERN%', '%ROOT_PATH%']
   endif
   if executable('pt')
     return ['pt', '-i', '--nogroup', '--nocolor', '%PATTERN%', '%ROOT_PATH%']
   endif
   if executable('jvgrep')
-    return ['jvgrep', '-iR', '%PATTERN%', '%ROOT_PATH%']
+    return ['jvgrep', '-iR', '--no-color', '%PATTERN%', '%ROOT_PATH%']
   endif
   return ['grep', '-rin', '%PATTERN%', '%ROOT_PATH%']
 endfunction

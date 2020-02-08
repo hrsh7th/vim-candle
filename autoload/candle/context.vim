@@ -38,7 +38,7 @@ function! s:Context.new(context) abort
   call setbufvar(l:candle.bufname, '&filetype', 'candle')
   call setbufvar(l:candle.bufname, '&buftype', 'nofile')
   call setbufvar(l:candle.bufname, '&buflisted', 0)
-  call setbufvar(l:candle.bufname, '&bufhidden', 'hide')
+  call setbufvar(l:candle.bufname, '&bufhidden', l:candle.option.close_on ==# 'BufWinLeave' ? 'wipe' : 'hide')
   call setbufvar(l:candle.bufname, '&number', 0)
   call setbufvar(l:candle.bufname, '&signcolumn', 'yes')
   return l:candle

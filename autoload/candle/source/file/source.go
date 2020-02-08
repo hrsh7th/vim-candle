@@ -22,6 +22,7 @@ func Start(process *candle.Process) {
 		ch := process.Walk(rootPath, func(pathname string, fi os.FileInfo) bool {
 			return !ignoreMatcher(pathname, fi.IsDir())
 		})
+
 		index := 0
 		for {
 			entry, ok := <-ch
@@ -41,9 +42,10 @@ func Start(process *candle.Process) {
 
 func toItem(index int, pathname string) candle.Item {
 	return candle.Item{
-		"id":    strconv.Itoa(index),
-		"title": pathname,
-		"path":  pathname,
+		"id":     strconv.Itoa(index),
+		"title":  pathname,
+		"path":   pathname,
+		"is_dir": false,
 	}
 }
 

@@ -27,6 +27,7 @@ function! s:Context.new(context) abort
   let l:candle = extend(l:candle, a:context)
   let l:candle = extend(l:candle, {
         \   'request_id': 0,
+        \   'stopped': v:false,
         \   'winid': 0,
         \   'winid_prev': 0,
         \   'state': deepcopy(s:initial_state),
@@ -38,7 +39,7 @@ function! s:Context.new(context) abort
   call setbufvar(l:candle.bufname, '&filetype', 'candle')
   call setbufvar(l:candle.bufname, '&buftype', 'nofile')
   call setbufvar(l:candle.bufname, '&buflisted', 0)
-  call setbufvar(l:candle.bufname, '&bufhidden', l:candle.option.close_on ==# 'BufWinLeave' ? 'wipe' : 'hide')
+  call setbufvar(l:candle.bufname, '&bufhidden', 'hide')
   call setbufvar(l:candle.bufname, '&number', 0)
   call setbufvar(l:candle.bufname, '&signcolumn', 'yes')
   return l:candle
@@ -72,7 +73,13 @@ endfunction
 " stop
 "
 function! s:Context.stop() abort
+  if self.stopped
+    return
+  endif
+  let self.stopped = v:true
+
   call self.server.stop()
+  execute printf('%sbdelete!', bufnr(self.bufname))
 endfunction
 
 "
@@ -88,18 +95,9 @@ function! s:Context.on_notification(notification) abort
       let self.winid = win_getid()
 
       " initialize events.
-      call candle#event#attach('BufEnter', { -> [
-      \   self.refresh()
-      \ ] })
-
-      call candle#event#attach('CursorMoved', { ->
-      \   self.set_cursor(line('.'))
-      \ })
-
-      call candle#event#attach(self.option.close_on, { -> [
-      \   self.stop(),
-      \   candle#event#clean(bufnr(self.bufname))
-      \ ] })
+      call candle#event#attach('BufEnter', { -> [self.refresh()] })
+      call candle#event#attach('CursorMoved', { -> [self.set_cursor(line('.'))] })
+      call candle#event#attach('WinClosed', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] })
 
       doautocmd User candle#start
 
@@ -156,7 +154,7 @@ function! s:Context.choose_action()
   \   'item':  map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } })
   \ }, {
   \   'layout': 'edit',
-  \   'close_on': 'BufWinLeave',
+  \   'close_on': 'BufLeave',
   \   'keepjumps': v:true,
   \   'start_input': g:candle.option.start_input,
   \   'action': {

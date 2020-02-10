@@ -1,0 +1,35 @@
+name: publish
+
+on:
+  release:
+    types: ['published', 'created']
+
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+
+      -
+        name: checkout
+        uses: actions/checkout@v2
+
+      -
+        name: fetch
+        run: git fetch --prune --unshallow
+
+      -
+        name: golang
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13.x
+
+      -
+        name: goreleaser
+        uses: goreleaser/goreleaser-action@master
+        with:
+          args: release
+          workdir: go/candle-server
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_OWN_TOKEN }}
+

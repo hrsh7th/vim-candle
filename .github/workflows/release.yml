@@ -1,32 +1,41 @@
 name: release
 
 on:
-  release:
-    types:
-      - created
+  push:
+    branches:
+      - master
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+
+      -
+        name: package
+        uses: MontyD/package-json-updated-action@master
+        id: package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       -
         name: checkout
         uses: actions/checkout@v2
+        if: steps.package.outputs.has-updated
+
       -
         name: fetch
         run: git fetch --prune --unshallow
-      -
-        name: golang
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13.x
+        if: steps.package.outputs.has-updated
 
       -
-        name: goreleaser
-        uses: goreleaser/goreleaser-action@master
-        with:
-          args: release
-          workdir: go/candle-server
+        name: release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_OWN_TOKEN }}
+        with:
+          tag_name: ${{ steps.package.outputs.current-package-version }}
+          release_name: ${{ steps.package.outputs.current-package-version }}
+          draft: false
+          prerelease: false
+        if: steps.package.outputs.has-updated
 

@@ -24,6 +24,7 @@ type Process struct {
 	allItems         []Item
 	filteredItems    []Item
 
+	id     string
 	path   string
 	args   map[string]interface{}
 	interp *interp.Interpreter
@@ -48,6 +49,7 @@ func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*P
  * Start
  */
 func (process *Process) Start(params StartRequest) (StartResponse, error) {
+	process.id = params.Id
 	process.path = params.Path
 	process.args = params.Args
 
@@ -114,49 +116,6 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
 		Total:         process.total(),
 		FilteredTotal: process.filteredTotal(),
 	}, nil
-}
-
-/**
- * NotifyStart
- */
-func (process *Process) NotifyStart() {
-	process.lastProgressTime = now()
-	process.query = ""
-	process.allItems = []Item{}
-	process.filteredItems = []Item{}
-	process.conn.Notify(context.Background(), "start", &ProgressMessage{
-		Total:         process.total(),
-		FilteredTotal: process.filteredTotal(),
-	})
-}
-
-/**
- * NotifyProgress
- */
-func (process *Process) NotifyProgress() {
-	process.conn.Notify(context.Background(), "progress", &ProgressMessage{
-		Total:         process.total(),
-		FilteredTotal: process.filteredTotal(),
-	})
-}
-
-/**
- * NotifyDone
- */
-func (process *Process) NotifyDone() {
-	process.conn.Notify(context.Background(), "done", &DoneMessage{
-		Total:         process.total(),
-		FilteredTotal: process.filteredTotal(),
-	})
-}
-
-/**
- * NotifyMessage
- */
-func (process *Process) NotifyMessage(message string) {
-	process.conn.Notify(context.Background(), "message", &MessageMessage{
-		Message: message,
-	})
 }
 
 /**

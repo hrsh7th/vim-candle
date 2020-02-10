@@ -56,8 +56,8 @@ function! s:Context.start() abort
   let self.state.is_selected_all = v:false
   let self.state.items = []
 
-  call self.server.start({ n -> self.on_notification(n) })
   call self.server.request('start', {
+  \   'id': self.bufname,
   \   'path': self.source.script.path,
   \   'args': self.source.script.args,
   \ })
@@ -73,12 +73,9 @@ endfunction
 " stop
 "
 function! s:Context.stop() abort
-  if self.stopped
-    return
-  endif
-  let self.stopped = v:true
-
-  call self.server.stop()
+  call self.server.request('stop', {
+  \   'id': self.bufname,
+  \ })
   execute printf('%sbdelete!', bufnr(self.bufname))
 endfunction
 
@@ -129,10 +126,11 @@ endfunction
 "
 function! s:Context.fetch() abort
   return self.server.request('fetch', {
-        \   'query': self.state.query,
-        \   'index': self.state.index,
-        \   'count': self.option.maxheight,
-        \ })
+  \   'id': self.bufname,
+  \   'query': self.state.query,
+  \   'index': self.state.index,
+  \   'count': self.option.maxheight,
+  \ })
 endfunction
 
 "
@@ -140,10 +138,11 @@ endfunction
 "
 function! s:Context.fetch_all() abort
   return self.server.request('fetch', {
-        \   'query': self.state.query,
-        \   'index': 0,
-        \   'count': self.state.filtered_total,
-        \ })
+  \   'id': self.bufname,
+  \   'query': self.state.query,
+  \   'index': 0,
+  \   'count': self.state.filtered_total,
+  \ })
 endfunction
 
 "

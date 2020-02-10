@@ -8,6 +8,7 @@ let s:state = {
 \   'version': '',
 \   'context_id': -1,
 \   'sources': {},
+\   'server': v:null
 \ }
 
 call s:Promise.on_unhandled_rejection({ err -> candle#log('[ERROR]', err) })
@@ -150,7 +151,7 @@ function! s:context(source, option) abort
   \   'keepjumps': v:false,
   \   'action': {},
   \ }, a:option)
-  let l:context.server = s:Server.new()
+  let l:context.server = s:server()
   let l:context.source = s:source(a:source)
 
   return l:context
@@ -181,5 +182,29 @@ function! s:source(source) abort
   endif
 
   return l:source
+endfunction
+
+"
+" server
+"
+function! s:server() abort
+  if !empty(s:state.server)
+    return s:state.server
+  endif
+  let s:state.server = s:Server.new()
+  call s:state.server.start({ notification -> s:on_notification(notification) })
+  return s:state.server
+endfunction
+
+"
+" on_notification
+"
+function! s:on_notification(notification) abort
+  if has_key(a:notification.params, 'id')
+    let l:candle = getbufvar(a:notification.params.id, 'candle', {})
+    if !empty(l:candle)
+      call l:candle.on_notification(a:notification)
+    endif
+  endif
 endfunction
 

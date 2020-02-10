@@ -9,6 +9,11 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+type Handler struct {
+	Logger     *log.Logger
+	ProcessMap map[string]*Process
+}
+
 func NewHandler(logfile string) *Handler {
 	file, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
@@ -17,13 +22,9 @@ func NewHandler(logfile string) *Handler {
 	}
 
 	return &Handler{
-		Logger: log.New(file, "[CANDLE]", log.LstdFlags|log.Ldate|log.Lshortfile),
+		Logger:     log.New(file, "[CANDLE]", log.LstdFlags|log.Ldate|log.Lshortfile),
+		ProcessMap: map[string]*Process{},
 	}
-}
-
-type Handler struct {
-	Logger  *log.Logger
-	Process *Process
 }
 
 func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
@@ -32,10 +33,11 @@ func (h *Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 		return h.HandleStart(ctx, conn, req)
 	case req.Method == "fetch":
 		return h.HandleFetch(ctx, conn, req)
+	case req.Method == "stop":
+		return h.HandleStop(ctx, conn, req)
 	}
 	return nil, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,
 		Message: fmt.Sprintf("method not supported: %s", req.Method),
 	}
 }
-

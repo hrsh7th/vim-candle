@@ -9,13 +9,16 @@ import (
 
 func (h *Handler) HandleFetch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
 	var params FetchRequest
+
 	if err := json.Unmarshal(*req.Params, &params); err != nil {
 		h.Logger.Println(err)
 		return nil, err
 	}
-	if h.Process != nil {
-		return h.Process.Fetch(params)
+
+	process := h.ProcessMap[params.Id]
+
+	if process != nil {
+		return process.Fetch(params)
 	}
 	return nil, nil
 }
-

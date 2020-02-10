@@ -60,6 +60,7 @@ function! s:on_candle_start()
   nnoremap <silent><buffer> i     :<C-u>call candle#mapping#input_open()<CR>
   nnoremap <silent><buffer> a     :<C-u>call candle#mapping#input_open()<CR>
   nnoremap <silent><buffer> <Tab> :<C-u>call candle#mapping#choose_action()<CR>
+  nnoremap <silent><buffer> <C-l> :<C-u>call candle#mapping#restart()<CR>
 
   nnoremap <silent><buffer> <CR>  :<C-u>call candle#mapping#action('default')<CR>
   nnoremap <silent><buffer> s     :<C-u>call candle#mapping#action('split')<CR>

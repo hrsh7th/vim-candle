@@ -1,3 +1,9 @@
+function! candle#mapping#restart() abort
+  if has_key(b:, 'candle')
+    call b:candle.start()
+  endif
+endfunction
+
 function! candle#mapping#cursor_move(offset) abort
   if has_key(b:, 'candle')
     call b:candle.move_cursor(a:offset)

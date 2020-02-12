@@ -81,7 +81,7 @@ endfunction
 "
 function! s:on_win_closed() abort
   for l:context in get(s:event_map, 'WinClosed', [])
-    if win_id2win(l:context.winid) == 0
+    if win_id2tabwin(l:context.winid) == [0, 0]
       call l:context.func()
     endif
   endfor

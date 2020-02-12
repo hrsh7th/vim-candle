@@ -1,5 +1,5 @@
 let s:Promise = vital#candle#import('Async.Promise')
-let s:Server = candle#server#import()
+let s:Server = vital#candle#import('RPC.JSON')
 let s:Context = candle#context#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')
@@ -191,8 +191,10 @@ function! s:server() abort
   if !empty(s:state.server)
     return s:state.server
   endif
-  let s:state.server = s:Server.new()
-  call s:state.server.start({ notification -> s:on_notification(notification) })
+  let s:state.server = s:Server.new({ 'command': s:command() })
+  call s:state.server.emitter.on('stderr', { err -> candle#log('[ERROR]', err) })
+  call s:state.server.emitter.on('notify', { notification -> s:on_notification(notification) })
+  call s:state.server.start()
   return s:state.server
 endfunction
 
@@ -206,5 +208,18 @@ function! s:on_notification(notification) abort
       call l:candle.on_notification(a:notification)
     endif
   endif
+endfunction
+"
+" command
+"
+function! s:command() abort
+  " Manual built binary.
+  if filereadable(printf('%s/bin/candle-server/candle-server', s:root_dir))
+    return [printf('%s/bin/candle-server/candle-server', s:root_dir)]
+  endif
+
+  call candle#install#do()
+
+  return [candle#install#get_binary_path()]
 endfunction
 

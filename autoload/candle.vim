@@ -1,5 +1,5 @@
 let s:Promise = vital#candle#import('Async.Promise')
-let s:Server = vital#candle#import('RPC.JSON')
+let s:Server = vital#candle#import('VS.RPC.JSON')
 let s:Context = candle#context#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')

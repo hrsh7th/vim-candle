@@ -35,13 +35,15 @@ function! s:on_query_change() abort
       call b:candle.query(getcmdline())
     endif
 
-    " NOTE: This line is needed to fix window height when enter input buffer.
     call b:candle.refresh()
 
     redraw
+
+    let s:debounce_timer_id = -1
   endfunction
 
-  call timer_stop(s:debounce_timer_id)
-  let s:debounce_timer_id = timer_start(0, { -> l:ctx.callback() })
+  if s:debounce_timer_id == -1
+    let s:debounce_timer_id = timer_start(200, { -> l:ctx.callback() })
+  endif
 endfunction
 

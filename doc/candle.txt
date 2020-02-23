@@ -78,8 +78,8 @@ USAGE                                                          *candle-usage*
     function! s:on_candle_input_start()
       cnoremap <silent><buffer> <Tab> <Esc>:<C-u>call candle#mapping#choose_action()<CR>
       cnoremap <silent><buffer> <C-y> <Esc>:<C-u>call candle#mapping#action('default')<CR>
-      cnoremap <silent><buffer> <C-k> <Esc>:<C-u>call candle#mapping#cursor_move(-1) \| call candle#mapping#input_open()<CR>
-      cnoremap <silent><buffer> <C-j> <Esc>:<C-u>call candle#mapping#cursor_move(+1) \| call candle#mapping#input_open()<CR>
+      cnoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(-1) \| call candle#mapping#input_open()<CR>
+      cnoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(+1) \| call candle#mapping#input_open()<CR>
     endfunction
 <
 

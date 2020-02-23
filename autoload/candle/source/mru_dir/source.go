@@ -11,8 +11,6 @@ import (
 	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
 )
 
-var Items []candle.Item = make([]candle.Item, 0)
-
 func Start(process *candle.Process) {
 	filepath := process.GetString([]string{"filepath"})
 	if _, err := os.Stat(filepath); err != nil {
@@ -41,29 +39,24 @@ func Start(process *candle.Process) {
 		var paths []string = make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			path := scanner.Text()
-
-			// skip already deleted file
-			if stat, err := os.Stat(path); err != nil || !stat.IsDir() {
-				continue
-			}
-
-			paths = append(paths, path)
+			paths = append(paths, scanner.Text())
 		}
 
 		// add items
-		reversed := reverse(paths)
-		uniqued := unique(reversed)
-		for i, path := range uniqued {
+		candidates := paths
+		candidates = exists(candidates)
+		candidates = reverse(candidates)
+		candidates = unique(candidates)
+		for i, candidate := range candidates {
 			// skip if ignore patterns matches.
-			if ignoreMatcher(path, true) {
+			if ignoreMatcher(candidate, true) {
 				continue
 			}
-			process.AddItem(toItem(i, path))
+			process.AddItem(toItem(i, candidate))
 		}
 
 		// write back uniqued lines
-		ioutil.WriteFile(filepath, []byte(strings.Join(reverse(uniqued), "\n")+"\n"), 0666)
+		ioutil.WriteFile(filepath, []byte(strings.Join(unique(paths), "\n")+"\n"), 0666)
 
 		process.NotifyDone()
 	}()
@@ -77,24 +70,35 @@ func toItem(index int, filepath string) candle.Item {
 	}
 }
 
-func reverse(strs []string) []string {
-	length := len(strs)
-	reversed := make([]string, length)
-	for i, str := range strs {
-		reversed[length-i-1] = str
+func exists(paths []string) []string {
+	newPaths := make([]string, 0)
+	for _, path := range paths {
+		if stat, err := os.Stat(path); err != nil || !stat.IsDir() {
+			continue
+		}
+		newPaths = append(newPaths, path)
 	}
-	return reversed
+	return newPaths
 }
 
-func unique(strs []string) []string {
-	checked := make(map[string]bool, 0)
-	uniqued := make([]string, 0)
-	for _, str := range strs {
-		if !checked[str] {
-			checked[str] = true
-			uniqued = append(uniqued, str)
+func reverse(paths []string) []string {
+	length := len(paths)
+	newPaths := make([]string, length)
+	for i, str := range paths {
+		newPaths[length-i-1] = str
+	}
+	return newPaths
+}
+
+func unique(paths []string) []string {
+	uniqued := make(map[string]bool, 0)
+	newPaths := make([]string, 0)
+	for _, str := range paths {
+		if !uniqued[str] {
+			uniqued[str] = true
+			newPaths = append(newPaths, str)
 		}
 	}
-	return uniqued
+	return newPaths
 }
 

@@ -9,9 +9,14 @@ function! candle#render#window#initialize(candle) abort
     let l:keepjumps = v:false
   endif
 
+  let l:layout = a:candle.option.layout
+  if a:candle.option.layout_keep && !empty(l:prev_candle)
+    let l:layout = 'edit'
+  endif
+
   execute printf('botright %s %s #%s',
   \   l:keepjumps ? 'keepjumps' : '',
-  \   a:candle.option.layout,
+  \   l:layout,
   \   bufnr(a:candle.bufname)
   \ )
   call candle#render#window#resize(a:candle)

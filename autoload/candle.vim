@@ -143,6 +143,7 @@ function! s:context(source, option) abort
   let l:context.bufname = printf('candle-%s', s:state.context_id)
   let l:context.option = extend({
   \   'layout': 'split',
+  \   'layout_keep': v:true,
   \   'filter': 'substring',
   \   'start_input': v:false,
   \   'maxwidth': float2nr(&columns * 0.2),

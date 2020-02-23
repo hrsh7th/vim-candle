@@ -159,7 +159,7 @@ function! s:Connection.on_stdout(data) abort
 
   " content length check.
   let l:content_length = get(matchlist(self.buffer[0 : l:header_length - 1], 'Content-Length: \(\d\+\)'), 1, v:null)
-  if l:content_length is v:null
+  if l:content_length == v:null
     return
   endif
   let l:end_of_content = l:header_length + l:content_length

@@ -118,7 +118,9 @@ endfunction
 " stop
 "
 function! s:Vim.stop() abort
-  call ch_close(self.job)
+  if !empty(self.job)
+    call ch_close(self.job)
+  endif
   let self.job = v:null
 endfunction
 
@@ -133,6 +135,9 @@ endfunction
 " is_running
 "
 function! s:Vim.is_running() abort
+  if empty(self.job)
+    return v:false
+  endif
   return ch_status(self.job) ==# 'open'
 endfunction
 

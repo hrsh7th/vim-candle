@@ -1,4 +1,4 @@
-let s:debounce_timer_id = -1
+let s:timer_id = -1
 
 "
 " candle#render#input#open
@@ -11,7 +11,7 @@ function! candle#render#input#open(candle) abort
     autocmd CmdlineChanged <buffer> call s:on_query_change()
   augroup END
 
-  redraw
+  " NOTE: redraw causes cursor flicker so should use redrawstatus in here.
   call input("$ ", a:candle.state.query)
 
   augroup printf('candle#render#input:%s', a:candle.bufname)
@@ -37,13 +37,14 @@ function! s:on_query_change() abort
 
     call b:candle.refresh()
 
-    redraw
+    " NOTE: redraw causes cursor flicker so should use redrawstatus in here.
+    redrawstatus
 
-    let s:debounce_timer_id = -1
+    let s:timer_id = -1
   endfunction
 
-  if s:debounce_timer_id == -1
-    let s:debounce_timer_id = timer_start(200, { -> l:ctx.callback() })
+  if s:timer_id == -1
+    let s:timer_id = timer_start(0, { -> l:ctx.callback() })
   endif
 endfunction
 

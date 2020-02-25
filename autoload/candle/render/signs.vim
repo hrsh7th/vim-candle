@@ -33,27 +33,27 @@ endfunction
 " candle#render#signs#selected_ids
 "
 function! candle#render#signs#selected_ids(candle) abort
-  if a:candle.state.is_selected_all
+  try
     call sign_unplace('CandleSelectedLine', {
     \   'buffer': a:candle.bufname,
     \ })
-    for l:lnum in range(1, winheight(bufwinnr(a:candle.bufname)) + 1)
-      call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
-      \   'priority': 200,
-      \   'lnum': l:lnum
-      \ })
-    endfor
-  else
-    call sign_unplace('CandleSelectedLine', {
-    \   'buffer': a:candle.bufname,
-    \ })
-    let l:item_ids = map(copy(a:candle.state.items), { _, item -> item.id })
-    for l:selected_id in a:candle.state.selected_ids
-      call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
-      \   'priority': 200,
-      \   'lnum': index(l:item_ids, l:selected_id) + 1,
-      \ })
-    endfor
-  endif
+    if a:candle.state.is_selected_all
+      for l:lnum in range(1, winheight(bufwinnr(a:candle.bufname)) + 1)
+        call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
+        \   'priority': 200,
+        \   'lnum': l:lnum
+        \ })
+      endfor
+    else
+      let l:item_ids = map(copy(a:candle.state.items), { _, item -> item.id })
+      for l:selected_id in a:candle.state.selected_ids
+        call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
+        \   'priority': 200,
+        \   'lnum': index(l:item_ids, l:selected_id) + 1,
+        \ })
+      endfor
+    endif
+  catch /.*/
+  endtry
 endfunction
 

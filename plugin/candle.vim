@@ -27,7 +27,7 @@ endif
 let g:candle = get(g:, 'candle', {})
 let g:candle.debug = get(g:candle, 'debug', '')
 let g:candle.option = get(g:candle, 'option', {})
-let g:candle.option.start_input = get(g:candle.option, 'start_input', v:false)
+let g:candle.option.start_input = get(g:candle.option, 'start_input', v:true)
 
 "
 " built-in sources

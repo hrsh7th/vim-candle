@@ -14,11 +14,7 @@ function! candle#render#window#initialize(candle) abort
     let l:layout = 'edit'
   endif
 
-  execute printf('botright %s %s #%s',
-  \   l:keepjumps ? 'keepjumps' : '',
-  \   l:layout,
-  \   bufnr(a:candle.bufname)
-  \ )
+  execute printf('botright %s %s #%s', l:keepjumps ? 'keepjumps' : '', l:layout, bufnr(a:candle.bufname))
   call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')
@@ -97,7 +93,7 @@ function! s:set_height(winnr, height) abort
       call win_execute(win_getid(a:winnr), printf('resize %s', a:height))
     else
       execute printf('resize %s', a:height)
-    endif
+  endif
   endif
 endfunction
 

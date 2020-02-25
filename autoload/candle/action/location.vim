@@ -36,7 +36,7 @@ function! s:accept_open(candle) abort
     return v:false
   endif
 
-  return has_key(l:items[0], 'path')
+  return has_key(l:items[0], 'filename')
 endfunction
 
 "
@@ -49,7 +49,7 @@ function! s:invoke_open(command, candle) abort
 
   " Open item.
   let l:item = a:candle.get_action_items()[0]
-  execute printf('%s %s', a:command, l:item.path)
+  execute printf('%s %s', a:command, l:item.filename)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', col('.'))])
   endif
@@ -60,7 +60,7 @@ endfunction
 "
 function! s:accept_delete(candle) abort
   for l:item in a:candle.get_action_items()
-    if !has_key(l:item, 'path')
+    if !has_key(l:item, 'filename')
       return v:false
     endif
   endfor
@@ -76,7 +76,7 @@ function! s:invoke_delete(candle) abort
   " Create confirm message.
   let l:msgs = ['Following files will be deleted.']
   for l:item in l:items
-    let l:msgs += ['  ' . l:item.path]
+    let l:msgs += ['  ' . l:item.filename]
   endfor
 
   " Confirm.
@@ -86,7 +86,7 @@ function! s:invoke_delete(candle) abort
 
   " Delete.
   for l:item in l:items
-    call delete(l:item.path)
+    call delete(l:item.filename)
   endfor
 
   call a:candle.start()

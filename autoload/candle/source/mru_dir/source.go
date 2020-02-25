@@ -44,10 +44,9 @@ func Start(process *candle.Process) {
 
 		// add items
 		candidates := paths
-		candidates = exists(candidates)
 		candidates = reverse(candidates)
 		candidates = unique(candidates)
-		for i, candidate := range candidates {
+		for i, candidate := range exists(candidates) {
 			// skip if ignore patterns matches.
 			if ignoreMatcher(candidate, true) {
 				continue
@@ -56,7 +55,7 @@ func Start(process *candle.Process) {
 		}
 
 		// write back uniqued lines
-		ioutil.WriteFile(filepath, []byte(strings.Join(unique(paths), "\n")+"\n"), 0666)
+		ioutil.WriteFile(filepath, []byte(strings.Join(reverse(candidates), "\n")+"\n"), 0666)
 
 		process.NotifyDone()
 	}()
@@ -64,9 +63,10 @@ func Start(process *candle.Process) {
 
 func toItem(index int, filepath string) candle.Item {
 	return candle.Item{
-		"id":    strconv.Itoa(index),
-		"title": filepath,
-		"path":  filepath,
+		"id":       strconv.Itoa(index),
+		"title":    filepath,
+		"filename": filepath,
+		"is_dir":   true,
 	}
 }
 

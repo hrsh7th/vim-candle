@@ -1,8 +1,6 @@
 let g:candle#source#mru_file#filepath = expand('~/.candle_mru_file')
 
 let s:dirname = expand('<sfile>:p:h')
-let s:state = {}
-let s:state.recent = ''
 
 "
 " candle#source#mru_file#source#definition
@@ -76,11 +74,6 @@ function! s:on_touch() abort
 
   let l:filepath = fnamemodify(bufname('%'), ':p')
 
-  " skip same to recently added
-  if s:state.recent == l:filepath
-    return
-  endif
-
   " skip not file
   if !filereadable(l:filepath)
     return
@@ -88,6 +81,5 @@ function! s:on_touch() abort
 
   " add mru entry
   call writefile([l:filepath], g:candle#source#mru_file#filepath, 'a')
-  let s:state.recent = l:filepath
 endfunction
 

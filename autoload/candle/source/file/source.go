@@ -42,10 +42,10 @@ func Start(process *candle.Process) {
 
 func toItem(index int, pathname string) candle.Item {
 	return candle.Item{
-		"id":     strconv.Itoa(index),
-		"title":  pathname,
-		"path":   pathname,
-		"is_dir": false,
+		"id":       strconv.Itoa(index),
+		"title":    pathname,
+		"filename": pathname,
+		"is_dir":   false,
 	}
 }
 

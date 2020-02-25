@@ -2,9 +2,6 @@ let g:candle#source#mru_dir#filepath = expand('~/.candle_mru_dir')
 let g:candle#source#mru_dir#markers = ['.git', '.svn', 'package.json', 'tsconfig.json', 'go.mod']
 
 let s:dirname = expand('<sfile>:p:h')
-let s:state = {}
-let s:state.recent = ''
-
 "
 " candle#source#mru_dir#source#definition
 "
@@ -77,18 +74,12 @@ function! s:on_touch() abort
 
   let l:path = fnamemodify(bufname('%'), ':p')
 
-  " skip same to recently added
-  if s:state.recent == l:path
-    return
-  endif
-
   let l:root = s:detect_root(l:path)
 
   " add mru entry
   if l:root !=# ''
     call writefile([substitute(l:root, '\/$', '', 'g')], g:candle#source#mru_dir#filepath, 'a')
   endif
-  let s:state.recent = l:path
 endfunction
 
 "

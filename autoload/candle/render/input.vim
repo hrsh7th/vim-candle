@@ -1,4 +1,6 @@
-let s:timer_id = -1
+let s:state = {
+\   'item_count': -1
+\ }
 
 "
 " candle#render#input#open
@@ -6,45 +8,31 @@ let s:timer_id = -1
 function! candle#render#input#open(candle) abort
   doautocmd User candle#input#start
 
-  augroup printf('candle#render#input:%s', a:candle.bufname)
-    autocmd!
-    autocmd CmdlineChanged <buffer> call s:on_query_change()
-  augroup END
+  let s:state.item_count = len(a:candle.state.items)
 
-  " NOTE: redraw causes cursor flicker so should use redrawstatus in here.
+  redrawstatus
+  let s:timer_id = timer_start(0, { -> s:on_query_change() }, { 'repeat': -1 })
   call input("$ ", a:candle.state.query)
-
-  augroup printf('candle#render#input:%s', a:candle.bufname)
-    autocmd!
-  augroup END
-
+  call timer_stop(s:timer_id)
 endfunction
 
 "
 " s:on_query_change
 "
 function! s:on_query_change() abort
-  let l:ctx = {}
-  function! l:ctx.callback() abort
-    if empty(getbufvar('%', 'candle', {}))
-      return
-    endif
-
-    if b:candle.state.query !=# getcmdline()
-      call b:candle.top()
-      call b:candle.query(getcmdline())
-    endif
-
-    call b:candle.refresh()
-
-    " NOTE: redraw causes cursor flicker so should use redrawstatus in here.
-    redrawstatus
-
-    let s:timer_id = -1
-  endfunction
-
-  if s:timer_id == -1
-    let s:timer_id = timer_start(0, { -> l:ctx.callback() })
+  if empty(getbufvar('%', 'candle', {}))
+    return
   endif
+
+  if b:candle.state.query !=# getcmdline()
+    call b:candle.top()
+    call b:candle.query(getcmdline())
+  endif
+  if s:state.item_count != len(b:candle.state.items)
+    call b:candle.refresh()
+    redrawstatus
+  endif
+
+  let s:state.item_count = len(b:candle.state.items)
 endfunction
 

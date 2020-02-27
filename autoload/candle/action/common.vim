@@ -14,6 +14,39 @@ function! candle#action#common#get() abort
 endfunction
 
 "
+" candle#action#common#expect_keys_single
+"
+function! candle#action#common#expect_keys_single(keys, candle) abort
+  let l:items = a:candle.get_action_items()
+  if len(l:items) != 1
+    return v:false
+  endif
+  let l:item = l:items[0]
+
+  for l:key in a:keys
+    if !has_key(l:item, l:key)
+      return v:false
+    endif
+  endfor
+
+  return v:true
+endfunction
+
+"
+" candle#action#common#expect_keys_multiple
+"
+function! candle#action#common#expect_keys_multiple(keys, candle) abort
+  for l:item in a:candle.get_action_items()
+    for l:key in a:keys
+      if !has_key(l:item, l:key)
+        return v:false
+      endif
+    endfor
+  endfor
+  return v:true
+endfunction
+
+"
 " echo
 "
 function! s:echo(items) abort

@@ -135,9 +135,9 @@ endfunction
 " is_running
 "
 function! s:Vim.is_running() abort
-  if empty(self.job)
-    return v:false
+  if !empty(self.job)
+    return ch_status(self.job) ==# 'open'
   endif
-  return ch_status(self.job) ==# 'open'
+  return v:false
 endfunction
 

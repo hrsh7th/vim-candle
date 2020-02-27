@@ -26,13 +26,13 @@ function! s:Context.new(context) abort
   let l:candle = extend({}, deepcopy(s:Context))
   let l:candle = extend(l:candle, a:context)
   let l:candle = extend(l:candle, {
-        \   'request_id': 0,
-        \   'stopped': v:false,
-        \   'winid': 0,
-        \   'winid_prev': 0,
-        \   'state': deepcopy(s:initial_state),
-        \   'prev_state': deepcopy(s:initial_state),
-        \ })
+  \   'request_id': 0,
+  \   'stopped': v:false,
+  \   'winid': 0,
+  \   'winid_prev': 0,
+  \   'state': deepcopy(s:initial_state),
+  \   'prev_state': deepcopy(s:initial_state),
+  \ })
   call bufnr(l:candle.bufname, v:true)
   call bufload(l:candle.bufname)
   call setbufvar(l:candle.bufname, 'candle', l:candle)
@@ -364,8 +364,8 @@ function! s:Context.on_response(id, response) abort
   let self.state.total = a:response.total
   let self.state.filtered_total = a:response.filtered_total
   call candle#render#window#resize(self)
-  call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
   call deletebufline(self.bufname, len(self.state.items) + 1, '$')
+  call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
 endfunction
 
 "

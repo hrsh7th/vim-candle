@@ -55,7 +55,7 @@ function! s:Connection.start() abort
   if !self.job.is_running()
     call self.job.emitter.on('stdout', self.on_stdout)
     call self.job.emitter.on('stderr', self.on_stderr)
-    call self.job.emitter.on('ext', self.on_exit)
+    call self.job.emitter.on('exit', self.on_exit)
     call self.job.start()
   endif
 endfunction
@@ -67,7 +67,7 @@ function! s:Connection.stop() abort
   if self.job.is_running()
     call self.job.emitter.off('stdout', self.on_stdout)
     call self.job.emitter.off('stderr', self.on_stderr)
-    call self.job.emitter.off('ext', self.on_exit)
+    call self.job.emitter.off('exit', self.on_exit)
     call self.job.stop()
   endif
 endfunction
@@ -159,7 +159,7 @@ function! s:Connection.on_stdout(data) abort
 
   " content length check.
   let l:content_length = get(matchlist(self.buffer[0 : l:header_length - 1], 'Content-Length: \(\d\+\)'), 1, v:null)
-  if l:content_length == v:null
+  if l:content_length is v:null
     return
   endif
   let l:end_of_content = l:header_length + l:content_length

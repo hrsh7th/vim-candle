@@ -3,40 +3,43 @@
 "
 " expected each items has below keys.
 "
-" - path (required)
+" - filename (required)
 " - lnum (optional)
 " - col  (optional)
+" - text (optional)
 "
 function! candle#action#location#get() abort
   return [{
   \   'name': 'edit',
-  \   'accept': function('s:accept_open'),
+  \   'accept': function('candle#action#location#accept_single'),
   \   'invoke': function('s:invoke_open', ['edit']),
   \ }, {
   \   'name': 'split',
-  \   'accept': function('s:accept_open'),
+  \   'accept': function('candle#action#location#accept_single'),
   \   'invoke': function('s:invoke_open', ['split']),
   \ }, {
   \   'name': 'vsplit',
-  \   'accept': function('s:accept_open'),
+  \   'accept': function('candle#action#location#accept_single'),
   \   'invoke': function('s:invoke_open', ['vsplit']),
   \ }, {
   \   'name': 'delete',
-  \   'accept': function('s:accept_delete'),
+  \   'accept': function('candle#action#location#accept_multiple'),
   \   'invoke': function('s:invoke_delete'),
   \ }]
 endfunction
 
 "
-" accept_open
+" candle#action#location#accept_single
 "
-function! s:accept_open(candle) abort
-  let l:items = a:candle.get_action_items()
-  if len(l:items) != 1
-    return v:false
-  endif
+function! candle#action#location#accept_single(candle) abort
+  return candle#action#common#expect_keys_single(['filename'], a:candle)
+endfunction
 
-  return has_key(l:items[0], 'filename')
+"
+" candle#action#location#accept_multiple
+"
+function! candle#action#location#accept_multiple(candle) abort
+  return candle#action#common#expect_keys_multiple(['filename'], a:candle)
 endfunction
 
 "
@@ -53,18 +56,6 @@ function! s:invoke_open(command, candle) abort
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', col('.'))])
   endif
-endfunction
-
-"
-" accept_delete
-"
-function! s:accept_delete(candle) abort
-  for l:item in a:candle.get_action_items()
-    if !has_key(l:item, 'filename')
-      return v:false
-    endif
-  endfor
-  return v:true
 endfunction
 
 "

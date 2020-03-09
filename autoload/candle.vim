@@ -54,7 +54,7 @@ endfunction
 " candle#sync
 "
 function! candle#sync(promise_or_fn, ...) abort
-  let l:timeout = get(a:000, 0, lamp#config('global.timeout'))
+  let l:timeout = get(a:000, 0, 1000)
   let l:reltime = reltime()
 
   if type(a:promise_or_fn) == v:t_func

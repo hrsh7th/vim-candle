@@ -86,14 +86,22 @@ endfunction
 " s:detect_root
 "
 function! s:detect_root(path) abort
+  if !filereadable(a:path)
+    return ''
+  endif
+
   for l:marker in g:candle#source#mru_dir#markers
     let l:path = fnamemodify(a:path, ':p')
-    while l:path !=# '' && l:path !=# '/'
+    while v:true
       let l:candidate = resolve(l:path . '/' . l:marker)
       if filereadable(l:candidate) || isdirectory(l:candidate)
         return l:path
       endif
-      let l:path = substitute(l:path, '/[^/]*$', '', 'g')
+      let l:up = fnamemodify(l:path, ':h')
+      if l:path ==# l:up
+        break
+      endif
+      let l:path = l:up
     endwhile
   endfor
   return ''

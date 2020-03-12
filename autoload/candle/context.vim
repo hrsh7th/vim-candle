@@ -63,7 +63,7 @@ function! s:Context.start() abort
   \ })
 
   try
-    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 100)
+    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
   catch /.*/
   endtry
   call self.refresh({ 'force': v:true })

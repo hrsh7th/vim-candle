@@ -58,7 +58,7 @@ endfunction
 "
 augroup candle#source#mru_file#source
   autocmd!
-  autocmd BufWinEnter,BufRead,BufNewFile * call <SID>on_touch()
+  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch()
 augroup END
 
 "

@@ -5,9 +5,9 @@ let g:loaded_candle = v:true
 
 augroup candle#silent
   autocmd!
-  autocmd User candle#initialize
-  autocmd User candle#start
-  autocmd User candle#iniput#start
+  autocmd User candle#initialize silent
+  autocmd User candle#start silent
+  autocmd User candle#iniput#start silent
 augroup END
 
 if has('nvim')

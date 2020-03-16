@@ -3,6 +3,13 @@ if exists('g:loaded_candle')
 endif
 let g:loaded_candle = v:true
 
+augroup candle#silent
+  autocmd!
+  autocmd User candle#initialize
+  autocmd User candle#start
+  autocmd User candle#iniput#start
+augroup END
+
 if has('nvim')
   if !exists('*deletebufline')
     echomsg '[CANDLE] candle disabled.'
@@ -39,4 +46,5 @@ call candle#register(candle#source#mru_dir#source#definition())
 call candle#register(candle#source#item#source#definition())
 
 doautocmd User candle#initialize
+
 

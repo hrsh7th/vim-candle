@@ -59,7 +59,7 @@ function! s:Context.start() abort
   call self.server.request('start', {
   \   'id': self.bufname,
   \   'path': self.source.script.path,
-  \   'args': extend(self.source.script.args, self.option, 'keep'),
+  \   'args': self.source.script.args,
   \ })
 
   try

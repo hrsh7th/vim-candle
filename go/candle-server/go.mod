@@ -3,7 +3,7 @@ module github.com/hrsh7th/vim-candle/go/candle-server
 go 1.13
 
 require (
-	github.com/containous/yaegi v0.7.4
+	github.com/containous/yaegi v0.8.0
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20160105113617-38717d0a108c
 	github.com/sahilm/fuzzy v0.1.0

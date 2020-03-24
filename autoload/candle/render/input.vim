@@ -11,9 +11,12 @@ function! candle#render#input#open(candle) abort
   let s:state.item_count = len(a:candle.state.items)
 
   redrawstatus
-  let l:timer_id = timer_start(60, { timer_id -> s:on_query_change(timer_id) }, { 'repeat': -1 })
-  call input('$ ', a:candle.state.query)
-  call timer_stop(l:timer_id)
+  try
+    let l:timer_id = timer_start(60, { timer_id -> s:on_query_change(timer_id) }, { 'repeat': -1 })
+    call input('$ ', a:candle.state.query)
+  finally
+    call timer_stop(l:timer_id)
+  endtry
 endfunction
 
 "

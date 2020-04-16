@@ -46,13 +46,25 @@ func (process *Process) Walk(root string, callback func(pathname string, fi os.F
  * Command
  */
 func (process *Process) Command(command []string) *exec.Cmd {
-	return exec.Command(command[0], command[1:len(command)]...)
+	return exec.Command(command[0], command[1:]...)
 }
 
 /**
  * NewGitIgnore
  */
 func (process *Process) NewIgnoreMatcher(patterns []string) func(pathname string, isDir bool) bool {
+	found := false
+	for _, pattern := range patterns {
+		if len(pattern) > 1 {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return func(pathname string, isDir bool) bool {
+			return false
+		}
+	}
 	reader := strings.NewReader(strings.Join(patterns, "\n"))
 	gitignore := gitignore.NewGitIgnoreFromReader("/", reader)
 	return gitignore.Match

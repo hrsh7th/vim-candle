@@ -173,6 +173,10 @@ func (process *Process) filter(query string, items []Item) []Item {
  * slice
  */
 func slice(items []Item, start int, end int) []Item {
+	if len(items) == 0 {
+		return items
+	}
+
 	if start >= len(items) {
 		start = len(items) - 1
 	}

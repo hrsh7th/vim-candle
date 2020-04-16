@@ -1,6 +1,6 @@
 let s:Promise = vital#candle#import('Async.Promise')
-let s:Server = vital#candle#import('VS.RPC.JSON')
 let s:Context = candle#context#import()
+let s:Server = candle#server#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')
 
@@ -90,7 +90,7 @@ endfunction
 "
 function! candle#log(...) abort
   if strlen(get(g:candle, 'debug', '')) > 0
-    call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
+  call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
   endif
 endfunction
 
@@ -194,9 +194,17 @@ function! s:server() abort
   endif
   let s:state.server = s:Server.new({ 'command': s:command() })
   call s:state.server.emitter.on('stderr', { err -> candle#log('[ERROR]', err) })
+  call s:state.server.emitter.on('request', { request -> s:on_request(request) })
   call s:state.server.emitter.on('notify', { notification -> s:on_notification(notification) })
   call s:state.server.start()
   return s:state.server
+endfunction
+
+"
+" on_request
+"
+function! s:on_request(request) abort
+  " noop
 endfunction
 
 "

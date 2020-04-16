@@ -40,10 +40,11 @@ let s:Connection = {}
 "
 function! s:Connection.new(args) abort
   return extend(deepcopy(s:Connection), {
-  \   'job': s:Job.new({ 'command': a:args.command }),
+  \   'job': s:Job.new({
+  \     'command': a:args.command
+  \   }),
   \   'emitter': s:Emitter.new(),
   \   'buffer':  '',
-  \   'request_id': 0,
   \   'request_map': {},
   \ })
 endfunction
@@ -51,12 +52,12 @@ endfunction
 "
 " start
 "
-function! s:Connection.start() abort
+function! s:Connection.start(...) abort
   if !self.job.is_running()
     call self.job.emitter.on('stdout', self.on_stdout)
     call self.job.emitter.on('stderr', self.on_stderr)
     call self.job.emitter.on('exit', self.on_exit)
-    call self.job.start()
+    call call(self.job.start, a:000, self.job)
   endif
 endfunction
 
@@ -82,32 +83,44 @@ endfunction
 "
 " request
 "
-function! s:Connection.request(method, ...) abort
+function! s:Connection.request(id, method, ...) abort
   let l:ctx = {}
-  function! l:ctx.callback(message, resolve, reject) abort
-    let self.request_id += 1
-    let self.request_map[self.request_id] = {}
-    let self.request_map[self.request_id].resolve = a:resolve
-    let self.request_map[self.request_id].reject = a:reject
-    call self.job.send(self.to_message(extend({ 'id': self.request_id }, a:message)))
+  function! l:ctx.callback(id, method, params, resolve, reject) abort
+    let self.request_map[a:id] = {}
+    let self.request_map[a:id].resolve = a:resolve
+    let self.request_map[a:id].reject = a:reject
+    let l:message = { 'id': a:id, 'method': a:method }
+    let l:message = extend(l:message, type(a:params) == type({}) ? { 'params': a:params } : {})
+    call self.job.send(self.to_message(l:message))
   endfunction
-
-  let l:message = extend({ 'method': a:method }, len(a:000) > 0 ? { 'params': a:000[0] } : {})
-  return s:Promise.new(function(l:ctx.callback, [l:message], self))
+  return s:Promise.new(function(l:ctx.callback, [a:id, a:method, get(a:000, 0, v:null)], self))
 endfunction
 
 "
 " response
 "
 function! s:Connection.response(id, ...) abort
- call self.job.send(self.to_message(extend({ 'id': a:id }, len(a:000) > 0 ? a:000[0] : {})))
+  let l:message = { 'id': a:id }
+  let l:message = extend(l:message, len(a:000) > 0 ? a:000[0] : {})
+ call self.job.send(self.to_message(l:message))
 endfunction
 
 "
 " notify
 "
 function! s:Connection.notify(method, ...) abort
-  call self.job.send(extend({ 'method': a:method }, len(a:000) > 0 ? { 'params': a:000[0] } : {}))
+  let l:message = { 'method': a:method }
+  let l:message = extend(l:message, len(a:000) > 0 ? { 'params': a:000[0] } : {})
+  call self.job.send(self.to_message(l:message))
+endfunction
+
+"
+" cancel
+"
+function! s:Connection.cancel(id) abort
+  if has_key(self.request_map, a:id)
+    call remove(self.request_map, a:id)
+  endif
 endfunction
 
 "
@@ -123,24 +136,21 @@ endfunction
 "
 function! s:Connection.on_message(message) abort
   if has_key(a:message, 'id')
-    " Response from server.
-    if has_key(self.request_map, a:message.id)
-      if has_key(a:message, 'error')
-        call self.request_map[a:message.id].reject(a:message.error)
-      else
-        call self.request_map[a:message.id].resolve(get(a:message, 'result', v:null))
-      endif
-      call remove(self.request_map, a:message.id)
-
-    " Request from server.
+    if has_key(a:message, 'method')
+      " Request from server.
+      call self.emit('request', a:message)
     else
-      call self.emitter.emit('request', a:message)
+      " Response from server.
+      if has_key(self.request_map, a:message.id)
+        let l:request = remove(self.request_map, a:message.id)
+        if has_key(a:message, 'error')
+          call l:request.reject(a:message.error)
+        else
+          call l:request.resolve(get(a:message, 'result', v:null))
+        endif
+      endif
     endif
-    return
-  endif
-
-  " Notification from server.
-  if has_key(a:message, 'method')
+  elseif has_key(a:message, 'method')
     call self.emitter.emit('notify', a:message)
   endif
 endfunction
@@ -151,37 +161,35 @@ endfunction
 function! s:Connection.on_stdout(data) abort
   let self.buffer .= a:data
 
-  " header check.
-  let l:header_length = stridx(self.buffer, "\r\n\r\n") + 4
-  if l:header_length < 4
-    return
-  endif
-
-  " content length check.
-  let l:content_length = get(matchlist(self.buffer[0 : l:header_length - 1], 'Content-Length: \(\d\+\)'), 1, v:null)
-  if l:content_length is v:null
-    return
-  endif
-  let l:end_of_content = l:header_length + l:content_length
-
-  " content check.
-  let l:buffer_len = strlen(self.buffer)
-  if l:buffer_len < l:end_of_content
-    return
-  endif
-
-  " try content.
-  try
-    let l:message = json_decode(trim(self.buffer[l:header_length : l:end_of_content - 1]))
-    let self.buffer = self.buffer[l:end_of_content : ]
-
-    call self.on_message(l:message)
-
-    if l:buffer_len > l:end_of_content
-      call self.on_stdout('')
+  while 1
+    " header check.
+    let l:header_length = stridx(self.buffer, "\r\n\r\n") + 4
+    if l:header_length < 4
+      return
     endif
-  catch /.*/
-  endtry
+
+    " content length check.
+    let l:content_length = get(matchlist(self.buffer, 'Content-Length:\s*\(\d\+\)', 0, 1), 1, v:null)
+    if l:content_length is v:null
+      return
+    endif
+    let l:message_length = l:header_length + l:content_length
+
+    " content check.
+    let l:buffer_len = strlen(self.buffer)
+    if l:buffer_len < l:message_length
+      return
+    endif
+
+    " try content.
+    try
+      let l:content = strpart(self.buffer, l:header_length, l:message_length - l:header_length)
+      let l:message = json_decode(l:content)
+      let self.buffer = self.buffer[l:message_length : ]
+      call self.on_message(l:message)
+    catch /.*/
+    endtry
+  endwhile
 endfunction
 
 "

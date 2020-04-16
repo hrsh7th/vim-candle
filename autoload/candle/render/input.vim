@@ -12,7 +12,7 @@ function! candle#render#input#open(candle) abort
 
   redrawstatus
   try
-    let l:timer_id = timer_start(60, { timer_id -> s:on_query_change(timer_id) }, { 'repeat': -1 })
+    let l:timer_id = timer_start(16, { timer_id -> s:on_query_change(timer_id) }, { 'repeat': -1 })
     call input('$ ', a:candle.state.query)
   finally
     call timer_stop(l:timer_id)

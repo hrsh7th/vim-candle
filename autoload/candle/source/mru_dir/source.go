@@ -46,9 +46,12 @@ func Start(process *candle.Process) {
 		candidates := paths
 		candidates = reverse(candidates)
 		candidates = unique(candidates)
-		for i, candidate := range exists(candidates) {
+		for i, candidate := range candidates {
 			// skip if ignore patterns matches.
 			if ignoreMatcher(candidate, true) {
+				continue
+			}
+			if invalid(candidate) {
 				continue
 			}
 			process.AddItem(toItem(i, candidate))
@@ -70,15 +73,11 @@ func toItem(index int, filepath string) candle.Item {
 	}
 }
 
-func exists(paths []string) []string {
-	newPaths := make([]string, 0)
-	for _, path := range paths {
-		if stat, err := os.Stat(path); err != nil || !stat.IsDir() {
-			continue
-		}
-		newPaths = append(newPaths, path)
+func invalid(path string) bool {
+	if stat, err := os.Stat(path); err != nil || !stat.IsDir() {
+		return true
 	}
-	return newPaths
+	return false
 }
 
 func reverse(paths []string) []string {

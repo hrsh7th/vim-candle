@@ -92,9 +92,9 @@ function! s:Context.on_notification(notification) abort
       let self.winid = win_getid()
 
       " initialize events.
+      call candle#event#attach('WinClosed', { -> [self.stop(), win_gotoid(self.prev_winid), candle#event#clean(bufnr(self.bufname))] })
       call candle#event#attach('BufEnter', { -> [self.refresh()] })
       call candle#event#attach('CursorMoved', { -> [self.set_cursor(line('.'))] })
-      call candle#event#attach('WinClosed', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] })
 
       doautocmd User candle#start
 

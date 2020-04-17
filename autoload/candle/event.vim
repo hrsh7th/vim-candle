@@ -71,7 +71,7 @@ function! s:initialize() abort
 
   augroup candle#event:managed_events
     autocmd!
-    autocmd BufLeave * call s:on_win_closed()
+    autocmd WinEnter * call s:on_win_closed()
     autocmd BufDelete * call s:on_buf_delete()
   augroup END
 endfunction

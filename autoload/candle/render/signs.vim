@@ -3,16 +3,20 @@ if !hlexists('CandleCursorLine')
 endif
 
 if !hlexists('CandleSelectedLine')
-  highlight! link CandleSelectedLine MoreMsg
+  highlight! link CandleSelectedLine WildMenu
 endif
 
 call sign_define('CandleCursorLine', {
       \   'text': '-',
-      \   'linehl': 'CandleCursorLine'
+      \   'texthl': 'CandleCursorLine',
+      \   'numhl': 'CandleCursorLine',
+      \   'linehl': 'CandleCursorLine',
       \ })
 
 call sign_define('CandleSelectedLine', {
       \   'text': '*',
+      \   'texthl': 'CandleSelectedLine',
+      \   'numhl': 'CandleSelectedLine',
       \   'linehl': 'CandleSelectedLine',
       \ })
 

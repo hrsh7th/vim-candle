@@ -50,7 +50,9 @@ endfunction
 " echo
 "
 function! s:echo(items) abort
-  echomsg string(a:items)
+  for l:item in a:items
+    echomsg string(l:item)
+  endfor
 endfunction
 
 "

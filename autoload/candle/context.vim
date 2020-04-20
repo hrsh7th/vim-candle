@@ -345,7 +345,7 @@ function! s:Context.refresh(...) abort
   endif
 
   " update selected_ids
-  if self.state_changed(['selected_ids', 'is_selected_all', 'query']) || l:option.force
+  if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || l:option.force
     call candle#render#signs#selected_ids(self)
   endif
 

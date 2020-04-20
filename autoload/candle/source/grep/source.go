@@ -53,6 +53,8 @@ func Start(process *candle.Process) {
 			}
 		}
 
+		cmd.Wait()
+
 		process.NotifyDone()
 	}()
 }

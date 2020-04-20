@@ -38,7 +38,7 @@ endfunction
 " default_command
 "
 function! s:default_command() abort
-  if v:false && executable('rg')
+  if executable('rg')
     return ['rg', '-i', '--vimgrep', '--no-heading', '--no-column', '%PATTERN%', '%ROOT_PATH%']
   endif
   if executable('ag')

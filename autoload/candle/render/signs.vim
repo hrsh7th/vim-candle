@@ -47,10 +47,13 @@ function! candle#render#signs#selected_ids(candle) abort
     else
       let l:item_ids = map(copy(a:candle.state.items), { _, item -> item.id })
       for l:selected_id in a:candle.state.selected_ids
-        call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
-        \   'priority': 200,
-        \   'lnum': index(l:item_ids, l:selected_id) + 1,
-        \ })
+        let l:idx = index(l:item_ids, l:selected_id)
+        if l:idx >= 0
+          call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
+          \   'priority': 200,
+          \   'lnum': l:idx + 1,
+          \ })
+        endif
       endfor
     endif
   catch /.*/

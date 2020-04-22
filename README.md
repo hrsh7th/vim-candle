@@ -27,13 +27,14 @@ Concept
 ===
 
 ### Performance
-fuzzy/substring/regex filter written in golang.
+- filtering written in golang.
+- virtual scroll.
 
 ### Works on vim/neovim
-use `job` API only.
+- use `job` API only.
 
-### Use function, not command.
-The reason is that command can't pass complex object.
+### Use function
+- because the commands can't pass complex object.
 
 
 Setting
@@ -141,11 +142,30 @@ nnoremap <silent>file :<C-u>call candle#start({
 
 Invoke ripgrep/ag/pt/jvgrep/grep.
 
+You can specify your custom grep command.
+
 ```viml
 nnoremap <silent>grep :<C-u>call candle#start({
 \   'grep': {
 \     'root_path': 'path to root dir',
 \     'pattern': input('PATTERN: '),
+\     'command': [
+\       'rg',
+\       '-i',
+\       '--vimgrep',
+\       '--no-heading',
+\       '--no-column',
+\     ] + map([
+\       '.git',
+\       '.svn',
+\       'image/',
+\       'vendor/',
+\       'node_modules/',
+\     ], { _, v -> printf('--glob=!%s', v) }) + [
+\       '-e',
+\       '%PATTERN%',
+\       '%ROOT_PATH%',
+\     ]
 \   }
 \ })<CR>
 ```

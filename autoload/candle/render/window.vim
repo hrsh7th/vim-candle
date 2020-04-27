@@ -18,6 +18,8 @@ function! candle#render#window#initialize(candle) abort
   call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')
+  call setwinvar(winnr(), '&winfixwidth', 1)
+  call setwinvar(winnr(), '&winfixheight', 1)
 endfunction
 
 "

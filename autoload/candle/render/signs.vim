@@ -1,3 +1,7 @@
+if !hlexists('CandleCursorSign')
+  highlight! link CandleCursorSign Question
+endif
+
 if !hlexists('CandleCursorLine')
   highlight! link CandleCursorLine CursorLine
 endif
@@ -7,8 +11,8 @@ if !hlexists('CandleSelectedLine')
 endif
 
 call sign_define('CandleCursorLine', {
-      \   'text': '-',
-      \   'texthl': 'CandleCursorLine',
+      \   'text': '>',
+      \   'texthl': 'CandleCursorSign',
       \   'numhl': 'CandleCursorLine',
       \   'linehl': 'CandleCursorLine',
       \ })

@@ -145,7 +145,7 @@ function! s:context(source, option) abort
   \   'layout': 'split',
   \   'layout_keep': v:true,
   \   'filter': 'substring',
-  \   'start_input': v:false,
+  \   'start_input': g:candle.option.start_input,
   \   'maxwidth': float2nr(&columns * 0.2),
   \   'maxheight': float2nr(&lines * 0.2),
   \   'close_on': 'WinClosed',

@@ -76,7 +76,11 @@ function! s:Context.stop() abort
   call self.server.request('stop', {
   \   'id': self.bufname,
   \ })
-  execute printf('%sbdelete!', bufnr(self.bufname))
+  try
+    execute printf('%sbdelete!', bufnr(self.bufname))
+  catch /.*/
+    call candle#on_exception()
+  endtry
 endfunction
 
 "

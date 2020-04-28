@@ -102,7 +102,7 @@ function! s:Context.on_notification(notification) abort
         call timer_start(0, { -> candle#render#input#open(self) })
       endif
     endif
-    call self.refresh({ 'async': v:true })
+    call self.refresh({ 'async': v:true, 'force': v:true })
 
   elseif a:notification.method ==# 'progress'
     let self.state.total = a:notification.params.total

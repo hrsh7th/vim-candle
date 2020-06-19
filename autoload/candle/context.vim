@@ -189,8 +189,7 @@ function! s:Context.choose_action()
   call candle#start({
   \   'item':  map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } })
   \ }, {
-  \   'layout': 'edit',
-  \   'close_on': 'BufLeave',
+  \   'layout_keep': v:true,
   \   'start_input': g:candle.option.start_input,
   \   'action': {
   \     'default': { candle -> self.action(candle.get_action_items()[0].title) }

@@ -71,17 +71,28 @@ function! s:initialize() abort
 
   augroup candle#event:managed_events
     autocmd!
-    autocmd WinLeave * call s:on_win_closed()
+    autocmd WinLeave * call s:on_win_closed_before()
+    autocmd WinEnter * call s:on_win_closed_after()
     autocmd BufDelete * call s:on_buf_delete()
   augroup END
 endfunction
 
+let s:win_ids = []
+
 "
-" on_win_closed
+" on_win_closed_before
 "
-function! s:on_win_closed() abort
+function! s:on_win_closed_before() abort
+ let s:winids = map(range(1, tabpagewinnr(tabpagenr(), '$')), { _, winnr -> win_getid(winnr) })
+endfunction
+
+"
+" on_win_closed_after
+"
+function! s:on_win_closed_after() abort
+  let l:winids = map(range(1, tabpagewinnr(tabpagenr(), '$')), { _, winnr -> win_getid(winnr) })
   for l:context in get(s:event_map, 'WinClosed', [])
-    if win_id2tabwin(l:context.winid) == [0, 0]
+    if index(s:winids, l:context.winid) != -1 && index(l:winids, l:context.winid) == -1
       call l:context.func()
     endif
   endfor

@@ -46,6 +46,13 @@ augroup vimrc
 augroup END
 
 "
+" global mapping
+"
+nnoremap <silent> <Leader>k :<C-u>call candle#mapping#toggle()<CR>
+nnoremap <silent> <Leader>n :<C-u>call candle#mapping#action_next('default')<CR>
+nnoremap <silent> <Leader>p :<C-u>call candle#mapping#action_prev('default')<CR>
+
+"
 " mapping for candle buffer
 "
 autocmd vimrc User candle#start call s:on_candle_start()

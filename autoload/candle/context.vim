@@ -76,11 +76,61 @@ function! s:Context.stop() abort
   call self.server.request('stop', {
   \   'id': self.bufname,
   \ })
-  try
-    execute printf('%sbdelete!', bufnr(self.bufname))
-  catch /.*/
-    call candle#on_exception()
-  endtry
+endfunction
+
+"
+" is_visible
+"
+function! s:Context.is_visible() abort
+  return win_id2win(self.winid) != 0
+endfunction
+
+"
+" is_alive
+"
+function! s:Context.is_alive() abort
+  return bufloaded(self.bufname)
+endfunction
+
+"
+" open
+"
+function! s:Context.open() abort
+  if self.is_visible()
+    return
+  endif
+
+  " initialize window.
+  let self.prev_winid = win_getid()
+  call candle#render#window#initialize(self)
+  let self.winid = win_getid()
+
+  " initialize events.
+  let l:ctx = {
+  \   'winid': self.winid,
+  \   'bufnr': bufnr(self.bufname),
+  \ }
+  call candle#event#attach('CursorMoved', { -> [self.set_cursor(line('.'))] }, l:ctx)
+  call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
+  call candle#event#attach('BufEnter', { -> [self.refresh()] }, l:ctx)
+  call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
+
+  doautocmd User candle#start
+
+  if self.option.start_input
+    call timer_start(0, { -> candle#render#input#open(self) })
+  endif
+endfunction
+
+"
+" close
+"
+function! s:Context.close() abort
+  if !self.is_visible()
+    return
+  endif
+  call win_gotoid(self.winid)
+  quit
 endfunction
 
 "
@@ -88,24 +138,7 @@ endfunction
 "
 function! s:Context.on_notification(notification) abort
   if a:notification.method ==# 'start'
-    if self.winid == 0
-
-      " initialize window.
-      let self.prev_winid = win_getid()
-      call candle#render#window#initialize(self)
-      let self.winid = win_getid()
-
-      " initialize events.
-      call candle#event#attach('WinClosed', { -> [self.stop(), win_gotoid(self.prev_winid), candle#event#clean(bufnr(self.bufname))] })
-      call candle#event#attach('BufEnter', { -> [self.refresh()] })
-      call candle#event#attach('CursorMoved', { -> [self.set_cursor(line('.'))] })
-
-      doautocmd User candle#start
-
-      if self.option.start_input
-        call timer_start(0, { -> candle#render#input#open(self) })
-      endif
-    endif
+    call self.open()
     call self.refresh({ 'async': v:true, 'force': v:true })
 
   elseif a:notification.method ==# 'progress'

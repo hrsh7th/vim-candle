@@ -1,3 +1,30 @@
+let s:recent = v:null
+
+function! candle#mapping#toggle() abort
+  if !empty(s:recent) && s:recent.is_alive()
+    if s:recent.is_visible()
+      call s:recent.close()
+    else
+      call s:recent.open()
+    endif
+  endif
+  return ''
+endfunction
+
+function! candle#mapping#open() abort
+  if has_key(b:, 'candle')
+    call b:candle.open()
+  endif
+  return ''
+endfunction
+
+function! candle#mapping#close() abort
+  if has_key(b:, 'candle')
+    call b:candle.close()
+  endif
+  return ''
+endfunction
+
 function! candle#mapping#restart() abort
   if has_key(b:, 'candle')
     call b:candle.start()
@@ -54,10 +81,38 @@ function! candle#mapping#action(name) abort
   return ''
 endfunction
 
+function! candle#mapping#action_next(name) abort
+  if !empty(s:recent) && s:recent.is_alive()
+    call s:recent.move_cursor(+1)
+    call s:recent.action(a:name)
+  endif
+endfunction
+
+function! candle#mapping#action_prev(name) abort
+  if !empty(s:recent) && s:recent.is_alive()
+    call s:recent.move_cursor(-1)
+    call s:recent.action(a:name)
+  endif
+endfunction
+
 function! candle#mapping#input_open() abort
   if has_key(b:, 'candle')
     call candle#render#input#open(b:candle)
   endif
   return ''
+endfunction
+
+augroup candle#mapping
+  autocmd!
+  autocmd BufLeave * call s:on_buf_leave()
+augroup END
+
+"
+" on_buf_leave
+"
+function! s:on_buf_leave() abort
+  if getbufvar('%', 'candle', v:null) isnot# v:null
+    let s:recent = b:candle
+  endif
 endfunction
 

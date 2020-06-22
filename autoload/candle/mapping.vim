@@ -102,15 +102,17 @@ function! candle#mapping#input_open() abort
   return ''
 endfunction
 
-augroup candle#mapping
-  autocmd!
-  autocmd BufLeave * call s:on_buf_leave()
-augroup END
+function! candle#mapping#init() abort
+  augroup candle#mapping
+    autocmd!
+    autocmd BufEnter * call s:on_buf_enter()
+  augroup END
+endfunction
 
 "
-" on_buf_leave
+" on_buf_enter
 "
-function! s:on_buf_leave() abort
+function! s:on_buf_enter() abort
   if getbufvar('%', 'candle', v:null) isnot# v:null
     let s:recent = b:candle
   endif

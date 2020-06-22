@@ -44,6 +44,7 @@ call candle#register(candle#source#grep#source#definition())
 call candle#register(candle#source#mru_file#source#definition())
 call candle#register(candle#source#mru_dir#source#definition())
 call candle#register(candle#source#item#source#definition())
+call candle#mapping#init()
 
 doautocmd User candle#initialize
 

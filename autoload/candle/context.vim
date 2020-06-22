@@ -29,7 +29,7 @@ function! s:Context.new(context) abort
   \   'request_id': 0,
   \   'stopped': v:false,
   \   'winid': 0,
-  \   'winid_prev': 0,
+  \   'prev_winid': 0,
   \   'state': deepcopy(s:initial_state),
   \   'prev_state': deepcopy(s:initial_state),
   \ })
@@ -349,6 +349,9 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
+  " update prev winid
+  let self.prev_winid = win_getid(winnr('#'))
+
   let l:option = extend({ 'async': v:false, 'force': v:false }, get(a:000, 0, {}))
 
   " update statusline

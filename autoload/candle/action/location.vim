@@ -51,7 +51,14 @@ function! s:invoke_open(command, candle) abort
 
   " Open item.
   let l:item = a:candle.get_action_items()[0]
-  execute printf('%s %s', a:command, l:item.filename)
+
+  if bufnr('%') == bufnr(l:item.filename)
+    let l:command = 'buffer'
+  else
+    let l:command = a:command
+  endif
+
+  execute printf('%s %s', l:command, l:item.filename)
   if has_key(l:item, 'lnum')
     call cursor([l:item.lnum, get(l:item, 'col', col('.'))])
   endif

@@ -103,7 +103,7 @@ function! candle#echo(...) abort
     let l:msg = substitute(l:msg, "\r\n", "\n", 'g')
     let l:msg = substitute(l:msg, "\r", "\n", 'g')
     for l:line in split(string(l:msg), "\n")
-      echomsg '[CANDLE] ' . l:line
+      echomsg printf('[CANDLE] %s', substitute(l:msg, "^'\|'$", '', 'g'))
     endfor
     echomsg ' '
   endfor

@@ -110,16 +110,19 @@ function! s:Context.open() abort
   \   'winid': self.winid,
   \   'bufnr': bufnr(self.bufname),
   \ }
-  call candle#event#attach('CursorMoved', { -> [self.set_cursor(line('.'))] }, l:ctx)
-  call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
-  call candle#event#attach('BufEnter', { -> [self.refresh()] }, l:ctx)
+  call candle#event#clean(bufnr(self.bufname))
+  call candle#event#attach('WinClosed', { -> [execute(printf('echomsg %s', self.prev_winid)), win_gotoid(self.prev_winid)] }, l:ctx)
+  call candle#event#attach('BufEnter', { -> [cursor([self.state.cursor, col('.')]), execute('self.prev_winid = winnr("#")'), self.refresh()] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
+
+  call self.refresh()
 
   doautocmd User candle#start
 
   if self.option.start_input
     call timer_start(0, { -> candle#render#input#open(self) })
   endif
+
 endfunction
 
 "
@@ -262,7 +265,11 @@ endfunction
 " move_cursor
 "
 function! s:Context.move_cursor(offset) abort
-  let l:winheight = winheight(win_id2win(self.winid))
+  if self.is_visible()
+    let l:winheight = winheight(win_id2win(self.winid))
+  else
+    let l:winheight = len(self.state.items)
+  endif
 
   let l:index = self.state.index
   let l:cursor = self.state.cursor + a:offset
@@ -273,7 +280,9 @@ function! s:Context.move_cursor(offset) abort
     let l:index = max([0, l:index + l:cursor - 1])
     let l:cursor = 1
   else
-    call cursor(l:cursor, col('.'))
+    if win_getid() == self.winid
+      call cursor(l:cursor, col('.'))
+    endif
   endif
 
   let self.state.index = l:index
@@ -304,7 +313,11 @@ endfunction
 " bottom
 "
 function! s:Context.bottom() abort
-  let l:winheight = winheight(win_id2win(self.winid))
+  if self.is_visible()
+    let l:winheight = winheight(win_id2win(self.winid))
+  else
+    let l:winheight = len(self.state.items)
+  endif
   let self.state.index = self.state.filtered_total - l:winheight
   let self.state.cursor = l:winheight
   call self.refresh()
@@ -352,13 +365,14 @@ endfunction
 " refresh
 "
 function! s:Context.refresh(...) abort
-  " update prev winid
-  let self.prev_winid = win_getid(winnr('#'))
-
   let l:option = extend({ 'async': v:false, 'force': v:false }, get(a:000, 0, {}))
 
+  let l:on_window = win_getid() == self.winid
+
   " update statusline
-  call candle#render#statusline#update(self)
+  if l:on_window
+    call candle#render#statusline#update(self)
+  endif
 
   " update items
   if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
@@ -378,12 +392,10 @@ function! s:Context.refresh(...) abort
   endif
 
   " update cursor
-  if self.state_changed(['cursor']) || l:option.force
-    if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
-      call cursor([self.state.cursor, col('.')])
-    endif
-    call candle#render#signs#cursor(self)
+  if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
+    call cursor([self.state.cursor, col('.')])
   endif
+  call candle#render#signs#cursor(self)
 
   " update selected_ids
   if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || l:option.force

@@ -26,18 +26,21 @@ endfunction
 " candle#render#window#resize
 "
 function! candle#render#window#resize(candle) abort
-  let l:winnr = win_id2win(a:candle.winid)
+  if !a:candle.is_visible()
+    return
+  endif
 
   " width
   if a:candle.option.layout !=# 'split'
-    call s:set_width(l:winnr, a:candle.option.maxwidth)
+    call s:set_width(a:candle.winid, a:candle.option.maxwidth)
   endif
 
   " height
+  let l:winnr = win_id2win(a:candle.winid)
   if a:candle.option.layout !=# 'vsplit'
     let l:screenpos = win_screenpos(l:winnr)
     if winheight(l:winnr) != (&lines - s:get_offset_height())
-      call s:set_height(l:winnr, len(a:candle.state.items))
+      call s:set_height(a:candle.winid, len(a:candle.state.items))
     endif
   endif
 endfunction
@@ -62,40 +65,32 @@ endfunction
 "
 " set_width
 "
-function! s:set_width(winnr, width) abort
-  if winwidth(a:winnr) == a:width
+function! s:set_width(winid, width) abort
+  if winwidth(win_id2win(a:winid)) == a:width
     call candle#log('[SKIP] s:set_width')
     return
   endif
 
   if has('nvim')
-    call nvim_win_set_width(win_getid(a:winnr), a:width)
+    call nvim_win_set_width(a:winid, a:width)
   else
-    if winnr() != a:winnr
-      call win_execute(win_getid(a:winnr), printf('vertical resize %s', a:width))
-    else
-      execute printf('vertical resize %s', a:width)
-    endif
+    call win_execute(a:winid, printf('vertical resize %s', a:width))
   endif
 endfunction
 
 "
 " set_height
 "
-function! s:set_height(winnr, height) abort
-  if winheight(a:winnr) == a:height
+function! s:set_height(winid, height) abort
+  if winheight(win_id2win(a:winid)) == a:height
     call candle#log('[SKIP] s:set_height')
     return
   endif
 
   if has('nvim')
-    call nvim_win_set_height(win_getid(a:winnr), a:height)
+    call nvim_win_set_height(a:winid, a:height)
   else
-    if winnr() != a:winnr
-      call win_execute(win_getid(a:winnr), printf('resize %s', a:height))
-    else
-      execute printf('resize %s', a:height)
-  endif
+    call win_execute(a:winid, printf('resize %s', a:height))
   endif
 endfunction
 

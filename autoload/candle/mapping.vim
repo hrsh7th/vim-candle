@@ -105,14 +105,14 @@ endfunction
 function! candle#mapping#init() abort
   augroup candle#mapping
     autocmd!
-    autocmd BufEnter * call s:on_buf_enter()
+    autocmd BufWinEnter * call s:on_buf_win_enter()
   augroup END
 endfunction
 
 "
-" on_buf_enter
+" on_buf_win_enter
 "
-function! s:on_buf_enter() abort
+function! s:on_buf_win_enter() abort
   if getbufvar('%', 'candle', v:null) isnot# v:null
     let s:recent = b:candle
   endif

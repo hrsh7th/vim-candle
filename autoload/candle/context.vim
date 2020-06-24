@@ -129,8 +129,11 @@ function! s:Context.close() abort
   if !self.is_visible()
     return
   endif
+  let l:curr_winid = win_getid()
   call win_gotoid(self.winid)
-  quit
+  noautocmd quit
+  let l:next_winid = l:curr_winid == self.winid ? self.prev_winid : l:curr_winid
+  call win_gotoid(l:next_winid)
 endfunction
 
 "

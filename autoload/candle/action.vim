@@ -23,6 +23,7 @@ endfunction
 function! candle#action#resolve(candle) abort
   " Global actions.
   let l:actions = copy(s:actions)
+  let l:actions = reverse(l:actions)
   let l:actions = filter(l:actions, { i, action -> action.accept(a:candle) })
 
   " Source or Argumented actions.

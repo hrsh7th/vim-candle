@@ -112,7 +112,7 @@ function! s:Context.open() abort
   \ }
   call candle#event#clean(bufnr(self.bufname))
   call candle#event#attach('WinClosed', { -> [execute(printf('echomsg %s', self.prev_winid)), win_gotoid(self.prev_winid)] }, l:ctx)
-  call candle#event#attach('BufEnter', { -> [cursor([self.state.cursor, col('.')]), execute('let self.prev_winid = winnr("#")'), self.refresh()] }, l:ctx)
+  call candle#event#attach('BufEnter', { -> [cursor([self.state.cursor, col('.')]), timer_start(0, { -> self.refresh() })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
 
   call self.refresh()

@@ -46,6 +46,17 @@ call candle#register(candle#source#mru_dir#source#definition())
 call candle#register(candle#source#item#source#definition())
 call candle#mapping#init()
 
+"
+" built-in actions
+"
+
+for s:action in candle#action#common#get()
+  call candle#action#register(s:action)
+endfor
+for s:action in candle#action#location#get()
+  call candle#action#register(s:action)
+endfor
+
 doautocmd User candle#initialize
 
 

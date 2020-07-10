@@ -1,3 +1,5 @@
+let s:actions = []
+
 "
 " candle#action#register
 "
@@ -56,7 +58,6 @@ endfunction
 "
 function! s:normalize(actions) abort
   let l:actions = copy(a:actions)
-  let l:actions = reverse(l:actions)
   let l:actions = sort(l:actions, function('s:compare'))
   let l:actions = uniq(l:actions, function('s:compare'))
   return l:actions
@@ -80,11 +81,4 @@ function! s:compare(action1, action2) abort
 
   return l:len1 - l:len2
 endfunction
-
-"
-" Built-in actions
-"
-let s:actions = []
-let s:actions += candle#action#common#get()
-let s:actions += candle#action#location#get()
 

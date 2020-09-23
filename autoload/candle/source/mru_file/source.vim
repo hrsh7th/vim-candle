@@ -13,6 +13,13 @@ function! candle#source#mru_file#source#definition() abort
 endfunction
 
 "
+" candle#source#mru_file#source#touch
+"
+function! candle#source#mru_file#source#touch(path) abort
+  call s:on_touch(a:path, v:true)
+endfunction
+
+"
 " create
 "
 function! s:create(name, args) abort
@@ -58,21 +65,24 @@ endfunction
 "
 augroup candle#source#mru_file#source
   autocmd!
-  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch()
+  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch(bufname('%'))
 augroup END
 
 "
 " on_touch
 "
-function! s:on_touch() abort
+function! s:on_touch(path, ...) abort
+  let l:force = get(a:000, 0, v:false)
+
   if empty(g:candle#source#mru_file#filepath)
     return
   endif
-  if &buftype !=# ''
+
+  if &buftype !=# '' && !l:force
     return
   endif
 
-  let l:filepath = fnamemodify(bufname('%'), ':p')
+  let l:filepath = fnamemodify(a:path, ':p')
 
   " skip not file
   if !filereadable(l:filepath)

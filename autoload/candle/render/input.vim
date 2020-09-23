@@ -7,7 +7,7 @@ let s:state = {
 " candle#render#input#open
 "
 function! candle#render#input#open(candle) abort
-  doautocmd User candle#input#start
+  doautocmd <nomodeline> User candle#input#start
 
   let s:state.item_count = len(a:candle.state.items)
 

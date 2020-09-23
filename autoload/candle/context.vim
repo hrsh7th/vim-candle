@@ -62,11 +62,12 @@ function! s:Context.start() abort
   \   'args': self.source.script.args,
   \ })
 
+  call self.refresh({ 'force': v:true })
+
   try
     call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
   catch /.*/
   endtry
-  call self.refresh({ 'force': v:true })
 endfunction
 
 "
@@ -112,12 +113,10 @@ function! s:Context.open() abort
   \ }
   call candle#event#clean(bufnr(self.bufname))
   call candle#event#attach('WinClosed', { -> [execute(printf('echomsg %s', self.prev_winid)), win_gotoid(self.prev_winid)] }, l:ctx)
-  call candle#event#attach('BufEnter', { -> [cursor([self.state.cursor, col('.')]), timer_start(0, { -> self.refresh() })] }, l:ctx)
+  call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
 
-  call self.refresh()
-
-  doautocmd User candle#start
+  doautocmd <nomodeline> User candle#start
 
   if self.option.start_input
     call timer_start(0, { -> candle#render#input#open(self) })
@@ -362,6 +361,13 @@ function! s:Context.get_action_items() abort
 endfunction
 
 "
+" get_items
+"
+function! s:Context.get_items() abort
+  return self.state.items
+endfunction
+
+"
 " refresh
 "
 function! s:Context.refresh(...) abort
@@ -369,7 +375,7 @@ function! s:Context.refresh(...) abort
 
   let l:on_window = win_getid() == self.winid
 
-  " update statusline
+  " update statusline(avoid flicker)
   if l:on_window
     call candle#render#statusline#update(self)
   endif
@@ -379,7 +385,7 @@ function! s:Context.refresh(...) abort
     let self.request_id += 1
     let l:id = self.request_id
 
-    let l:promise = self.fetch().then({ response -> self.on_response(l:id, response) })
+    let l:promise = self.fetch().then({ response -> self.on_response(l:id, l:on_window, l:option, response) }).then({ -> self.refresh_others(l:on_window, l:option) })
     if !l:option.async
       try
         call candle#sync(l:promise)
@@ -388,27 +394,15 @@ function! s:Context.refresh(...) abort
       endtry
     endif
   else
+    call self.refresh_others(l:on_window, l:option)
     call candle#render#window#resize(self)
   endif
-
-  " update cursor
-  if bufnr(self.bufname) ==# bufnr('%') && self.state.cursor != line('.')
-    call cursor([self.state.cursor, col('.')])
-  endif
-  call candle#render#signs#cursor(self)
-
-  " update selected_ids
-  if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || l:option.force
-    call candle#render#signs#selected_ids(self)
-  endif
-
-  let self.prev_state = deepcopy(self.state)
 endfunction
 
 "
 " on_response
 "
-function! s:Context.on_response(id, response) abort
+function! s:Context.on_response(id, on_window, option, response) abort
   if a:id != self.request_id
     return
   endif
@@ -419,6 +413,30 @@ function! s:Context.on_response(id, response) abort
   call candle#render#window#resize(self)
   call deletebufline(self.bufname, len(self.state.items) + 1, '$')
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
+  call self.refresh_others(a:on_window, a:option)
+endfunction
+
+"
+" refresh_others
+"
+function! s:Context.refresh_others(on_window, option) abort
+  " update statusline
+  if a:on_window
+    call candle#render#statusline#update(self)
+  endif
+
+  " update cursor
+  if a:on_window && self.state.cursor != line('.') || a:option.force
+    call cursor([self.state.cursor, col('.')])
+  endif
+  call candle#render#signs#cursor(self)
+
+  " update selected_ids
+  if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || a:option.force
+    call candle#render#signs#selected_ids(self)
+  endif
+
+  let self.prev_state = deepcopy(self.state)
 endfunction
 
 "

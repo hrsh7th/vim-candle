@@ -83,4 +83,3 @@ func (process *Process) substring(query string, items []Item) []Item {
 	}
 	return items
 }
-

@@ -57,6 +57,6 @@ for s:action in candle#action#location#get()
   call candle#action#register(s:action)
 endfor
 
-doautocmd User candle#initialize
+doautocmd <nomodeline> User candle#initialize
 
 

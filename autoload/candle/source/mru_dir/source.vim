@@ -2,6 +2,7 @@ let g:candle#source#mru_dir#filepath = expand('~/.candle_mru_dir')
 let g:candle#source#mru_dir#markers = ['.git', '.svn', 'package.json', 'tsconfig.json', 'go.mod']
 
 let s:dirname = expand('<sfile>:p:h')
+
 "
 " candle#source#mru_dir#source#definition
 "
@@ -10,6 +11,13 @@ function! candle#source#mru_dir#source#definition() abort
         \   'name': 'mru_dir',
         \   'create': function('s:create', ['mru_dir'])
         \ }
+endfunction
+
+"
+" candle#source#mru_dir#source#touch
+"
+function! candle#source#mru_dir#source#touch(path) abort
+  call s:on_touch(a:path, v:true)
 endfunction
 
 "
@@ -58,23 +66,24 @@ endfunction
 "
 augroup candle#source#mru_dir#source
   autocmd!
-  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch()
+  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch(bufname('%'))
 augroup END
 
 "
 " on_touch
 "
-function! s:on_touch() abort
+function! s:on_touch(path, ...) abort
+  let l:force = get(a:000, 0, v:false)
+
   if empty(g:candle#source#mru_dir#filepath)
     return
   endif
-  if &buftype !=# ''
+
+  if &buftype !=# '' && !l:force
     return
   endif
 
-  let l:path = fnamemodify(bufname('%'), ':p')
-
-  let l:root = s:detect_root(l:path)
+  let l:root = s:detect_root(fnamemodify(a:path, ':p'))
 
   " add mru entry
   if l:root !=# ''
@@ -86,12 +95,8 @@ endfunction
 " s:detect_root
 "
 function! s:detect_root(path) abort
-  if !filereadable(a:path)
-    return ''
-  endif
-
   for l:marker in g:candle#source#mru_dir#markers
-    let l:path = fnamemodify(a:path, ':p')
+    let l:path = a:path
     while v:true
       let l:candidate = resolve(l:path . '/' . l:marker)
       if filereadable(l:candidate) || isdirectory(l:candidate)

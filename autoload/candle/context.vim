@@ -427,6 +427,14 @@ function! s:Context.refresh_others(on_window, option) abort
     call candle#render#statusline#update(self)
   endif
 
+  " update highlight
+  if a:on_window
+    call clearmatches()
+    for l:query in split(self.state.query, '\s\+')
+      call matchadd('Search', '\V' . escape(l:query, '\/?') . '\m')
+    endfor
+  end
+
   " update cursor
   if a:on_window && self.state.cursor != line('.') || a:option.force
     call cursor([self.state.cursor, col('.')])

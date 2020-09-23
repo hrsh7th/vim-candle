@@ -106,13 +106,15 @@ function! s:Context.open() abort
   call candle#render#window#initialize(self)
   let self.winid = win_getid()
 
+  call self.refresh()
+
   " initialize events.
   let l:ctx = {
   \   'winid': self.winid,
   \   'bufnr': bufnr(self.bufname),
   \ }
   call candle#event#clean(bufnr(self.bufname))
-  call candle#event#attach('WinClosed', { -> [execute(printf('echomsg %s', self.prev_winid)), win_gotoid(self.prev_winid)] }, l:ctx)
+  call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
 

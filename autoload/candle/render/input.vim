@@ -41,7 +41,7 @@ function! s:on_query_change() abort
   let s:state.item_count = len(b:candle.state.items)
 
   if s:state.running
-    call timer_start(16, { -> s:on_query_change() })
+    call timer_start(100, { -> s:on_query_change() })
   endif
 endfunction
 

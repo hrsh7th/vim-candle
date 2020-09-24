@@ -61,13 +61,7 @@ function! s:Context.start() abort
   \   'path': self.source.script.path,
   \   'args': self.source.script.args,
   \ })
-
-  call self.refresh({ 'force': v:true })
-
-  try
-    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
-  catch /.*/
-  endtry
+  call self.open()
 endfunction
 
 "
@@ -106,8 +100,6 @@ function! s:Context.open() abort
   call candle#render#window#initialize(self)
   let self.winid = win_getid()
 
-  call self.refresh()
-
   " initialize events.
   let l:ctx = {
   \   'winid': self.winid,
@@ -117,6 +109,8 @@ function! s:Context.open() abort
   call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
+  call self.refresh({ 'force': v:true, 'async': v:false })
+  call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
 
   doautocmd <nomodeline> User candle#start
 
@@ -145,7 +139,6 @@ endfunction
 "
 function! s:Context.on_notification(notification) abort
   if a:notification.method ==# 'start'
-    call self.open()
     call self.refresh({ 'async': v:true, 'force': v:true })
 
   elseif a:notification.method ==# 'progress'

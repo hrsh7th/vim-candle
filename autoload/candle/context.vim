@@ -109,8 +109,12 @@ function! s:Context.open() abort
   call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
-  call self.refresh({ 'force': v:true, 'async': v:false })
-  call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
+  call self.refresh({ 'force': v:true, 'async': v:true })
+
+  try
+    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
+  catch /.*/
+  endtry
 
   doautocmd <nomodeline> User candle#start
 
@@ -424,7 +428,7 @@ function! s:Context.refresh_others(on_window, option) abort
   if a:on_window
     call clearmatches()
     for l:query in split(self.state.query, '\s\+')
-      call matchadd('Search', '\c\V' . escape(l:query, '\/?') . '\m')
+      call matchadd('NonText', '\c\V' . escape(l:query, '\/?') . '\m')
     endfor
   end
 

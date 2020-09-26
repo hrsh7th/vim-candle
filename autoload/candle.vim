@@ -141,7 +141,7 @@ function! s:context(source, option) abort
 
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.context_id)
-  let l:context.option = extend({
+  let l:context.option = extend(a:option, {
   \   'layout': 'split',
   \   'layout_keep': v:true,
   \   'filter': 'substring',
@@ -151,7 +151,7 @@ function! s:context(source, option) abort
   \   'close_on': 'WinClosed',
   \   'keepjumps': v:false,
   \   'action': {},
-  \ }, a:option)
+  \ }, 'keep')
   let l:context.server = s:server()
   let l:context.source = s:source(a:source)
 

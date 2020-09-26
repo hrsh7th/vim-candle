@@ -41,30 +41,9 @@ function! candle#render#window#resize(candle) abort
   endif
 
   " height
-  let l:winnr = win_id2win(a:candle.winid)
   if a:candle.option.layout !=# 'vsplit'
-    let l:screenpos = win_screenpos(l:winnr)
-    if winheight(l:winnr) != (&lines - s:get_offset_height())
-      call s:set_height(a:candle.winid, len(a:candle.state.items))
-    endif
+    call s:set_height(a:candle.winid, len(a:candle.state.items))
   endif
-endfunction
-
-"
-" get_offset_height
-"
-function! s:get_offset_height() abort
-  let l:offset = 1
-
-  " tabline.
-  if &showtabline == 1 && tabpagenr('$') != 1 || &showtabline == 2
-    let l:offset += 1
-  endif
-
-  " cmdline
-  let l:offset += &cmdheight
-
-  return l:offset
 endfunction
 
 "

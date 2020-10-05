@@ -14,11 +14,13 @@ function! candle#render#window#initialize(candle) abort
     let l:layout = 'edit'
   endif
 
-  execute printf('botright %s %s',
+  execute printf('keepalt botright %s %s',
   \   l:keepjumps ? 'keepjumps' : '',
   \   l:layout
   \ )
-  execute printf('%sbuffer', bufnr(a:candle.bufname))
+  execute printf('keepalt %sbuffer', bufnr(a:candle.bufname))
+
+  let a:candle.winid = win_getid()
 
   call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)

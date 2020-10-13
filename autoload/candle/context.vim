@@ -428,7 +428,7 @@ function! s:Context.refresh_others(on_window, option) abort
   if a:on_window
     call clearmatches()
     for l:query in split(self.state.query, '\s\+')
-      call matchadd('NonText', '\c\V' . escape(l:query, '\/?') . '\m')
+      call matchadd('IncSearch', '\c\V' . escape(l:query, '\/?') . '\m')
     endfor
   end
 

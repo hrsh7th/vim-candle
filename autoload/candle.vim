@@ -189,15 +189,19 @@ endfunction
 " server
 "
 function! s:server() abort
-  if !empty(s:state.server)
+  try
+    if !empty(s:state.server)
+      return s:state.server
+    endif
+    let s:state.server = s:Server.new({ 'command': s:command() })
+    call s:state.server.emitter.on('stderr', { err -> candle#log('[ERROR]', err) })
+    call s:state.server.emitter.on('request', { request -> s:on_request(request) })
+    call s:state.server.emitter.on('notify', { notification -> s:on_notification(notification) })
+    call s:state.server.start()
     return s:state.server
-  endif
-  let s:state.server = s:Server.new({ 'command': s:command() })
-  call s:state.server.emitter.on('stderr', { err -> candle#log('[ERROR]', err) })
-  call s:state.server.emitter.on('request', { request -> s:on_request(request) })
-  call s:state.server.emitter.on('notify', { notification -> s:on_notification(notification) })
-  call s:state.server.start()
-  return s:state.server
+  catch /.*/
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  endtry
 endfunction
 
 "

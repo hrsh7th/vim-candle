@@ -1,6 +1,6 @@
 {
   "name": "vim-candle",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "This plugin created to learn golang.",
   "scripts": {
     "watch": "chokidar '**/*.go' -c 'npm run build'",

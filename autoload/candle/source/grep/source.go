@@ -59,7 +59,7 @@ func Start(process *candle.Process) {
 	}()
 }
 
-func toItem(prefix string, index int, line string) map[string]interface{} {
+func toItem(prefix string, index int, line string) candle.Item {
 	sub := strings.SplitN(line, ":", 3)
 	if len(sub) != 3 {
 		return nil
@@ -70,7 +70,7 @@ func toItem(prefix string, index int, line string) map[string]interface{} {
 		return nil
 	}
 
-	return map[string]interface{}{
+	return candle.Item{
 		"id": strconv.Itoa(index),
 		"title": fmt.Sprintf(
 			"%s:%s\t%s",

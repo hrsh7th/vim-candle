@@ -64,12 +64,14 @@ func (process *Process) substring(query string, items []Item) []Item {
 		if len(q) == 0 {
 			continue
 		}
+		negate := strings.HasPrefix(q, "!")
+		if negate {
+			q = strings.TrimLeft(q, "!")
+		}
 
 		matches := []Item{}
 		for _, item := range items {
-			negate := strings.HasPrefix(q, "!")
-			if negate {
-				q = strings.TrimLeft(q, "!")
+			if negate && len(q) > 0 {
 				if !strings.Contains(strings.ToLower(item["title"].(string)), strings.ToLower(q)) {
 					matches = append(matches, item)
 				}

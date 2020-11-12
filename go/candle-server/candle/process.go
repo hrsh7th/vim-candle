@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containous/yaegi/interp"
-	"github.com/containous/yaegi/stdlib"
 	"github.com/sourcegraph/jsonrpc2"
+	"github.com/traefik/yaegi/interp"
+	"github.com/traefik/yaegi/stdlib"
 )
 
 type Process struct {
@@ -101,13 +101,7 @@ func (process *Process) Fetch(params FetchRequest) (FetchResponse, error) {
 	params.Query = strings.TrimSpace(params.Query)
 
 	if params.Query != process.query {
-		var items []Item
-		if process.query != "" && params.Query != "" && strings.HasPrefix(params.Query, process.query) {
-			items = process.filteredItems
-		} else {
-			items = process.allItems
-		}
-		process.filteredItems = process.filter(params.Query, items)
+		process.filteredItems = process.filter(params.Query, process.allItems)
 		process.query = params.Query
 	}
 

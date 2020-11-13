@@ -194,9 +194,9 @@ function! s:server() abort
       return s:state.server
     endif
     let s:state.server = s:Server.new({ 'command': s:command() })
-    call s:state.server.emitter.on('stderr', { err -> candle#log('[ERROR]', err) })
-    call s:state.server.emitter.on('request', { request -> s:on_request(request) })
-    call s:state.server.emitter.on('notify', { notification -> s:on_notification(notification) })
+    call s:state.server.events.on('stderr', { err -> candle#log('[ERROR]', err) })
+    call s:state.server.events.on('request', { request -> s:on_request(request) })
+    call s:state.server.events.on('notify', { notification -> s:on_notification(notification) })
     call s:state.server.start()
     return s:state.server
   catch /.*/

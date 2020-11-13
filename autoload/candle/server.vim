@@ -19,7 +19,7 @@ function! s:Server.new(args) abort
   \   }),
   \   'request_id': 0,
   \ })
-  let l:server.emitter = l:server.connection.emitter
+  let l:server.events = l:server.connection.events
   return l:server
 endfunction
 

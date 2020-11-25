@@ -109,7 +109,7 @@ function! s:Context.open() abort
   call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
-  call self.refresh({ 'force': v:true, 'async': v:true })
+  call self.refresh({ 'force': v:true, 'async': v:false })
 
   try
     call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
@@ -133,7 +133,7 @@ function! s:Context.close() abort
   endif
   let l:curr_winid = win_getid()
   call win_gotoid(self.winid)
-  noautocmd quit
+  silent keepalt keepjumps noautocmd quit
   let l:next_winid = l:curr_winid == self.winid ? self.prev_winid : l:curr_winid
   call win_gotoid(l:next_winid)
 endfunction

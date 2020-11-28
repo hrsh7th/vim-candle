@@ -56,11 +56,13 @@ function! s:Context.start() abort
   let self.state.is_selected_all = v:false
   let self.state.items = []
 
-  call self.server.request('start', {
-  \   'id': self.bufname,
-  \   'path': self.source.script.path,
-  \   'args': self.source.script.args,
-  \ })
+  call candle#sync(
+  \   self.server.request('start', {
+  \     'id': self.bufname,
+  \     'path': self.source.script.path,
+  \     'args': self.source.script.args,
+  \   })
+  \ )
   call self.open()
 endfunction
 
@@ -112,7 +114,7 @@ function! s:Context.open() abort
   call self.refresh({ 'force': v:true, 'async': v:false })
 
   try
-    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
+    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 500)
   catch /.*/
   endtry
 

@@ -30,22 +30,22 @@ function! candle#action#resolve(candle) abort
 
   " Source or Argumented actions.
   for [l:action_name, l:Invoke_or_redirect_action_name] in items(extend(
-  \   copy(get(a:candle.source, 'action', {})),
   \   copy(a:candle.option.action),
+  \   copy(get(a:candle.source, 'action', {})),
   \ ))
 
     " Source specific action.
     if type(l:Invoke_or_redirect_action_name) == v:t_func
-      let l:actions += [{
+      call insert(l:actions, {
       \   'name': l:action_name,
       \   'invoke': l:Invoke_or_redirect_action_name,
-      \ }]
+      \ }, 0)
 
     " Redirect action.
     elseif type(l:Invoke_or_redirect_action_name) == type('')
       let l:redirect_action = get(filter(copy(l:actions), { i, action -> action.name ==# l:Invoke_or_redirect_action_name }), 0, {})
       if !empty(l:redirect_action)
-        let l:actions += [extend(copy(l:redirect_action),{ 'name': l:action_name } )]
+        call insert(l:actions, extend(copy(l:redirect_action),{ 'name': l:action_name } ), 0)
       endif
     endif
   endfor

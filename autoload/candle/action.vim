@@ -30,8 +30,8 @@ function! candle#action#resolve(candle) abort
 
   " Source or Argumented actions.
   for [l:action_name, l:Invoke_or_redirect_action_name] in items(extend(
-  \   copy(a:candle.option.action),
   \   copy(get(a:candle.source, 'action', {})),
+  \   copy(a:candle.option.action),
   \ ))
 
     " Source specific action.

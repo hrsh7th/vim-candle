@@ -23,9 +23,9 @@ let s:Context = {}
 " new
 "
 function! s:Context.new(context) abort
-  let l:candle = extend({}, deepcopy(s:Context))
-  let l:candle = extend(l:candle, a:context)
-  let l:candle = extend(l:candle, {
+  let l:context = extend({}, deepcopy(s:Context))
+  let l:context = extend(l:context, a:context)
+  let l:context = extend(l:context, {
   \   'request_id': 0,
   \   'stopped': v:false,
   \   'winid': 0,
@@ -33,16 +33,16 @@ function! s:Context.new(context) abort
   \   'state': deepcopy(s:initial_state),
   \   'prev_state': deepcopy(s:initial_state),
   \ })
-  call bufnr(l:candle.bufname, v:true)
-  call bufload(l:candle.bufname)
-  call setbufvar(l:candle.bufname, 'candle', l:candle)
-  call setbufvar(l:candle.bufname, '&filetype', 'candle')
-  call setbufvar(l:candle.bufname, '&buftype', 'nofile')
-  call setbufvar(l:candle.bufname, '&buflisted', 0)
-  call setbufvar(l:candle.bufname, '&bufhidden', 'hide')
-  call setbufvar(l:candle.bufname, '&number', 0)
-  call setbufvar(l:candle.bufname, '&signcolumn', 'yes')
-  return l:candle
+  call bufnr(l:context.bufname, v:true)
+  call bufload(l:context.bufname)
+  call setbufvar(l:context.bufname, 'candle', l:context)
+  call setbufvar(l:context.bufname, '&filetype', 'candle')
+  call setbufvar(l:context.bufname, '&buftype', 'nofile')
+  call setbufvar(l:context.bufname, '&buflisted', 0)
+  call setbufvar(l:context.bufname, '&bufhidden', 'hide')
+  call setbufvar(l:context.bufname, '&number', 0)
+  call setbufvar(l:context.bufname, '&signcolumn', 'yes')
+  return l:context
 endfunction
 
 "

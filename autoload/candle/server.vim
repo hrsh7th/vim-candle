@@ -14,12 +14,11 @@ let s:Server = {}
 "
 function! s:Server.new(args) abort
   let l:server = extend(deepcopy(s:Server), {
-  \   'connection': s:JSON.new({
-  \     'command': a:args.command,
-  \   }),
+  \   'cmd': a:args.command,
+  \   'rpc': s:JSON.new(),
   \   'request_id': 0,
   \ })
-  let l:server.events = l:server.connection.events
+  let l:server.events = l:server.rpc.events
   return l:server
 endfunction
 
@@ -27,14 +26,16 @@ endfunction
 " start
 "
 function! s:Server.start() abort
-  return self.connection.start()
+  return self.rpc.start({
+  \   'cmd': self.cmd,
+  \ })
 endfunction
 
 "
 " request
 "
 function! s:Server.request(method, params) abort
-  return self.connection.request(self.id(), a:method, a:params)
+  return self.rpc.request(self.id(), a:method, a:params)
 endfunction
 
 "

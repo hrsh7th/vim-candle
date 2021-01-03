@@ -19,7 +19,6 @@ function! candle#render#input#open(candle) abort
   finally
     let s:state.running = v:false
   endtry
-
 endfunction
 
 "

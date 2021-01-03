@@ -386,7 +386,7 @@ function! s:Context.refresh(...) abort
     let self.request_id += 1
     let l:id = self.request_id
 
-    let l:promise = self.fetch().then({ response -> self.on_response(l:id, l:on_window, l:option, response) }).then({ -> self.refresh_others(l:on_window, l:option) })
+    let l:promise = self.fetch().then({ response -> self.on_response(l:id, l:option, response) }).then({ -> self.refresh_others(l:option) })
     if !l:option.async
       try
         call candle#sync(l:promise)
@@ -395,7 +395,7 @@ function! s:Context.refresh(...) abort
       endtry
     endif
   else
-    call self.refresh_others(l:on_window, l:option)
+    call self.refresh_others(l:option)
     call candle#render#window#resize(self)
   endif
 endfunction
@@ -403,7 +403,7 @@ endfunction
 "
 " on_response
 "
-function! s:Context.on_response(id, on_window, option, response) abort
+function! s:Context.on_response(id, option, response) abort
   if a:id != self.request_id
     return
   endif
@@ -414,20 +414,22 @@ function! s:Context.on_response(id, on_window, option, response) abort
   call candle#render#window#resize(self)
   call deletebufline(self.bufname, len(self.state.items) + 1, '$')
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
-  call self.refresh_others(a:on_window, a:option)
+  call self.refresh_others(a:option)
 endfunction
 
 "
 " refresh_others
 "
-function! s:Context.refresh_others(on_window, option) abort
+function! s:Context.refresh_others(option) abort
+  let l:on_window = win_getid() == self.winid
+
   " update statusline
-  if a:on_window
+  if l:on_window
     call candle#render#statusline#update(self)
   endif
 
   " update highlight
-  if a:on_window
+  if l:on_window
     call clearmatches()
     for l:query in split(self.state.query, '\s\+')
       call matchadd('IncSearch', '\c\V' . escape(l:query, '\/?') . '\m')
@@ -435,7 +437,7 @@ function! s:Context.refresh_others(on_window, option) abort
   end
 
   " update cursor
-  if a:on_window && self.state.cursor != line('.') || a:option.force
+  if l:on_window && (self.state.cursor != line('.') || a:option.force)
     call cursor([self.state.cursor, col('.')])
   endif
   call candle#render#signs#cursor(self)

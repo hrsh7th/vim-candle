@@ -4,6 +4,9 @@ let s:Server = candle#server#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')
 
+let s:debounce_ids = {}
+let s:throttle_ids = {}
+
 let s:state = {
 \   'version': '',
 \   'context_id': -1,
@@ -121,6 +124,56 @@ function! candle#on_exception() abort
 endfunction
 
 "
+" candle#debounce
+"
+function! candle#debounce(id, fn, timeout) abort
+  if has_key(s:debounce_ids, a:id)
+    call timer_stop(s:debounce_ids[a:id])
+  endif
+
+  let l:ctx = {}
+  let l:ctx.id = a:id
+  let l:ctx.fn = a:fn
+  function! l:ctx.callback() abort
+    unlet s:debounce_ids[self.id]
+    try
+      call self.fn()
+    catch /.*/
+      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    endtry
+  endfunction
+  let s:debounce_ids[a:id] = timer_start(a:timeout, { -> l:ctx.callback() })
+endfunction
+
+"
+" candle#throttle
+"
+function! candle#throttle(id, fn, timeout) abort
+  let l:timeout = a:timeout
+  if has_key(s:throttle_ids, a:id)
+    let s:throttle_ids[a:id].callback = a:fn
+    return
+  endif
+
+  let l:ctx = {}
+  let l:ctx.id = a:id
+  function! l:ctx.callback() abort
+    try
+      call s:throttle_ids[self.id].fn()
+    catch /.*/
+      echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    endtry
+    unlet s:throttle_ids[self.id]
+  endfunction
+
+  let s:throttle_ids[a:id] = {
+  \   'time': reltimefloat(reltime()) * 1000,
+  \   'fn': a:fn,
+  \   'timer_id': timer_start(l:timeout, { -> l:ctx.callback() })
+  \ }
+endfunction
+
+"
 " candle#yesno
 "
 function! candle#yesno(prompt) abort
@@ -141,17 +194,7 @@ function! s:context(source, option) abort
 
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.context_id)
-  let l:context.option = extend(a:option, {
-  \   'layout': 'split',
-  \   'layout_keep': v:true,
-  \   'filter': 'substring',
-  \   'start_input': g:candle.option.start_input,
-  \   'maxwidth': float2nr(&columns * 0.2),
-  \   'maxheight': float2nr(&lines * 0.2),
-  \   'close_on': 'WinClosed',
-  \   'keepjumps': v:false,
-  \   'action': {},
-  \ }, 'keep')
+  let l:context.option = extend(a:option, g:candle.option, 'keep')
   let l:context.server = s:server()
   let l:context.source = s:source(a:source)
 

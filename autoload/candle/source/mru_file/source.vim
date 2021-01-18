@@ -65,24 +65,24 @@ endfunction
 "
 augroup candle#source#mru_file#source
   autocmd!
-  autocmd BufWinEnter,BufEnter,BufRead,BufNewFile * call <SID>on_touch(bufname('%'))
+  autocmd BufEnter * call timer_start(0, { -> <SID>on_touch(bufnr('%')) })
 augroup END
 
 "
 " on_touch
 "
-function! s:on_touch(path, ...) abort
+function! s:on_touch(bufnr, ...) abort
   let l:force = get(a:000, 0, v:false)
 
   if empty(g:candle#source#mru_file#filepath)
     return
   endif
 
-  if &buftype !=# '' && !l:force
+  if getbufvar(a:bufnr, '&buftype') !=# '' && !l:force
     return
   endif
 
-  let l:filepath = fnamemodify(a:path, ':p')
+  let l:filepath = fnamemodify(bufname(a:bufnr), ':p')
 
   " skip not file
   if !filereadable(l:filepath)

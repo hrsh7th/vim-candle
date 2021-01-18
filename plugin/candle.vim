@@ -34,7 +34,19 @@ endif
 let g:candle = get(g:, 'candle', {})
 let g:candle.debug = get(g:candle, 'debug', '')
 let g:candle.option = get(g:candle, 'option', {})
-let g:candle.option.start_input = get(g:candle.option, 'start_input', v:false)
+for [s:key, s:value] in items({
+\   'layout': 'split',
+\   'layout_keep': v:true,
+\   'auto_action': '',
+\   'start_input': v:false,
+\   'maxwidth': float2nr(&columns * 0.3),
+\   'minwidth': 1,
+\   'maxheight': float2nr(&lines * 0.3),
+\   'minheight': 1,
+\   'action': {},
+\ })
+  let g:candle.option[s:key] = get(g:candle.option, s:key, s:value)
+endfor
 
 "
 " built-in sources

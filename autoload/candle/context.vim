@@ -1,3 +1,8 @@
+let s:Window = vital#candle#import('VS.Vim.Window')
+let s:FloatingWindow = vital#candle#import('VS.Vim.Window.FloatingWindow')
+
+let s:preview = s:FloatingWindow.new({})
+
 let s:initial_state = {
 \     'total': 0,
 \     'filtered_total': 0,
@@ -5,6 +10,7 @@ let s:initial_state = {
 \     'query': '',
 \     'index': 0,
 \     'cursor': 1,
+\     'auto_action_item_id': -1,
 \     'selected_ids': [],
 \     'status': 'progress',
 \     'is_selected_all': v:false,
@@ -108,7 +114,7 @@ function! s:Context.open() abort
   \   'bufnr': bufnr(self.bufname),
   \ }
   call candle#event#clean(bufnr(self.bufname))
-  call candle#event#attach('WinClosed', { -> [win_gotoid(self.prev_winid)] }, l:ctx)
+  call candle#event#attach('WinClosed', { -> [s:preview.close(), win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
   call self.refresh({ 'force': v:true, 'async': v:false })
@@ -134,10 +140,10 @@ function! s:Context.close() abort
     return
   endif
   let l:curr_winid = win_getid()
-  call win_gotoid(self.winid)
-  silent keepalt keepjumps noautocmd quit
+  noautocmd call win_gotoid(self.winid)
+  silent keepalt keepjumps quit
   let l:next_winid = l:curr_winid == self.winid ? self.prev_winid : l:curr_winid
-  call win_gotoid(l:next_winid)
+  noautocmd call win_gotoid(l:next_winid)
 endfunction
 
 "
@@ -201,6 +207,30 @@ function! s:Context.choose_action()
   \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
   \   }
   \ })
+endfunction
+
+"
+" auto_action
+"
+function! s:Context.auto_action(name) abort
+  try
+    let l:action_item = self.get_cursor_item()
+    if empty(l:action_item) || self.state.auto_action_item_id == l:action_item.id
+      return
+    endif
+    let self.state.auto_action_item_id = l:action_item.id
+
+    let l:actions = candle#action#resolve(self)
+    let l:actions = filter(l:actions, { i, action -> action.name ==# a:name })
+
+    if len(l:actions) == 0 || len(l:actions) > 1
+      return
+    endif
+
+    call l:actions[0].invoke(self)
+  catch /.*/
+    call candle#on_exception()
+  endtry
 endfunction
 
 "
@@ -369,6 +399,34 @@ function! s:Context.get_items() abort
 endfunction
 
 "
+" preview
+"
+function! s:Context.preview(bufnr, ...) abort
+  let l:args = get(a:000, 0, {
+  \   'line': 1,
+  \ })
+
+  if !self.is_visible()
+    return
+  endif
+
+  call s:preview.set_var('&previewwindow', 1)
+  call s:preview.set_bufnr(a:bufnr)
+
+  let l:width = winwidth(self.winid)
+  let l:height = winheight(self.winid)
+  let l:info = getwininfo(self.winid)[0]
+
+  call s:preview.open({
+  \   'row': l:info.winrow - 1,
+  \   'col': l:info.wincol + float2nr(l:width / 2) - 1,
+  \   'width': l:width / 2,
+  \   'height': l:height,
+  \   'topline': max([1, get(l:args, 'line', 1) - float2nr(l:height / 2)]),
+  \ })
+endfunction
+
+"
 " refresh
 "
 function! s:Context.refresh(...) abort
@@ -386,7 +444,7 @@ function! s:Context.refresh(...) abort
     let self.request_id += 1
     let l:id = self.request_id
 
-    let l:promise = self.fetch().then({ response -> self.on_response(l:id, l:option, response) }).then({ -> self.refresh_others(l:option) })
+    let l:promise = self.fetch().then({ response -> self.on_response(l:id, l:option, response) })
     if !l:option.async
       try
         call candle#sync(l:promise)
@@ -445,6 +503,19 @@ function! s:Context.refresh_others(option) abort
   " update selected_ids
   if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || a:option.force
     call candle#render#signs#selected_ids(self)
+  endif
+
+  " perform auto-action
+  let l:previewed = v:false
+  if !empty(get(self.option, 'auto_action', ''))
+    call self.auto_action(self.option.auto_action)
+    let l:previewed = self.option.auto_action ==# 'preview'
+  endif
+
+  " update preview layout if does not performed preview.
+  if s:preview.is_visible() && !l:previewed
+    let l:info = s:Window.info(s:preview.get_winid())
+    call self.preview(s:preview.get_bufnr(), { 'line': l:info.topline + float2nr(l:info.height / 2) })
   endif
 
   let self.prev_state = deepcopy(self.state)

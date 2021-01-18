@@ -5,3 +5,5 @@ Async.Promise
 VS.RPC.JSON
 VS.Event.Emitter
 VS.System.Job
+VS.Vim.Buffer
+VS.Vim.Window.FloatingWindow

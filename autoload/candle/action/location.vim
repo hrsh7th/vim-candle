@@ -1,3 +1,5 @@
+let s:Buffer = vital#candle#import('VS.Vim.Buffer')
+
 "
 " candle#action#location#get
 "
@@ -25,6 +27,10 @@ function! candle#action#location#get() abort
   \   'name': 'delete',
   \   'accept': function('candle#action#location#accept_multiple'),
   \   'invoke': function('s:invoke_delete'),
+  \ }, {
+  \   'name': 'preview',
+  \   'accept': function('candle#action#location#accept_single'),
+  \   'invoke': function('s:invoke_preview'),
   \ }]
 endfunction
 
@@ -87,5 +93,21 @@ function! s:invoke_delete(candle) abort
   endfor
 
   call a:candle.start()
+endfunction
+
+"
+" invoke_preview
+"
+function! s:invoke_preview(candle) abort
+  let l:ctx = {}
+  function! l:ctx.callback() abort closure
+    let l:item = a:candle.get_action_items()[0]
+    noautocmd let l:bufnr = bufnr(l:item.filename, v:true)
+    call s:Buffer.load(l:bufnr)
+    call a:candle.preview(l:bufnr, {
+    \   'line': get(l:item, 'lnum', 1),
+    \ })
+  endfunction
+  call candle#throttle('candle#action#location:invoke_preview', { -> l:ctx.callback() }, 100)
 endfunction
 

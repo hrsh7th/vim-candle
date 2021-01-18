@@ -39,44 +39,52 @@ function! candle#render#window#resize(candle) abort
 
   " width
   if a:candle.option.layout !=# 'split'
-    call s:set_width(a:candle.winid, a:candle.option.maxwidth)
+    call s:set_width(a:candle, float2nr(a:candle.option.maxwidth))
   endif
 
   " height
   if a:candle.option.layout !=# 'vsplit'
-    call s:set_height(a:candle.winid, len(a:candle.state.items))
+    call s:set_height(a:candle, len(a:candle.state.items))
   endif
 endfunction
 
 "
 " set_width
 "
-function! s:set_width(winid, width) abort
-  if winwidth(win_id2win(a:winid)) == a:width
+function! s:set_width(candle, width) abort
+  let l:width = a:width
+  let l:width = max([float2nr(a:candle.option.minwidth), l:width])
+  let l:width = min([float2nr(a:candle.option.maxwidth), l:width])
+
+  if winwidth(win_id2win(a:candle.winid)) == l:width
     call candle#log('[SKIP] s:set_width')
     return
   endif
 
   if has('nvim')
-    call nvim_win_set_width(a:winid, a:width)
+    call nvim_win_set_width(a:candle.winid, l:width)
   else
-    call win_execute(a:winid, printf('vertical resize %s', a:width))
+    call win_execute(a:candle.winid, printf('vertical resize %s', l:width))
   endif
 endfunction
 
 "
 " set_height
 "
-function! s:set_height(winid, height) abort
-  if winheight(win_id2win(a:winid)) == a:height
+function! s:set_height(candle, height) abort
+  let l:height = a:height
+  let l:height = max([float2nr(a:candle.option.minheight), l:height])
+  let l:height = min([float2nr(a:candle.option.maxheight), l:height])
+
+  if winheight(win_id2win(a:candle.winid)) == l:height
     call candle#log('[SKIP] s:set_height')
     return
   endif
 
   if has('nvim')
-    call nvim_win_set_height(a:winid, a:height)
+    call nvim_win_set_height(a:candle.winid, l:height)
   else
-    call win_execute(a:winid, printf('resize %s', a:height))
+    call win_execute(a:candle.winid, printf('resize %s', l:height))
   endif
 endfunction
 

@@ -418,8 +418,8 @@ function! s:Context.preview(bufnr, ...) abort
   let l:info = getwininfo(self.winid)[0]
 
   call s:preview.open({
-  \   'row': l:info.winrow - 1,
-  \   'col': l:info.wincol + float2nr(l:width / 2) - 1,
+  \   'row': l:info.winrow,
+  \   'col': l:info.wincol + float2nr(l:width / 2),
   \   'width': l:width / 2,
   \   'height': l:height,
   \   'topline': max([1, get(l:args, 'line', 1) - float2nr(l:height / 2)]),

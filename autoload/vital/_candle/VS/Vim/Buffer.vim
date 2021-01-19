@@ -36,7 +36,7 @@ endif
 "
 function! s:create(...) abort
   let g:___VS_Vim_Buffer_id += 1
-  silent noautocmd let l:bufnr = bufnr(printf('VS.Vim.Buffer: %s: %s',
+  let l:bufnr = bufnr(printf('VS.Vim.Buffer: %s: %s',
   \   g:___VS_Vim_Buffer_id,
   \   get(a:000, 0, 'VS.Vim.Buffer.Default')
   \ ), v:true)

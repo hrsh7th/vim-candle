@@ -155,6 +155,16 @@ function! s:FloatingWindow.get_winid() abort
 endfunction
 
 "
+" info
+"
+function! s:FloatingWindow.info() abort
+  if self.is_visible()
+    return s:_info(self._winid)
+  endif
+  return v:null
+endfunction
+
+"
 " set_var
 "
 " @param {string}  key
@@ -184,6 +194,7 @@ endfunction
 " @param {number} args.width
 " @param {number} args.height
 " @param {number?} args.topline
+" @param {string?} args.origin - topleft/topright/botleft/botright
 "
 function! s:FloatingWindow.open(args) abort
   let l:style = {
@@ -192,6 +203,7 @@ function! s:FloatingWindow.open(args) abort
   \   'width': a:args.width,
   \   'height': a:args.height,
   \   'topline': get(a:args, 'topline', 1),
+  \   'origin': get(a:args, 'origin', 'topleft'),
   \ }
 
   let l:will_move = self.is_visible()
@@ -316,38 +328,94 @@ else
   endfunction
 endif
 
+if has('nvim')
+  function! s:_info(winid) abort
+    let l:info = getwininfo(a:winid)[0]
+    return {
+    \   'row': l:info.winrow,
+    \   'col': l:info.wincol,
+    \   'width': l:info.width,
+    \   'height': l:info.height,
+    \   'topline': l:info.topline,
+    \ }
+  endfunction
+else
+  function! s:_info(winid) abort
+    let l:pos = popup_getpos(a:winid)
+    return {
+    \   'row': l:pos.core_line,
+    \   'col': l:pos.core_col,
+    \   'width': l:pos.core_width,
+    \   'height': l:pos.core_height,
+    \   'topline': l:pos.firstline,
+    \ }
+  endfunction
+endif
+
 "
 " style
 "
 if has('nvim')
   function! s:_style(style) abort
+    let l:style = s:_resolve_style(a:style)
     return {
     \   'relative': 'editor',
-    \   'width': a:style.width,
-    \   'height': a:style.height,
-    \   'row': a:style.row,
-    \   'col': a:style.col,
+    \   'row': l:style.row - 1,
+    \   'col': l:style.col - 1,
+    \   'width': l:style.width,
+    \   'height': l:style.height,
     \   'focusable': v:true,
     \   'style': 'minimal',
     \ }
   endfunction
 else
   function! s:_style(style) abort
+    let l:style = s:_resolve_style(a:style)
     return {
-    \   'line': a:style.row + 1,
-    \   'col': a:style.col + 1,
+    \   'line': l:style.row,
+    \   'col': l:style.col,
     \   'pos': 'topleft',
     \   'moved': [0, 0, 0],
     \   'scrollbar': 0,
-    \   'maxwidth': a:style.width,
-    \   'maxheight': a:style.height,
-    \   'minwidth': a:style.width,
-    \   'minheight': a:style.height,
+    \   'maxwidth': l:style.width,
+    \   'maxheight': l:style.height,
+    \   'minwidth': l:style.width,
+    \   'minheight': l:style.height,
     \   'tabpage': 0,
-    \   'firstline': a:style.topline,
+    \   'firstline': l:style.topline,
     \ }
   endfunction
 endif
+
+"
+" resolve_style
+"
+function! s:_resolve_style(style) abort
+  if index(['topleft', 'topright', 'bottomleft', 'bottomright', 'topcenter', 'bottomcenter'], a:style.origin) == -1
+    let a:style.origin = 'topleft'
+  endif
+
+  if a:style.origin ==# 'topleft'
+    let a:style.col = a:style.col
+    let a:style.row = a:style.row
+  elseif a:style.origin ==# 'topright'
+    let a:style.col = a:style.col - (a:style.width - 1)
+    let a:style.row = a:style.row
+  elseif a:style.origin ==# 'bottomleft'
+    let a:style.col = a:style.col
+    let a:style.row = a:style.row - (a:style.height - 1)
+  elseif a:style.origin ==# 'bottomright'
+    let a:style.col = a:style.col - (a:style.width - 1)
+    let a:style.row = a:style.row - (a:style.height - 1)
+  elseif a:style.origin ==# 'topcenter'
+    let a:style.col = a:style.col - float2nr(a:style.width / 2)
+    let a:style.row = a:style.row
+  elseif a:style.origin ==# 'bottomcenter'
+    let a:style.col = a:style.col - float2nr(a:style.width / 2)
+    let a:style.row = a:style.row - (a:style.height - 1)
+  endif
+  return a:style
+endfunction
 
 "
 " init

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -26,6 +27,11 @@ func Start(process *candle.Process) {
 
 	go func() {
 		process.NotifyStart()
+
+		home, err := os.UserHomeDir()
+		if err != nil {
+			home = ""
+		}
 
 		file, err := os.Open(filepath)
 		if err != nil {
@@ -54,7 +60,7 @@ func Start(process *candle.Process) {
 			if invalid(candidate) {
 				continue
 			}
-			process.AddItem(toItem(i, candidate))
+			process.AddItem(toItem(i, candidate, home))
 		}
 
 		// write back uniqued lines
@@ -64,11 +70,19 @@ func Start(process *candle.Process) {
 	}()
 }
 
-func toItem(index int, filepath string) candle.Item {
+func toItem(index int, path string, home string) candle.Item {
+	title := path
+	if filepath.HasPrefix(path, home) {
+		var err error
+		title, err = filepath.Rel(home, path)
+		if err == nil {
+			title = "~/" + title
+		}
+	}
 	return candle.Item{
 		"id":       strconv.Itoa(index),
-		"title":    filepath,
-		"filename": filepath,
+		"title":    title,
+		"filename": path,
 		"is_dir":   true,
 	}
 }
@@ -100,4 +114,3 @@ func unique(paths []string) []string {
 	}
 	return newPaths
 }
-

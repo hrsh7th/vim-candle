@@ -74,7 +74,7 @@ func toItem(prefix string, index int, line string) candle.Item {
 		"id": strconv.Itoa(index),
 		"title": fmt.Sprintf(
 			"%s:%s\t%s",
-			strings.TrimPrefix(sub[0], prefix),
+			"."+strings.TrimPrefix(sub[0], prefix),
 			sub[1],
 			sub[2],
 		),

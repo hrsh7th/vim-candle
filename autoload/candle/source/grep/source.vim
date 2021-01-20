@@ -39,7 +39,7 @@ endfunction
 "
 function! s:default_command() abort
   if executable('rg')
-    return ['rg', '-i', '--vimgrep', '--no-heading', '--no-column', '%PATTERN%', '%ROOT_PATH%']
+    return ['rg', '-i', '--vimgrep', '--no-heading', '--no-column', '--sort-path', '%PATTERN%', '%ROOT_PATH%']
   endif
   if executable('ag')
     return ['ag', '-i', '--nocolor', '--noheading', '--nobreak', '%PATTERN%', '%ROOT_PATH%']

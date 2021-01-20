@@ -4,7 +4,7 @@
 function! candle#render#window#initialize(candle) abort
   let l:prev_candle = getbufvar('%', 'candle', {})
   if !empty(l:prev_candle)
-    let l:keepjumps = l:prev_candle.option.keepjumps
+    let l:keepjumps = get(l:prev_candle.option, 'keepjumps', v:false)
   else
     let l:keepjumps = v:false
   endif

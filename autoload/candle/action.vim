@@ -20,47 +20,109 @@ function! candle#action#register(action) abort
 endfunction
 
 "
-" candle#action#resolve
+" candle#action#find
 "
-function! candle#action#resolve(candle) abort
+function! candle#action#find(candle, name) abort
+  let l:actions = {}
+
   " Global actions.
-  let l:actions = copy(s:actions)
-  let l:actions = reverse(l:actions)
-  let l:actions = filter(l:actions, { i, action -> action.accept(a:candle) })
+  for l:action in reverse(copy(s:actions))
+    if !has_key(l:actions, l:action.name)
+      let l:actions[l:action.name] = l:action
+    endif
+  endfor
 
-  " Source or Argumented actions.
-  for [l:action_name, l:Invoke_or_redirect_action_name] in items(extend(
-  \   copy(get(a:candle.source, 'action', {})),
-  \   copy(a:candle.option.action),
-  \ ))
-
-    " Source specific action.
+  " Source actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(get(a:candle.source, 'action', {}))
     if type(l:Invoke_or_redirect_action_name) == v:t_func
-      call insert(l:actions, {
+      if a:name ==# l:action.name
+        return {
       \   'name': l:action_name,
       \   'invoke': l:Invoke_or_redirect_action_name,
-      \ }, 0)
-
-    " Redirect action.
-    elseif type(l:Invoke_or_redirect_action_name) == type('')
-      let l:redirect_action = get(filter(copy(l:actions), { i, action -> action.name ==# l:Invoke_or_redirect_action_name }), 0, {})
-      if !empty(l:redirect_action)
-        call insert(l:actions, extend(copy(l:redirect_action),{ 'name': l:action_name } ), 0)
+      \   'accept': { -> v:true },
+        \ }
       endif
     endif
   endfor
 
-  return s:normalize(l:actions)
+  " Argumented actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(copy(a:candle.option.action))
+    if type(l:Invoke_or_redirect_action_name) == v:t_func
+      return {
+      \   'name': l:action_name,
+      \   'invoke': l:Invoke_or_redirect_action_name,
+      \   'accept': { -> v:true },
+      \ }
+    endif
+  endfor
+
+  " Redirect source actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(get(a:candle.source, 'action', {}))
+    if type(l:Invoke_or_redirect_action_name) == v:t_string && has_key(l:actions, l:Invoke_or_redirect_action_name)
+      let l:actions[l:action_name] = extend({ 'name': l:action_name }, l:actions[l:Invoke_or_redirect_action_name], 'keep')
+    endif
+  endfor
+
+  " Redirect argumented actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(copy(a:candle.option.action))
+    if type(l:Invoke_or_redirect_action_name) == v:t_string && has_key(l:actions, l:Invoke_or_redirect_action_name)
+      let l:actions[l:action_name] = extend({ 'name': l:action_name }, l:actions[l:Invoke_or_redirect_action_name], 'keep')
+    endif
+  endfor
+
+  return get(l:actions, a:name, v:null)
 endfunction
 
 "
-" normalize
+" candle#action#resolve
 "
-function! s:normalize(actions) abort
-  let l:actions = copy(a:actions)
-  let l:actions = sort(l:actions, function('s:compare'))
-  let l:actions = uniq(l:actions, function('s:compare'))
-  return l:actions
+function! candle#action#resolve(candle) abort
+  let l:actions = {}
+
+  " Global actions.
+  for l:action in reverse(copy(s:actions))
+    if !has_key(l:actions, l:action.name)
+      let l:actions[l:action.name] = l:action
+    endif
+  endfor
+
+  " Source actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(get(a:candle.source, 'action', {}))
+    if type(l:Invoke_or_redirect_action_name) == v:t_func
+      let l:actions[l:action.name] = {
+      \   'name': l:action_name,
+      \   'invoke': l:Invoke_or_redirect_action_name,
+      \   'accept': { -> v:true },
+      \ }
+    endif
+  endfor
+
+  " Argumented actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(copy(a:candle.option.action))
+    if type(l:Invoke_or_redirect_action_name) == v:t_func
+      let l:actions[l:action.name] = {
+      \   'name': l:action_name,
+      \   'invoke': l:Invoke_or_redirect_action_name,
+      \   'accept': { -> v:true },
+      \ }
+    endif
+  endfor
+
+  " Redirect source actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(get(a:candle.source, 'action', {}))
+    if type(l:Invoke_or_redirect_action_name) == v:t_string && has_key(l:actions, l:Invoke_or_redirect_action_name)
+      let l:actions[l:action_name] = extend({ 'name': l:action_name }, l:actions[l:Invoke_or_redirect_action_name], 'keep')
+    endif
+  endfor
+
+  " Redirect argumented actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(copy(a:candle.option.action))
+    if type(l:Invoke_or_redirect_action_name) == v:t_string && has_key(l:actions, l:Invoke_or_redirect_action_name)
+      let l:actions[l:action_name] = extend({ 'name': l:action_name }, l:actions[l:Invoke_or_redirect_action_name], 'keep')
+    endif
+  endfor
+
+  return filter(values(l:actions), 'v:val.accept(a:candle)')
 endfunction
 
 "

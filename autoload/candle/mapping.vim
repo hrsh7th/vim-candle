@@ -95,6 +95,13 @@ function! candle#mapping#action_prev(name) abort
   endif
 endfunction
 
+function! candle#mapping#toggle_preview() abort
+  if has_key(b:, 'candle')
+    call b:candle.toggle_preview()
+  endif
+  return ''
+endfunction
+
 function! candle#mapping#input_open() abort
   if has_key(b:, 'candle')
     call candle#render#input#open(b:candle)

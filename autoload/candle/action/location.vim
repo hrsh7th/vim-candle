@@ -1,5 +1,3 @@
-let s:Buffer = vital#candle#import('VS.Vim.Buffer')
-
 "
 " candle#action#location#get
 "
@@ -101,13 +99,13 @@ endfunction
 function! s:invoke_preview(candle) abort
   let l:ctx = {}
   function! l:ctx.callback() abort closure
-    let l:item = a:candle.get_action_items()[0]
-    noautocmd let l:bufnr = bufnr(l:item.filename, v:true)
-    call s:Buffer.load(l:bufnr)
-    call a:candle.preview(l:bufnr, {
-    \   'line': get(l:item, 'lnum', 1),
-    \ })
+    let l:item = a:candle.get_cursor_item()
+    if !empty(l:item)
+      call a:candle.preview(l:item.filename, {
+      \   'line': get(l:item, 'lnum', 1),
+      \ })
+    endif
   endfunction
-  call candle#throttle('candle#action#location:invoke_preview', { -> l:ctx.callback() }, 100)
+  call candle#throttle('candle#action#location:invoke_preview', { -> l:ctx.callback() }, 200)
 endfunction
 

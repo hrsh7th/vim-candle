@@ -7,7 +7,7 @@ if !hlexists('CandleCursorLine')
 endif
 
 if !hlexists('CandleSelectedLine')
-  highlight! link CandleSelectedLine WildMenu
+  highlight! link CandleSelectedLine QuickFixLine
 endif
 
 call sign_define('CandleCursorLine', {
@@ -38,32 +38,21 @@ function! candle#render#signs#cursor(candle) abort
 endfunction
 
 "
-" candle#render#signs#selected_ids
+" candle#render#signs#selected
 "
-function! candle#render#signs#selected_ids(candle) abort
+function! candle#render#signs#selected(candle) abort
   try
     call sign_unplace('CandleSelectedLine', {
     \   'buffer': a:candle.bufname,
     \ })
-    if a:candle.state.is_selected_all
-      for l:lnum in range(1, winheight(bufwinnr(a:candle.bufname)) + 1)
+    for l:i in range(0, len(a:candle.state.items))
+      if a:candle.state.is_selected_all || has_key(a:candle.state.selected_id_map, a:candle.state.items[l:i].id)
         call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
         \   'priority': 200,
-        \   'lnum': l:lnum
+        \   'lnum': l:i + 1,
         \ })
-      endfor
-    else
-      let l:item_ids = map(copy(a:candle.state.items), { _, item -> item.id })
-      for l:selected_id in a:candle.state.selected_ids
-        let l:idx = index(l:item_ids, l:selected_id)
-        if l:idx >= 0
-          call sign_place(0, 'CandleSelectedLine', 'CandleSelectedLine', a:candle.bufname, {
-          \   'priority': 200,
-          \   'lnum': l:idx + 1,
-          \ })
-        endif
-      endfor
-    endif
+      endif
+    endfor
   catch /.*/
   endtry
 endfunction

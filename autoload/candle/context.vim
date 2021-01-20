@@ -11,7 +11,7 @@ let s:initial_state = {
 \   'query': '',
 \   'index': 0,
 \   'cursor': 1,
-\   'selected_ids': [],
+\   'selected_id_map': {},
 \   'status': 'progress',
 \   'preview': v:false,
 \   'is_selected_all': v:false,
@@ -59,7 +59,7 @@ function! s:Context.start() abort
   let self.state.status = 'progress'
   let self.state.total = 0
   let self.state.filtered_total = 0
-  let self.state.selected_ids = []
+  let self.state.selected_id_map = {}
   let self.state.is_selected_all = v:false
   let self.state.items = []
 
@@ -108,6 +108,9 @@ function! s:Context.open() abort
   let self.prev_winid = win_getid()
   call candle#render#window#initialize(self)
   let self.winid = win_getid()
+
+  " update statusline
+  call candle#render#statusline#update(self)
 
   " initialize events.
   let l:ctx = {
@@ -261,7 +264,7 @@ endfunction
 function! s:Context.toggle_select_all() abort
   let self.state.is_selected_all = !self.state.is_selected_all
   if !self.state.is_selected_all
-    let self.state.selected_ids = []
+    let self.state.selected_id_map = {}
   endif
   call self.refresh()
 endfunction
@@ -271,11 +274,10 @@ endfunction
 "
 function! s:Context.toggle_select() abort
   let l:item = self.get_cursor_item()
-  let l:index = index(self.state.selected_ids, l:item.id)
-  if l:index >= 0
-    call remove(self.state.selected_ids, l:index)
+  if has_key(self.state.selected_id_map, l:item.id)
+    unlet self.state.selected_id_map[l:item.id]
   else
-    let self.state.selected_ids += [l:item.id]
+    let self.state.selected_id_map[l:item.id] = v:true
   endif
   call self.move_cursor(1)
   call self.refresh()
@@ -359,11 +361,12 @@ endfunction
 " state_changed
 "
 function! s:Context.state_changed(names) abort
-  let l:changed = v:false
   for l:name in a:names
-    let l:changed = l:changed || self.state[l:name] != self.prev_state[l:name]
+    if self.state[l:name] != self.prev_state[l:name]
+      return v:true
+    endif
   endfor
-  return l:changed
+  return v:false
 endfunction
 
 "
@@ -381,7 +384,7 @@ function! s:Context.get_action_items() abort
     return candle#sync(self.fetch_all()).items
   endif
 
-  if len(self.state.selected_ids) == 0
+  if empty(self.state.selected_id_map)
     let l:item = self.get_cursor_item()
     if empty(l:item)
       return []
@@ -390,7 +393,7 @@ function! s:Context.get_action_items() abort
   endif
 
   " TODO: resolve by server.
-  return filter(copy(self.state.items), { _, item -> index(self.state.selected_ids, item.id) >= 0 })
+  return filter(copy(self.state.items), 'has_key(self.state.selected_id_map, v:val.id)')
 endfunction
 
 "
@@ -431,11 +434,6 @@ function! s:Context.refresh(...) abort
   let l:option = extend({ 'async': v:true, 'force': v:false }, get(a:000, 0, {}))
 
   let l:on_window = win_getid() == self.winid
-
-  " update statusline(avoid flicker)
-  if l:on_window
-    call candle#render#statusline#update(self)
-  endif
 
   " update items
   if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
@@ -479,11 +477,6 @@ endfunction
 function! s:Context.refresh_others(option) abort
   let l:on_window = win_getid() == self.winid
 
-  " update statusline
-  if l:on_window
-    call candle#render#statusline#update(self)
-  endif
-
   " update highlight
   if l:on_window
     call clearmatches()
@@ -496,11 +489,13 @@ function! s:Context.refresh_others(option) abort
   if l:on_window && (self.state.cursor != line('.') || a:option.force)
     call cursor([self.state.cursor, col('.')])
   endif
-  call candle#render#signs#cursor(self)
+  if self.state_changed(['cursor']) || a:option.force
+    call candle#render#signs#cursor(self)
+  endif
 
-  " update selected_ids
-  if self.state_changed(['index', 'selected_ids', 'is_selected_all', 'query']) || a:option.force
-    call candle#render#signs#selected_ids(self)
+  " update selected signs
+  if self.state_changed(['index', 'selected_id_map', 'is_selected_all', 'query']) || a:option.force
+    call candle#render#signs#selected(self)
   endif
 
   if self.state.preview

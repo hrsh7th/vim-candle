@@ -49,11 +49,24 @@ function! s:get_normalized_action_map(candle) abort
       let l:actions[l:action.name] = l:action
     endif
   endfor
-  let l:actions = extend(l:actions, get(a:candle.source, 'action', {}))
-  let l:actions = extend(l:actions, copy(a:candle.option.action))
+
+  let l:specific_actions = {}
+  let l:specific_actions = extend(l:specific_actions, get(a:candle.source, 'action', {}))
+  let l:specific_actions = extend(l:specific_actions, a:candle.option.action)
+
+  " Function actions.
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(l:specific_actions)
+    if type(l:Invoke_or_redirect_action_name) == v:t_func
+      let l:actions[l:action_name] = {
+      \   'name': l:action_name,
+      \   'invoke': l:Invoke_or_redirect_action_name,
+      \   'accept': { -> v:true },
+      \ }
+    endif
+  endfor
 
   " Redirect actions.
-  for [l:action_name, l:Invoke_or_redirect_action_name] in items(l:actions)
+  for [l:action_name, l:Invoke_or_redirect_action_name] in items(l:specific_actions)
     if type(l:Invoke_or_redirect_action_name) == v:t_string
       if has_key(l:actions, l:Invoke_or_redirect_action_name)
         let l:actions[l:action_name] = extend({ 'name': l:action_name }, l:actions[l:Invoke_or_redirect_action_name], 'keep')
@@ -62,6 +75,7 @@ function! s:get_normalized_action_map(candle) abort
       endif
     endif
   endfor
+
   return l:actions
 endfunction
 

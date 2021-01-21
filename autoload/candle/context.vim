@@ -7,6 +7,7 @@ let s:preview = s:FloatingWindow.new({})
 let s:initial_state = {
 \   'total': 0,
 \   'filtered_total': 0,
+\   'items_len': 0,
 \   'items': [],
 \   'query': '',
 \   'index': 0,
@@ -108,9 +109,6 @@ function! s:Context.open() abort
   let self.prev_winid = win_getid()
   call candle#render#window#initialize(self)
   let self.winid = win_getid()
-
-  " update statusline
-  call candle#render#statusline#update(self)
 
   " initialize events.
   let l:ctx = {
@@ -435,6 +433,9 @@ function! s:Context.refresh(...) abort
 
   let l:on_window = win_getid() == self.winid
 
+  " update statusline
+  call candle#render#statusline#update(self)
+
   " update items
   if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
     let self.request_id += 1
@@ -465,7 +466,10 @@ function! s:Context.on_response(id, option, response) abort
   let self.state.items = a:response.items
   let self.state.total = a:response.total
   let self.state.filtered_total = a:response.filtered_total
-  call candle#render#window#resize(self)
+  if self.state.items_len != len(self.state.items)
+    call candle#render#window#resize(self)
+  endif
+  let self.state.items_len = len(a:response.items)
   call deletebufline(self.bufname, len(self.state.items) + 1, '$')
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
   call self.refresh_others(a:option)

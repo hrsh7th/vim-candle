@@ -46,6 +46,7 @@ function! candle#run(source, ...) abort
   let l:option = get(a:000, 0, {})
   let l:context = {}
   let l:context.bufname = printf('candle-%s', s:state.context_id)
+  let a:source.id = l:context.bufname
   let l:context.option = extend(l:option, g:candle.option, 'keep')
   let l:context.server = a:source
   let l:context.source = { 'name': 'dummy', 'script': { 'path': '', 'args': [] } }

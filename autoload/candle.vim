@@ -38,6 +38,23 @@ function! candle#start(source, ...) abort
 endfunction
 
 "
+" candle#run
+"
+function! candle#run(source, ...) abort
+  let s:state.context_id += 1
+
+  let l:option = get(a:000, 0, {})
+  let l:context = {}
+  let l:context.bufname = printf('candle-%s', s:state.context_id)
+  let l:context.option = extend(l:option, g:candle.option, 'keep')
+  let l:context.server = a:source
+  let l:context.source = { 'name': 'dummy', 'script': { 'path': '', 'args': [] } }
+
+  call a:source.start()
+  call s:Context.new(l:context).start()
+endfunction
+
+"
 " candle#version
 "
 function! candle#version() abort
@@ -69,7 +86,7 @@ function! candle#sync(promise_or_fn, ...) abort
       if l:timeout != -1 && reltimefloat(reltime(l:reltime)) * 1000 > l:timeout
         throw 'candle#sync: timeout'
       endif
-      sleep 1m
+      sleep 10m
     endwhile
   elseif type(a:promise_or_fn) == type({}) && has_key(a:promise_or_fn, '_vital_promise')
     while v:true
@@ -83,7 +100,7 @@ function! candle#sync(promise_or_fn, ...) abort
         throw 'candle#sync: timeout'
       endif
 
-      sleep 1m
+      sleep 10m
     endwhile
   endif
 endfunction
@@ -93,7 +110,7 @@ endfunction
 "
 function! candle#log(...) abort
   if strlen(get(g:candle, 'debug', '')) > 0
-  call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
+    call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
   endif
 endfunction
 
@@ -257,6 +274,9 @@ endfunction
 "
 " on_notification
 "
+function! candle#on_notification(notification) abort
+  call s:on_notification(a:notification)
+endfunction
 function! s:on_notification(notification) abort
   if has_key(a:notification.params, 'id')
     let l:candle = getbufvar(a:notification.params.id, 'candle', {})

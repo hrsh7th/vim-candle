@@ -2,13 +2,13 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  let l:has_parent = has_key(a:candle.option, 'parent')
-  if !l:has_parent
-    execute printf('noautocmd keepalt keepjumps botright %s', a:candle.option.layout)
+  let l:parent = get(b:, 'candle', v:null)
+  if empty(l:parent)
+    execute printf('noautocmd keepalt keepjumps silent botright %s', a:candle.option.layout)
   else
-    execute printf('noautocmd keepalt keepjumps %sbuffer', bufnr(a:candle.option.parent))
+    execute printf('noautocmd keepalt keepjumps silent %sbuffer', bufnr(l:parent.bufname))
   endif
-  execute printf('%sbuffer', bufnr(a:candle.bufname))
+  execute printf('silent %sbuffer', bufnr(a:candle.bufname))
 
   let a:candle.winid = win_getid()
   call candle#render#window#resize(a:candle)

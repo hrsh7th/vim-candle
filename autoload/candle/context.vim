@@ -105,9 +105,12 @@ function! s:Context.open() abort
     return
   endif
 
+  call self.refresh({ 'force': v:true, 'async': v:false })
+
   " initialize window.
   let self.prev_winid = win_getid()
   call candle#render#window#initialize(self)
+  call candle#render#statusline#update(self, v:true)
   let self.winid = win_getid()
 
   " initialize events.
@@ -119,10 +122,9 @@ function! s:Context.open() abort
   call candle#event#attach('WinClosed', { -> [s:preview.close(), win_gotoid(self.prev_winid)] }, l:ctx)
   call candle#event#attach('BufEnter', { -> [self.refresh({ 'force': v:true, 'async': v:true })] }, l:ctx)
   call candle#event#attach('BufDelete', { -> [self.stop(), candle#event#clean(bufnr(self.bufname))] }, l:ctx)
-  call self.refresh({ 'force': v:true, 'async': v:false })
 
   try
-    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 500)
+    call candle#sync({ -> self.can_display_new_items() || self.state.status ==# 'done' }, 200)
   catch /.*/
   endtry
 

@@ -7,7 +7,6 @@ let s:preview = s:FloatingWindow.new({})
 let s:initial_state = {
 \   'total': 0,
 \   'filtered_total': 0,
-\   'items_len': 0,
 \   'items': [],
 \   'query': '',
 \   'index': 0,
@@ -50,6 +49,7 @@ function! s:Context.new(context) abort
   call setbufvar(l:context.bufname, '&bufhidden', 'hide')
   call setbufvar(l:context.bufname, '&number', 0)
   call setbufvar(l:context.bufname, '&signcolumn', 'yes')
+  call setbufvar(l:context.bufname, '&scrolloff', 0)
   return l:context
 endfunction
 
@@ -203,11 +203,11 @@ function! s:Context.choose_action()
   call candle#start({
   \   'item':  map(candle#action#resolve(self), { i, action -> { 'id': string(i), 'title': action.name } })
   \ }, {
-  \   'layout_keep': v:true,
   \   'start_input': g:candle.option.start_input,
   \   'action': {
   \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
-  \   }
+  \   },
+  \   'parent': self.bufname,
   \ })
 endfunction
 
@@ -434,7 +434,9 @@ function! s:Context.refresh(...) abort
   let l:on_window = win_getid() == self.winid
 
   " update statusline
-  call candle#render#statusline#update(self)
+  if l:on_window
+    call candle#render#statusline#update(self, l:option.force)
+  endif
 
   " update items
   if self.state_changed(['query', 'index']) || self.can_display_new_items() || l:option.force
@@ -466,12 +468,9 @@ function! s:Context.on_response(id, option, response) abort
   let self.state.items = a:response.items
   let self.state.total = a:response.total
   let self.state.filtered_total = a:response.filtered_total
-  if self.state.items_len != len(self.state.items)
-    call candle#render#window#resize(self)
-  endif
-  let self.state.items_len = len(a:response.items)
-  call deletebufline(self.bufname, len(self.state.items) + 1, '$')
+  call deletebufline(self.bufname, 1, '$')
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
+  call candle#render#window#resize(self)
   call self.refresh_others(a:option)
 endfunction
 

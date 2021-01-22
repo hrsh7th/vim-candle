@@ -36,7 +36,6 @@ let g:candle.debug = get(g:candle, 'debug', '')
 let g:candle.option = get(g:candle, 'option', {})
 for [s:key, s:value] in items({
 \   'layout': 'split',
-\   'layout_keep': v:true,
 \   'auto_action': '',
 \   'start_input': v:false,
 \   'maxwidth': float2nr(&columns * 0.3),

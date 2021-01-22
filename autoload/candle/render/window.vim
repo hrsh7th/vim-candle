@@ -2,26 +2,15 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  let l:prev_candle = getbufvar('%', 'candle', {})
-  if !empty(l:prev_candle)
-    let l:keepjumps = get(l:prev_candle.option, 'keepjumps', v:false)
+  let l:has_parent = has_key(a:candle.option, 'parent')
+  if !l:has_parent
+    execute printf('noautocmd keepalt keepjumps botright %s', a:candle.option.layout)
   else
-    let l:keepjumps = v:false
+    execute printf('noautocmd keepalt keepjumps %sbuffer', bufnr(a:candle.option.parent))
   endif
-
-  let l:layout = a:candle.option.layout
-  if a:candle.option.layout_keep && !empty(l:prev_candle)
-    let l:layout = 'edit'
-  endif
-
-  execute printf('keepalt botright %s %s',
-  \   l:keepjumps ? 'keepjumps' : '',
-  \   l:layout
-  \ )
-  execute printf('keepalt %sbuffer', bufnr(a:candle.bufname))
+  execute printf('%sbuffer', bufnr(a:candle.bufname))
 
   let a:candle.winid = win_getid()
-
   call candle#render#window#resize(a:candle)
   call setwinvar(winnr(), '&number', 0)
   call setwinvar(winnr(), '&signcolumn', 'yes')

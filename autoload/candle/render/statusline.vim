@@ -1,7 +1,8 @@
 "
 " candle#render#statusline#update
 "
-function! candle#render#statusline#update(candle) abort
+function! candle#render#statusline#update(candle, ...) abort
+  let l:force = get(a:000, 0, v:false)
   let l:ctx = {}
   function! l:ctx.callback() abort
     if !exists('b:candle')
@@ -17,6 +18,10 @@ function! candle#render#statusline#update(candle) abort
     \ )
     redrawstatus
   endfunction
-  call candle#throttle('candle#render#statusline#update', { -> l:ctx.callback() }, 200)
+  if l:force
+    call l:ctx.callback()
+  else
+    call candle#throttle('candle#render#statusline#update', { -> l:ctx.callback() }, 200)
+  endif
 endfunction
 

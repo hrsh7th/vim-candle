@@ -1,9 +1,8 @@
 candle
 621cda4f832d2f43f3b15cdbfb70ca36b219efc2
 
-Async.Promise
-VS.RPC.JSON
-VS.Event.Emitter
+VS.RPC.JSON.Connection
 VS.System.Job
-VS.Vim.Buffer
+VS._.List.Matcher
 VS.Vim.Window.FloatingWindow
+VS.Vim.Buffer

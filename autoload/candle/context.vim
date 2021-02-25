@@ -40,8 +40,8 @@ function! s:Context.new(context) abort
   \   'state': deepcopy(s:initial_state),
   \   'prev_state': deepcopy(s:initial_state),
   \ })
-  call bufnr(l:context.bufname, v:true)
-  call bufload(l:context.bufname)
+  silent call bufnr(l:context.bufname, v:true)
+  silent call bufload(l:context.bufname)
   call setbufvar(l:context.bufname, 'candle', l:context)
   call setbufvar(l:context.bufname, '&filetype', 'candle')
   call setbufvar(l:context.bufname, '&buftype', 'nofile')
@@ -151,27 +151,33 @@ function! s:Context.close() abort
 endfunction
 
 "
-" on_notification
+" on_start
 "
-function! s:Context.on_notification(notification) abort
-  if a:notification.method ==# 'start'
-    call self.refresh({ 'async': v:true, 'force': v:true })
+function! s:Context.on_start(params) abort
+  call self.refresh({ 'async': v:true, 'force': v:true })
+endfunction
 
-  elseif a:notification.method ==# 'progress'
-    let self.state.total = a:notification.params.total
-    let self.state.filtered_total = a:notification.params.filtered_total
-    let self.state.status = 'progress'
-    call self.refresh({ 'async': v:true })
-
-  elseif a:notification.method ==# 'done'
-    let self.state.total = a:notification.params.total
-    let self.state.filtered_total = a:notification.params.filtered_total
-    let self.state.status = 'done'
-    call self.refresh({ 'async': v:true })
-
-  elseif a:notification.method ==# 'message'
-    echomsg a:notification.params.message . "\n"
+"
+" on_progress
+"
+function! s:Context.on_progress(params) abort
+  if self.state.status ==# 'done'
+    return
   endif
+  let self.state.total = a:params.total
+  let self.state.filtered_total = a:params.filtered_total
+  let self.state.status = 'progress'
+  call self.refresh({ 'async': v:true })
+endfunction
+
+"
+" on_done
+"
+function! s:Context.on_done(params) abort
+  let self.state.total = a:params.total
+  let self.state.filtered_total = a:params.filtered_total
+  let self.state.status = 'done'
+  call self.refresh({ 'async': v:true })
 endfunction
 
 "

@@ -1,6 +1,6 @@
 let s:Promise = vital#candle#import('Async.Promise')
+let s:Connection = vital#candle#import('VS.RPC.JSON.Connection')
 let s:Context = candle#context#import()
-let s:Server = candle#server#import()
 
 let s:root_dir = expand('<sfile>:p:h:h')
 
@@ -38,6 +38,22 @@ function! candle#start(source, ...) abort
 endfunction
 
 "
+" candle#run
+"
+function! candle#run(source, ...) abort
+  let s:state.context_id += 1
+
+  let l:option = get(a:000, 0, {})
+  let l:context = {}
+  let l:context.bufname = printf('candle-%s', s:state.context_id)
+  let a:source.id = l:context.bufname
+  let l:context.option = extend(l:option, g:candle.option, 'keep')
+  let l:context.server = a:source
+  let l:context.source = { 'name': 'dummy', 'script': { 'path': '', 'args': [] } }
+  call s:Context.new(l:context).start()
+endfunction
+
+"
 " candle#version
 "
 function! candle#version() abort
@@ -69,7 +85,7 @@ function! candle#sync(promise_or_fn, ...) abort
       if l:timeout != -1 && reltimefloat(reltime(l:reltime)) * 1000 > l:timeout
         throw 'candle#sync: timeout'
       endif
-      sleep 1m
+      sleep 10m
     endwhile
   elseif type(a:promise_or_fn) == type({}) && has_key(a:promise_or_fn, '_vital_promise')
     while v:true
@@ -83,7 +99,7 @@ function! candle#sync(promise_or_fn, ...) abort
         throw 'candle#sync: timeout'
       endif
 
-      sleep 1m
+      sleep 10m
     endwhile
   endif
 endfunction
@@ -93,7 +109,7 @@ endfunction
 "
 function! candle#log(...) abort
   if strlen(get(g:candle, 'debug', '')) > 0
-  call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
+    call writefile([join([strftime('%H:%M:%S')] + a:000, "\t")], '/tmp/candle.log', 'a')
   endif
 endfunction
 
@@ -236,11 +252,11 @@ function! s:server() abort
     if !empty(s:state.server)
       return s:state.server
     endif
-    let s:state.server = s:Server.new({ 'command': s:command() })
-    call s:state.server.events.on('stderr', { err -> candle#log('[ERROR]', err) })
-    call s:state.server.events.on('request', { request -> s:on_request(request) })
-    call s:state.server.events.on('notify', { notification -> s:on_notification(notification) })
-    call s:state.server.start()
+    let s:state.server = s:Connection.new()
+    call s:state.server.on_notification('start', function('s:on_start_notification'))
+    call s:state.server.on_notification('progress', function('s:on_progress_notification'))
+    call s:state.server.on_notification('done', function('s:on_done_notification'))
+    call s:state.server.start({ 'cmd': s:command() })
     return s:state.server
   catch /.*/
     echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
@@ -248,23 +264,43 @@ function! s:server() abort
 endfunction
 
 "
-" on_request
-"
-function! s:on_request(request) abort
-  " noop
-endfunction
-
-"
 " on_notification
 "
-function! s:on_notification(notification) abort
-  if has_key(a:notification.params, 'id')
-    let l:candle = getbufvar(a:notification.params.id, 'candle', {})
+function! candle#on_notification(notification) abort
+  if a:notification.method ==# 'start'
+    call s:on_start_notification(a:notification.params)
+  elseif a:notification.method ==# 'progress'
+    call s:on_progress_notification(a:notification.params)
+  elseif a:notification.method ==# 'done'
+    call s:on_done_notification(a:notification.params)
+  endif
+  call s:on_notification(a:notification)
+endfunction
+function! s:on_start_notification(params) abort
+  if has_key(a:params, 'id')
+    let l:candle = getbufvar(a:params.id, 'candle', {})
     if !empty(l:candle)
-      call l:candle.on_notification(a:notification)
+      call l:candle.on_start(a:params)
     endif
   endif
 endfunction
+function! s:on_progress_notification(params) abort
+  if has_key(a:params, 'id')
+    let l:candle = getbufvar(a:params.id, 'candle', {})
+    if !empty(l:candle)
+      call l:candle.on_progress(a:params)
+    endif
+  endif
+endfunction
+function! s:on_done_notification(params) abort
+  if has_key(a:params, 'id')
+    let l:candle = getbufvar(a:params.id, 'candle', {})
+    if !empty(l:candle)
+      call l:candle.on_done(a:params)
+    endif
+  endif
+endfunction
+
 "
 " command
 "

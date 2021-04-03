@@ -32,6 +32,7 @@ type Process struct {
 
 /**
  * NewProcess
+ * hogehoge
  */
 func NewProcess(handler *Handler, ctx *context.Context, conn *jsonrpc2.Conn) (*Process, error) {
 	return &Process{

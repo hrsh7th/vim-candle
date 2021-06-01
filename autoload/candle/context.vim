@@ -40,7 +40,7 @@ function! s:Context.new(context) abort
   \   'state': deepcopy(s:initial_state),
   \   'prev_state': deepcopy(s:initial_state),
   \ })
-  call bufnr(l:context.bufname, v:true)
+  call bufadd(l:context.bufname)
   call bufload(l:context.bufname)
   call setbufvar(l:context.bufname, 'candle', l:context)
   call setbufvar(l:context.bufname, '&filetype', 'candle')

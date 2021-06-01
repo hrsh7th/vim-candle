@@ -1,4 +1,4 @@
-let s:JSON = vital#candle#import('VS.RPC.JSON')
+let s:Connection = vital#candle#import('VS.RPC.JSON.Connection')
 
 "
 " candle#server#import
@@ -15,10 +15,8 @@ let s:Server = {}
 function! s:Server.new(args) abort
   let l:server = extend(deepcopy(s:Server), {
   \   'cmd': a:args.command,
-  \   'rpc': s:JSON.new(),
-  \   'request_id': 0,
+  \   'rpc': s:Connection.new(),
   \ })
-  let l:server.events = l:server.rpc.events
   return l:server
 endfunction
 
@@ -26,23 +24,13 @@ endfunction
 " start
 "
 function! s:Server.start() abort
-  return self.rpc.start({
-  \   'cmd': self.cmd,
-  \ })
+  call self.rpc.start({ 'cmd': self.cmd })
 endfunction
 
 "
 " request
 "
 function! s:Server.request(method, params) abort
-  return self.rpc.request(self.id(), a:method, a:params)
-endfunction
-
-"
-" id
-"
-function! s:Server.id() abort
-  let self.request_id += 1
-  return self.request_id
+  return self.rpc.request(a:method, a:params)
 endfunction
 

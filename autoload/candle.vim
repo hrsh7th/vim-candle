@@ -237,21 +237,15 @@ function! s:server() abort
       return s:state.server
     endif
     let s:state.server = s:Server.new({ 'command': s:command() })
-    call s:state.server.events.on('stderr', { err -> candle#log('[ERROR]', err) })
-    call s:state.server.events.on('request', { request -> s:on_request(request) })
-    call s:state.server.events.on('notify', { notification -> s:on_notification(notification) })
+    call s:state.server.rpc.on_stderr({ err -> candle#log('[ERROR]', err) })
+    call s:state.server.rpc.on_notification('start', { params -> s:on_notification({ 'method': 'start', 'params': params }) })
+    call s:state.server.rpc.on_notification('progress', { params -> s:on_notification({ 'method': 'progress', 'params': params }) })
+    call s:state.server.rpc.on_notification('done', { params -> s:on_notification({ 'method': 'done', 'params': params }) })
     call s:state.server.start()
     return s:state.server
   catch /.*/
     echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
-endfunction
-
-"
-" on_request
-"
-function! s:on_request(request) abort
-  " noop
 endfunction
 
 "

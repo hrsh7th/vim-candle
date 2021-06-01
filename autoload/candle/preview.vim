@@ -15,7 +15,14 @@ function! candle#preview#filename(filename, ...) abort
       return l:bufnr
     endif
   endif
-  return s:Buffer.load(a:filename)
+
+  let l:bufnr = s:Buffer.psedo(a:filename)
+  call map({
+  \   '&buftype': 'nofile',
+  \   '&swapfile': 0,
+  \   '&undofile': 0,
+  \ }, 'setbufvar(l:bufnr, v:key, v:val)')
+  return l:bufnr
 endfunction
 
 "

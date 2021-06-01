@@ -102,7 +102,7 @@ function! s:invoke_preview(candle) abort
   let l:ctx = {}
   function! l:ctx.callback() abort closure
     let l:item = a:candle.get_cursor_item()
-    if !empty(l:item)
+    if !empty(l:item) && filereadable(l:item.filename)
       let l:bufnr = candle#preview#filename(l:item.filename, l:item)
       if !empty(l:bufnr)
         call a:candle.preview(l:bufnr, {

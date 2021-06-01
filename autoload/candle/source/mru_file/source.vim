@@ -16,7 +16,7 @@ endfunction
 " candle#source#mru_file#source#touch
 "
 function! candle#source#mru_file#source#touch(path) abort
-  call s:on_touch(a:path, v:true)
+  call s:add_entry(a:path)
 endfunction
 
 "
@@ -71,25 +71,23 @@ augroup END
 "
 " on_touch
 "
-function! s:on_touch(bufnr, ...) abort
-  let l:force = get(a:000, 0, v:false)
-
+function! s:on_touch(bufnr) abort
   if empty(g:candle#source#mru_file#filepath)
     return
   endif
 
-  if getbufvar(a:bufnr, '&buftype') !=# '' && !l:force
+  if getbufvar(a:bufnr, '&buftype') !=# ''
     return
   endif
+  call s:add_entry(fnamemodify(bufname(a:bufnr), ':p'))
+endfunction
 
-  let l:filepath = fnamemodify(bufname(a:bufnr), ':p')
-
-  " skip not file
-  if !filereadable(l:filepath)
-    return
+"
+" s:add_entry
+"
+function! s:add_entry(path) abort
+  if filereadable(a:path)
+    call writefile([a:path], g:candle#source#mru_file#filepath, 'a')
   endif
-
-  " add mru entry
-  call writefile([l:filepath], g:candle#source#mru_file#filepath, 'a')
 endfunction
 

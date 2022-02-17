@@ -68,6 +68,22 @@ for s:action in candle#action#location#get()
   call candle#action#register(s:action)
 endfor
 
+if !hlexists('CandleCursorSign')
+  highlight! link CandleCursorSign Question
+endif
+
+if !hlexists('CandleCursorLine')
+  highlight! link CandleCursorLine CursorLine
+endif
+
+if !hlexists('CandleSelectedLine')
+  highlight! link CandleSelectedLine QuickFixLine
+endif
+
+if !hlexists('CandlePreviewLine')
+  highlight! link CandlePreviewLine QuickFixLine
+endif
+
 doautocmd <nomodeline> User candle#initialize
 
 

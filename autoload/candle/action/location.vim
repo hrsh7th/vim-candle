@@ -102,15 +102,25 @@ function! s:invoke_preview(candle) abort
   let l:ctx = {}
   function! l:ctx.callback() abort closure
     let l:item = a:candle.get_cursor_item()
-    if !empty(l:item) && filereadable(l:item.filename)
+    if !empty(l:item) && filereadable(l:item.filename) && !s:is_binary(l:item.filename)
       let l:bufnr = candle#preview#filename(l:item.filename, l:item)
       if !empty(l:bufnr)
-        call a:candle.preview(l:bufnr, {
+        return a:candle.preview(l:bufnr, {
         \   'line': get(l:item, 'lnum', 1),
         \ })
       endif
     endif
+   call a:candle.close_preview()
   endfunction
   call candle#throttle('candle#action#location:invoke_preview', { -> l:ctx.callback() }, 200)
+endfunction
+
+function! s:is_binary(filepath) abort
+  for l:b in readfile(a:filepath, 'b', get(a:000, 0, 3))
+    if stridx(l:b, "\<NL>") != -1
+      return v:true
+    endif
+  endfor
+  return v:false
 endfunction
 

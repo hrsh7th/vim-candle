@@ -1,15 +1,3 @@
-if !hlexists('CandleCursorSign')
-  highlight! link CandleCursorSign Question
-endif
-
-if !hlexists('CandleCursorLine')
-  highlight! link CandleCursorLine CursorLine
-endif
-
-if !hlexists('CandleSelectedLine')
-  highlight! link CandleSelectedLine QuickFixLine
-endif
-
 call sign_define('CandleCursorLine', {
 \   'text': '>',
 \   'texthl': 'CandleCursorSign',

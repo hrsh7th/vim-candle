@@ -16,7 +16,7 @@ function! candle#preview#filename(filename, ...) abort
     endif
   endif
 
-  let l:bufnr = s:Buffer.psedo(a:filename)
+  let l:bufnr = s:Buffer.pseudo(a:filename)
   call map({
   \   '&buftype': 'nofile',
   \   '&swapfile': 0,

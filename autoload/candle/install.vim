@@ -1,4 +1,4 @@
-let s:root_dir = expand('<sfile>:p:h:h:h')
+let s:root_dir = resolve(expand('<sfile>:p:h:h:h'))
 
 let s:download_path = 'https://github.com/hrsh7th/vim-candle/releases/download/%s/candle-server_%s_%s'
 

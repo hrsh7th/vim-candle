@@ -1,4 +1,5 @@
 let s:Buffer = vital#candle#import('VS.Vim.Buffer')
+let s:TextMark = vital#candle#import('VS.Vim.Buffer.TextMark')
 let s:Window = vital#candle#import('VS.Vim.Window')
 let s:FloatingWindow = vital#candle#import('VS.Vim.Window.FloatingWindow')
 
@@ -346,18 +347,6 @@ function! s:Context.bottom() abort
 endfunction
 
 "
-" toggle_preview
-"
-function! s:Context.toggle_preview() abort
-  let self.state.preview = !self.state.preview
-  if self.state.preview
-    call self.refresh()
-  else
-    call s:preview.close()
-  endif
-endfunction
-
-"
 " state_changed
 "
 function! s:Context.state_changed(names) abort
@@ -404,6 +393,25 @@ function! s:Context.get_items() abort
 endfunction
 
 "
+" toggle_preview
+"
+function! s:Context.toggle_preview() abort
+  let self.state.preview = !self.state.preview
+  if self.state.preview
+    call self.refresh()
+  else
+    call s:preview.close()
+  endif
+endfunction
+
+"
+" close_preview
+"
+function! s:Context.close_preview() abort
+  call s:preview.close()
+endfunction
+
+"
 " preview
 "
 function! s:Context.preview(bufnr_or_path, ...) abort
@@ -425,6 +433,14 @@ function! s:Context.preview(bufnr_or_path, ...) abort
   \   'height': l:main.height,
   \   'topline': max([1, l:line - float2nr(l:main.height / 2)]),
   \ })
+  if l:line != 1
+    call s:TextMark.clear(s:preview.get_bufnr(), 'candle:preview')
+    call s:TextMark.set(s:preview.get_bufnr(), 'candle:preview', [{
+    \   'start_pos': [l:line, 1],
+    \   'end_pos': [l:line + 1, 1],
+    \   'highlight': 'CandlePreviewLine'
+    \ }])
+  endif
 endfunction
 
 "

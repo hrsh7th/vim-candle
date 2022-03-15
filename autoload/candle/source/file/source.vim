@@ -20,6 +20,7 @@ function! s:create(name, args) abort
   \     'path': s:dirname . '/source.go',
   \     'args': {
   \       'root_path': get(a:args, 'root_path', getcwd()),
+  \       'sort_by': get(a:args, 'sort_by', ''),
   \       'ignore_patterns': get(a:args, 'ignore_patterns', []),
   \     }
   \   },

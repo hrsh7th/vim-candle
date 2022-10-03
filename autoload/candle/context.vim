@@ -526,6 +526,7 @@ function! s:Context.refresh_others(option) abort
   endif
 
   let self.prev_state = deepcopy(self.state)
+  redraw!
 endfunction
 
 "

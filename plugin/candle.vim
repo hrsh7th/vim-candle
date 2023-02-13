@@ -38,6 +38,7 @@ for [s:key, s:value] in items({
 \   'layout': 'split',
 \   'auto_action': '',
 \   'start_input': v:false,
+\   'start_input_action': v:true,
 \   'maxwidth': float2nr(&columns * 0.3),
 \   'minwidth': 1,
 \   'maxheight': float2nr(&lines * 0.3),

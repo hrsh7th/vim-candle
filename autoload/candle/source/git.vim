@@ -64,11 +64,7 @@ function! candle#source#git#diff_status(candle, status_item) abort
   \   fnameescape(a:status_item.filename)
   \ ))
 
-  if bufexists(l:filename_b)
-    noautocmd silent! execute printf('tabedit %s | diffthis', l:filename_b)
-  else
-    noautocmd silent! execute printf('tabnew | file! %s | put!=l:object | $delete | diffthis | setlocal bufhidden=hide buftype=nofile nobuflisted noswapfile nomodifiable nomodified | normal! zM', l:filename_b)
-  endif
+  noautocmd silent! execute printf('tabnew | file! %s | put!=l:object | $delete | diffthis | setlocal bufhidden=hide buftype=nofile nobuflisted noswapfile nomodifiable nomodified | normal! zM', l:filename_b)
   filetype detect
 
   noautocmd silent! execute printf('topleft vsplit %s | diffthis | normal! zMgg', l:filename_a)
@@ -85,7 +81,8 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   endif
 
   " open buffer.
-  noautocmd silent! execute printf('noautocmd tabedit %s | set filetype=gitcommit', s:join(a:candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG'))
+  execute printf('noautocmd silent! tabedit %s', s:join(a:candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG'))
+  set filetype=gitcommit
 
   " initialize vars.
   let b:candle_git_commit = {}

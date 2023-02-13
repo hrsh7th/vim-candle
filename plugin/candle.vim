@@ -55,6 +55,8 @@ call candle#register(candle#source#grep#source#definition())
 call candle#register(candle#source#mru_file#source#definition())
 call candle#register(candle#source#mru_dir#source#definition())
 call candle#register(candle#source#item#source#definition())
+call candle#register(candle#source#git#log#source#definition())
+call candle#register(candle#source#git#status#source#definition())
 call candle#mapping#init()
 
 "

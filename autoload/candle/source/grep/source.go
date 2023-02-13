@@ -10,17 +10,18 @@ import (
 )
 
 func Start(process *candle.Process) {
-	rootPath := process.GetString([]string{"root_path"})
-	pattern := process.GetString([]string{"pattern"})
+	rootPath := process.Args()["root_path"].(string)
+	pattern := process.Args()["pattern"].(string)
 
 	command := make([]string, 0)
 	for i := 0; i < process.Len([]string{"command"}); i++ {
 		part := process.GetString([]string{"command", strconv.Itoa(i)})
-		if part == "%PATTERN%" {
+		switch part {
+		case "%PATTERN%":
 			command = append(command, pattern)
-		} else if part == "%ROOT_PATH%" {
+		case "%ROOT_PATH%":
 			command = append(command, rootPath)
-		} else {
+		default:
 			command = append(command, part)
 		}
 	}

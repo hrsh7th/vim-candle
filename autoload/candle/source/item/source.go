@@ -10,12 +10,10 @@ func Start(process *candle.Process) {
 	go func() {
 		process.NotifyStart()
 
-		length := process.Len([]string{"items"})
-		for i := 0; i < length; i++ {
+		for i := 0; i < process.Len([]string{"items"}); i++ {
 			process.AddItem(process.Get([]string{"items", strconv.Itoa(i)}).(map[string]interface{}))
 		}
 
 		process.NotifyDone()
 	}()
 }
-

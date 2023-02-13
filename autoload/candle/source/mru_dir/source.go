@@ -13,7 +13,7 @@ import (
 )
 
 func Start(process *candle.Process) {
-	filepath := process.GetString([]string{"filepath"})
+	filepath := process.Args()["filepath"].(string)
 	if _, err := os.Stat(filepath); err != nil {
 		process.NotifyMessage(fmt.Sprintf("`%s` is not valid filepath.", filepath))
 		process.NotifyDone()
@@ -42,7 +42,7 @@ func Start(process *candle.Process) {
 		ignoreMatcher := process.NewIgnoreMatcher(ignorePatterns)
 
 		// get file lines
-		var paths []string = make([]string, 0)
+		paths := make([]string, 0)
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			paths = append(paths, scanner.Text())

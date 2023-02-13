@@ -10,8 +10,8 @@ import (
 )
 
 func Start(process *candle.Process) {
-	rootPath := process.GetString([]string{"root_path"})
-	sortBy := process.GetString([]string{"sort_by"})
+	rootPath := process.Args()["root_path"].(string)
+	sortBy := process.Args()["sort_by"].(string)
 	ignorePatterns := make([]string, 0)
 	for i := 0; i < process.Len([]string{"ignore_patterns"}); i++ {
 		ignorePatterns = append(ignorePatterns, process.GetString([]string{"ignore_patterns", strconv.Itoa(i)}))

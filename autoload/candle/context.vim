@@ -88,7 +88,8 @@ endfunction
 " is_visible
 "
 function! s:Context.is_visible() abort
-  return win_id2win(self.winid) != 0
+  let [l:tabnr, l:winnr] = win_id2tabwin(self.winid)
+  return l:tabnr == tabpagenr() && l:winnr > 0
 endfunction
 
 "
@@ -134,7 +135,6 @@ function! s:Context.open() abort
   if self.option.start_input
     call timer_start(0, { -> candle#render#input#open(self) })
   endif
-
 endfunction
 
 "
@@ -208,7 +208,13 @@ function! s:Context.choose_action()
   \ }, {
   \   'start_input': g:candle.option.start_input,
   \   'action': {
-  \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
+  \     'default': {
+  \       candle -> [
+  \         candle.close(),
+  \         self.open(),
+  \         self.action(candle.get_action_items()[0].title)
+  \       ]
+  \     }
   \   },
   \   'parent': self,
   \ })
@@ -488,14 +494,21 @@ function! s:Context.on_response(id, option, response) abort
   let self.state.filtered_total = a:response.filtered_total
   silent call deletebufline(self.bufname, 1, '$')
   call setbufline(self.bufname, 1, map(copy(self.state.items), { _, item -> item.title }))
-  call candle#render#window#resize(self)
-  call self.refresh_others(a:option)
+
+  if self.is_visible()
+    call candle#render#window#resize(self)
+    call self.refresh_others(a:option)
+  endif
 endfunction
 
 "
 " refresh_others
 "
 function! s:Context.refresh_others(option) abort
+  if !self.is_visible()
+    return
+  endif
+
   let l:on_window = win_getid() == self.winid
 
   " update highlight

@@ -12,6 +12,8 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
+	"github.com/traefik/yaegi/stdlib/unrestricted"
+	"github.com/traefik/yaegi/stdlib/unsafe"
 )
 
 type Process struct {
@@ -63,14 +65,18 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 		GoPath: os.Getenv("GOPATH"),
 	})
 
-	stdlib.Symbols["github.com/hrsh7th/vim-candle/go/candle-server/candle"] = map[string]reflect.Value{
-		"Process": reflect.ValueOf((*Process)(nil)),
-		"Item":    reflect.ValueOf((*Item)(nil)),
-	}
-
+	i.Use(interp.Exports{
+		"github.com/hrsh7th/vim-candle/go/candle-server/candle/candle": {
+			"Process": reflect.ValueOf((*Process)(nil)),
+			"Item":    reflect.ValueOf((*Item)(nil)),
+		},
+	})
+	i.Use(interp.Symbols)
 	i.Use(stdlib.Symbols)
+	i.Use(unsafe.Symbols)
+	i.Use(unrestricted.Symbols)
 
-	if _, err := i.Eval(string(source)); err != nil {
+	if _, err = i.Eval(string(source)); err != nil {
 		process.Logger.Println(err)
 		return StartResponse{}, nil
 	}
@@ -92,6 +98,13 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 	start(process)
 
 	return StartResponse{}, nil
+}
+
+/**
+ * Args
+ */
+func (process *Process) Args() map[string]interface{} {
+	return process.args
 }
 
 /**

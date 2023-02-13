@@ -6,7 +6,7 @@ function! candle#render#window#initialize(candle) abort
   if !l:has_parent
     execute printf('noautocmd keepalt keepjumps botright %s', a:candle.option.layout)
   else
-    execute printf('noautocmd keepalt keepjumps %sbuffer', bufnr(a:candle.option.parent))
+    execute printf('noautocmd keepalt keepjumps %sbuffer', bufnr(a:candle.option.parent.bufname))
   endif
   execute printf('%sbuffer', bufnr(a:candle.bufname))
 

@@ -210,7 +210,7 @@ function! s:Context.choose_action()
   \   'action': {
   \     'default': { candle -> self.action(candle.get_action_items()[0].title) }
   \   },
-  \   'parent': self.bufname,
+  \   'parent': self,
   \ })
 endfunction
 
@@ -226,7 +226,7 @@ function! s:Context.auto_action(name) abort
 
     let l:action = candle#action#find(self, a:name)
     if !empty(l:action)
-      call l:action.invoke(self)
+      call l:action.invoke(self.parent)
     endif
   catch /.*/
     call candle#on_exception()

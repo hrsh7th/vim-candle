@@ -37,6 +37,7 @@ function! s:Context.new(context) abort
   \   'request_id': 0,
   \   'stopped': v:false,
   \   'winid': 0,
+  \   'prev_bufnr': 0,
   \   'prev_winid': 0,
   \   'state': deepcopy(s:initial_state),
   \   'prev_state': deepcopy(s:initial_state),
@@ -110,6 +111,7 @@ function! s:Context.open() abort
   call self.refresh({ 'force': v:true, 'async': v:false })
 
   " initialize window.
+  let self.prev_bufnr = bufnr('%')
   let self.prev_winid = win_getid()
   call candle#render#window#initialize(self)
   call candle#render#statusline#update(self, v:true)
@@ -210,7 +212,6 @@ function! s:Context.choose_action()
   \   'action': {
   \     'default': {
   \       candle -> [
-  \         candle.close(),
   \         self.open(),
   \         self.action(candle.get_action_items()[0].title)
   \       ]
@@ -465,7 +466,7 @@ endfunction
 function! s:Context.refresh(...) abort
   let l:option = extend({ 'async': v:true, 'force': v:false }, get(a:000, 0, {}))
 
-  let l:on_window = win_getid() == self.winid
+  let l:on_window = win_getid() == self.winid && self.is_visible()
 
   " update statusline
   if l:on_window
@@ -486,8 +487,10 @@ function! s:Context.refresh(...) abort
       endtry
     endif
   else
-    call self.refresh_others(l:option)
-    call candle#render#window#resize(self)
+    if self.is_visible()
+      call self.refresh_others(l:option)
+      call candle#render#window#resize(self)
+    endif
   endif
 endfunction
 
@@ -519,7 +522,7 @@ function! s:Context.refresh_others(option) abort
     return
   endif
 
-  let l:on_window = win_getid() == self.winid
+  let l:on_window = win_getid() == self.winid && self.is_visible()
 
   " update highlight
   if l:on_window

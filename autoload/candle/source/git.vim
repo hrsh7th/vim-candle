@@ -24,7 +24,8 @@ function! candle#source#git#run(candle, subcommand, args) abort
   \ ))
   let l:output = type(l:output) == v:t_list ? join(l:output, '\n') : l:output
   let l:output = substitute(l:output, "\n", '\n', 'g')
-  return split(l:output, "\n")
+  let l:output = split(l:output, "\n", v:true)
+  return filter(l:output, { _, v -> v !=# '' })
 endfunction
 
 "
@@ -91,7 +92,11 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   let b:candle_git_commit.items = a:status_items
   function! b:candle_git_commit.commit() abort
     if s:yesno('commit?')
-      call s:echomsg(candle#source#git#run_items(self.candle, 'commit', b:candle_git_commit.items, ['-F', s:join(self.candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG')]))
+      let l:args = ['-F', s:join(self.candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG')]
+      if self.amend
+        let l:args += ['--amend']
+      endif
+      call s:echomsg(candle#source#git#run_items(self.candle, 'commit', b:candle_git_commit.items, l:args))
       call getchar()
     endif
     bdelete!
@@ -99,12 +104,18 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   endfunction
 
   " initialize buffer.
-  let l:verbose = candle#source#git#run_items(a:candle, 'commit', b:candle_git_commit.items, ['--dry-run', '-v'])
-  let l:verbose = type(l:verbose) == type([]) ? l:verbose : split(l:verbose, "\n")
-  let l:verbose = map(l:verbose, { _, line -> strcharpart(line, 0, 500) })
   silent % delete _
+
+  if a:amend
+    put!=candle#source#git#run(a:candle, 'show', ['-s', '--format=%B'])
+  endif
+
   let l:separator = ["#####"]
   put=l:separator
+
+  let l:verbose = candle#source#git#run_items(a:candle, 'commit', b:candle_git_commit.items, ['--dry-run', '-v'] + (a:amend ? ['--reuse-message=HEAD'] : []))
+  let l:verbose = type(l:verbose) == type([]) ? l:verbose : split(l:verbose, "\n")
+  let l:verbose = map(l:verbose, { _, line -> strcharpart(line, 0, 500) })
   put=l:verbose
   noautocmd write!
   call cursor(1, 1)

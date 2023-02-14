@@ -33,6 +33,7 @@ function! s:create(name, args) abort
   \     'reset': function('s:action_reset'),
   \     'checkout': function('s:action_checkout'),
   \     'commit': function('s:action_commit'),
+  \     'commit_amend': function('s:action_commit_amend'),
   \     'default': function('s:action_toggle'),
   \   }
   \ }
@@ -51,8 +52,18 @@ endfunction
 " s:action_commit
 "
 function! s:action_commit(candle) abort
+  call a:candle.close()
   let l:items = a:candle.get_action_items()
   call candle#source#git#commit(a:candle, l:items, v:false)
+endfunction
+
+"
+" s:action_commit_amend
+"
+function! s:action_commit_amend(candle) abort
+  call a:candle.close()
+  let l:items = a:candle.get_action_items()
+  call candle#source#git#commit(a:candle, l:items, v:true)
 endfunction
 
 "

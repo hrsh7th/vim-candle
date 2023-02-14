@@ -28,6 +28,9 @@ endfunction
 "
 function! candle#start(source, ...) abort
   let l:option = get(a:000, 0, {})
+  if !has_key(l:option, 'parent') && has_key(b:, 'candle')
+    let l:option.parent = b:candle
+  endif
   try
     call candle#log('')
     call candle#log('[START]', string({ 'source': a:source, 'option': l:option }))

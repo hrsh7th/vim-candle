@@ -392,6 +392,16 @@ function! s:Context.get_action_items() abort
 endfunction
 
 "
+" get_selected_items
+"
+function s:Context.get_selected_items() abort
+  if self.state.is_selected_all
+    return candle#sync(self.fetch_all()).items
+  endif
+  return filter(copy(self.state.items), 'has_key(self.state.selected_id_map, v:val.id)')
+endfunction
+
+"
 " get_items
 "
 function! s:Context.get_items() abort

@@ -37,7 +37,7 @@ endfunction
 function! s:action_reset_hard(candle) abort
   let l:items = a:candle.get_action_items()
   if len(l:items) != 1
-    echomsg 'reset action must be called with only one item'
+    echomsg 'the action must be called with only one item'
     return
   endif
   call candle#source#git#run(a:candle, 'reset', ['--hard', l:items[0].commit_hash])
@@ -47,7 +47,7 @@ endfunction
 function! s:action_reset_soft(candle) abort
   let l:items = a:candle.get_action_items()
   if len(l:items) != 1
-    echomsg 'reset action must be called with only one item'
+    echomsg 'the action must be called with only one item'
     return
   endif
   call candle#source#git#run(a:candle, 'reset', ['--soft', l:items[0].commit_hash])

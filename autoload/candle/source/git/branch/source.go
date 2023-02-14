@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
@@ -20,6 +19,7 @@ func Start(process *candle.Process) {
 		"branch",
 		"--all",
 		`--format=%(HEAD)%09%(refname)%09%(upstream)%09%(upstream:trackshort)%09%(subject)`,
+		"--sort=-HEAD",
 		"--sort=-authordate",
 	).Output()
 	if err != nil {

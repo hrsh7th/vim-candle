@@ -28,18 +28,42 @@ function! s:create(name, args) abort
   \     }
   \   },
   \   'action': {
-  \     'default': function('s:action_switch')
+  \     'default': function('s:action_switch'),
+  \     'delete': function('s:action_delete'),
+  \     'new': function('s:action_new'),
   \   }
   \ }
 endfunction
 
+function! s:action_new(candle) abort
+  let l:items = a:candle.get_selected_items()
+  if len(l:items) != 0
+    echomsg 'the action must be called without items'
+    return
+  endif
+  call candle#source#git#run(a:candle, 'branch', [input('branch: ')])
+  call a:candle.start()
+endfunction
+
 function! s:action_switch(candle) abort
   let l:items = a:candle.get_action_items()
-  echomsg string(l:items)
   if len(l:items) != 1
-    echomsg 'reset action must be called with only one item'
+    echomsg 'the action must be called with only one item'
     return
   endif
   call candle#source#git#run(a:candle, 'switch', [l:items[0].name])
   call a:candle.start()
 endfunction
+
+function! s:action_delete(candle) abort
+  for l:item in a:candle.get_action_items()
+    if l:item.local
+      call candle#source#git#run(a:candle, 'branch', ['-d', l:items[0].name])
+    else
+      let l:remote = matchstr(l:item.refname, '^refs/remotes/\zs[^/]\+')
+      call candle#source#git#run(a:candle, 'push', ['--delete', l:remote, l:item.name])
+    endif
+  endfor
+  call a:candle.start()
+endfunction
+

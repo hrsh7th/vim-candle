@@ -148,7 +148,7 @@ function! s:Context.close() abort
   endif
   let l:curr_winid = win_getid()
   noautocmd call win_gotoid(self.winid)
-  silent keepalt keepjumps quit
+  noautocmd silent keepalt keepjumps quit
   let l:next_winid = l:curr_winid == self.winid ? self.prev_winid : l:curr_winid
   noautocmd call win_gotoid(l:next_winid)
 endfunction
@@ -212,8 +212,9 @@ function! s:Context.choose_action()
   \   'action': {
   \     'default': {
   \       candle -> [
+  \         candle.close(),
   \         self.open(),
-  \         self.action(candle.get_action_items()[0].title)
+  \         self.action(candle.get_action_items()[0].title),
   \       ]
   \     }
   \   },

@@ -19,8 +19,8 @@ func Start(process *candle.Process) {
 		"branch",
 		"--all",
 		`--format=%(HEAD)%09%(refname)%09%(upstream)%09%(upstream:trackshort)%09%(subject)`,
-		"--sort=-HEAD",
 		"--sort=-authordate",
+		"--sort=-push",
 	).Output()
 	if err != nil {
 		process.Logger.Fatalln(err)
@@ -37,16 +37,19 @@ func Start(process *candle.Process) {
 
 			refparts := strings.Split(columns[1], "/")
 			local := refparts[1] == "heads"
-			var name string
+			var name, label string
 			if local {
 				name = strings.Join(refparts[2:], "/")
+				label = name
 			} else {
 				name = strings.Join(refparts[3:], "/")
+				label = columns[1]
 			}
 			object := map[string]interface{}{
 				"id":             fmt.Sprint(i),
 				"HEAD":           columns[0],
 				"name":           name,
+				"label":          label,
 				"refname":        columns[1],
 				"upstream":       columns[2],
 				"upstream_track": columns[3],
@@ -54,7 +57,7 @@ func Start(process *candle.Process) {
 				"local":          local,
 			}
 			objects = append(objects, object)
-			for _, field := range []string{"HEAD", "name", "upstream", "upstream_track"} {
+			for _, field := range []string{"HEAD", "label", "upstream", "upstream_track"} {
 				widths[field] = max(len(object[field].(string)), widths[field])
 			}
 		}
@@ -65,8 +68,8 @@ func Start(process *candle.Process) {
 			"title": fmt.Sprintf(
 				"%s   %-*s   %-*s   %-*s   %s",
 				object["HEAD"],
-				widths["name"],
-				object["name"],
+				widths["label"],
+				object["label"],
 				widths["upstream_track"],
 				object["upstream_track"],
 				widths["upstream"],
@@ -74,6 +77,7 @@ func Start(process *candle.Process) {
 				object["subject"],
 			),
 			"name":           object["name"],
+			"label":          object["label"],
 			"refname":        object["refname"],
 			"upstream":       object["upstream"],
 			"upstream_track": object["upstream_track"],

@@ -2,8 +2,7 @@
 " candle#render#window#open
 "
 function! candle#render#window#initialize(candle) abort
-  let l:has_parent = has_key(a:candle.option, 'parent')
-  if !l:has_parent
+  if empty(get(b:, 'candle', v:null))
     execute printf('noautocmd keepalt keepjumps botright %s', a:candle.option.layout)
   endif
   execute printf('%sbuffer', bufnr(a:candle.bufname))

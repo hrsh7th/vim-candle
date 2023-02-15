@@ -9,7 +9,7 @@ endfunction
 " candle#source#git#is_modified
 "
 function! candle#source#git#is_modified(item) abort
-  return index(['R ', ' R', 'M ', ' M'], a:item.status) >= 0
+  return index(['R ', ' R', 'M ', ' M', 'UU', 'MM', 'AU', 'DU'], a:item.status) >= 0
 endfunction
 
 "
@@ -102,6 +102,15 @@ function! candle#source#git#commit(candle, status_items, amend) abort
     bdelete!
     call self.candle.close()
   endfunction
+  function! b:candle_git_commit.refresh() abort
+    let l:view = winsaveview()
+    call execute('%s/#####\zs\_.*$//ge', 'silent!')
+    let l:verbose = candle#source#git#run_items(self.candle, 'commit', b:candle_git_commit.items, ['--dry-run', '-v'] + (self.amend ? ['--reuse-message=HEAD'] : []))
+    let l:verbose = type(l:verbose) == type([]) ? l:verbose : split(l:verbose, "\n")
+    let l:verbose = map(l:verbose, { _, v -> strcharpart(v, 0, 500) })
+    call appendbufline('%', '$', l:verbose)
+    call winrestview(l:view)
+  endfunction
 
   " initialize buffer.
   silent % delete _
@@ -113,12 +122,10 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   let l:separator = ["#####"]
   put=l:separator
 
-  let l:verbose = candle#source#git#run_items(a:candle, 'commit', b:candle_git_commit.items, ['--dry-run', '-v'] + (a:amend ? ['--reuse-message=HEAD'] : []))
-  let l:verbose = type(l:verbose) == type([]) ? l:verbose : split(l:verbose, "\n")
-  let l:verbose = map(l:verbose, { _, line -> strcharpart(line, 0, 500) })
-  put=l:verbose
+  call b:candle_git_commit.refresh()
   noautocmd write!
-  call cursor(1, 1)
+
+  nnoremap <C-l> <Cmd>call b:candle_git_commit.refresh()<CR>
 
   augroup candle_git_commit
     autocmd!

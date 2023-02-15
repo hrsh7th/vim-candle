@@ -36,13 +36,20 @@ func Start(process *candle.Process) {
 			columns := strings.Split(line, "\t")
 
 			refparts := strings.Split(columns[1], "/")
-			local := refparts[1] == "heads"
 			var name, label string
-			if local {
-				name = strings.Join(refparts[2:], "/")
-				label = name
+			var local bool
+			if len(refparts) > 1 {
+				local = refparts[1] == "heads"
+				if local {
+					name = strings.Join(refparts[2:], "/")
+					label = name
+				} else if len(refparts) > 3 {
+					name = strings.Join(refparts[3:], "/")
+					label = columns[1]
+				}
 			} else {
-				name = strings.Join(refparts[3:], "/")
+				local = true
+				name = columns[1]
 				label = columns[1]
 			}
 			object := map[string]interface{}{

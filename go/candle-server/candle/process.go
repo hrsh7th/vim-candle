@@ -95,7 +95,14 @@ func (process *Process) Start(params StartRequest) (StartResponse, error) {
 
 	process.interp = i
 
-	start(process)
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				process.Logger.Printf(err.(string))
+			}
+		}()
+		start(process)
+	}()
 
 	return StartResponse{}, nil
 }

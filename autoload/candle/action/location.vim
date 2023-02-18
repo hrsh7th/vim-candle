@@ -89,7 +89,7 @@ function! s:invoke_delete(candle) abort
 
   " Delete.
   for l:item in l:items
-    call delete(l:item.filename)
+    call delete(l:item.filename, 'rf')
   endfor
 
   call a:candle.start()

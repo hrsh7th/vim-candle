@@ -34,7 +34,8 @@ function! s:create(name, args) abort
   \     'checkout': function('s:action_checkout'),
   \     'commit': function('s:action_commit'),
   \     'commit_amend': function('s:action_commit_amend'),
-  \     'default': function('s:action_toggle'),
+  \     'toggle': function('s:action_toggle'),
+  \     'default': function('s:action_diff'),
   \   }
   \ }
 endfunction

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/hrsh7th/vim-candle/go/candle-server/candle"
@@ -24,7 +25,7 @@ func Start(process *candle.Process) {
 				"id":       i,
 				"title":    line,
 				"status":   line[0:2],
-				"filename": line[3:],
+				"filename": filepath.Join(workingDir, line[3:]),
 			})
 		}
 	}

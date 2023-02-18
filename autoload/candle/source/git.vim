@@ -56,13 +56,13 @@ function! candle#source#git#diff_status(candle, status_item) abort
     return
   endif
 
-  let l:filename_a = fnameescape(s:join(a:candle.source.script.args.working_dir, a:status_item.filename))
+  let l:filename_a = fnameescape(a:status_item.filename)
   let l:filename_b = fnameescape(substitute(l:filename_a, '\(\.[^\.]\+\)$', '~HEAD'. '\1', 'g'))
 
   let l:object = system(printf(
   \   'git -C %s show HEAD:%s',
   \   fnameescape(a:candle.source.script.args.working_dir),
-  \   fnameescape(a:status_item.filename)
+  \   fnameescape(s:relative(a:candle.source.script.args.working_dir, l:filename_a))
   \ ))
 
   noautocmd silent! execute printf('tabnew | file! %s | put!=l:object | $delete | diffthis | setlocal bufhidden=hide buftype=nofile nobuflisted noswapfile nomodifiable nomodified | normal! zM', l:filename_b)
@@ -81,18 +81,28 @@ function! candle#source#git#commit(candle, status_items, amend) abort
     return
   endif
 
+  let l:root = a:candle.source.script.args.working_dir
+  while !isdirectory(s:join(l:root, '.git'))
+    let l:root = fnamemodify(l:root, ':h')
+    if index(['/', ''], l:root) >= 0
+      echomsg 'can\t find .git directory'
+      return
+    endif
+  endwhile
+
   " open buffer.
-  execute printf('noautocmd silent! tabedit %s', s:join(a:candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG'))
+  execute printf('noautocmd silent! tabedit %s', s:join(l:root, '.git', 'COMMIT_EDITMSG'))
   set filetype=gitcommit
 
   " initialize vars.
   let b:candle_git_commit = {}
+  let b:candle_git_commit.root = l:root
   let b:candle_git_commit.candle = a:candle
   let b:candle_git_commit.amend = a:amend
   let b:candle_git_commit.items = a:status_items
   function! b:candle_git_commit.commit() abort
     if s:yesno('commit?')
-      let l:args = ['-F', s:join(self.candle.source.script.args.working_dir, '.git', 'COMMIT_EDITMSG')]
+      let l:args = ['-F', s:join(self.root, '.git', 'COMMIT_EDITMSG')]
       if self.amend
         let l:args += ['--amend']
       endif
@@ -146,6 +156,16 @@ function! s:join(...) abort
     endif
     let l:path = l:path .. substitute(l:part, '\/$', '', 'g')
   endfor
+  return l:path
+endfunction
+
+"
+" s:relative
+"
+function! s:relative(base, path) abort
+  let l:path = a:path
+  let l:path = substitute(l:path, '^\V' . a:base, '', 'g')
+  let l:path = substitute(l:path, '^\/', '', 'g')
   return l:path
 endfunction
 

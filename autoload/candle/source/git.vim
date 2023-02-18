@@ -135,6 +135,8 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   call b:candle_git_commit.refresh()
   noautocmd write!
 
+  call cursor(1, 1)
+
   nnoremap <C-l> <Cmd>call b:candle_git_commit.refresh()<CR>
 
   augroup candle_git_commit

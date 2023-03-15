@@ -30,6 +30,7 @@ function! s:create(name, args) abort
   \   'action': {
   \     'diff': function('s:action_diff'),
   \     'add': function('s:action_add'),
+  \     'rm': function('s:action_rm'),
   \     'reset': function('s:action_reset'),
   \     'checkout': function('s:action_checkout'),
   \     'commit': function('s:action_commit'),
@@ -83,6 +84,15 @@ endfunction
 function! s:action_add(candle) abort
   let l:items = a:candle.get_action_items()
   call candle#source#git#run_items(a:candle, 'add', filter(copy(l:items), { _, item -> !candle#source#git#is_staged_status(item) }))
+  call a:candle.start()
+endfunction
+
+"
+" s:action_rm
+"
+function! s:action_rm(candle) abort
+  let l:items = a:candle.get_action_items()
+  call candle#source#git#run_items(a:candle, 'rm', filter(copy(l:items), { _, item -> !candle#source#git#is_staged_status(item) }))
   call a:candle.start()
 endfunction
 

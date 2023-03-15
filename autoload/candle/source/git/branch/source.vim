@@ -51,17 +51,31 @@ function! s:action_switch(candle) abort
     echomsg 'the action must be called with only one item'
     return
   endif
-  call candle#source#git#run(a:candle, 'switch', [l:items[0].name])
+  let l:item = l:items[0]
+  if !l:item.local
+    let l:local_names = map(filter(copy(a:candle.get_items()), 'v:val.local'), 'v:val.name')
+    if index(l:local_names, l:item.name) != -1
+      call candle#source#git#run(a:candle, 'switch', [l:item.name .. '_' .. l:item.origin, l:item.name])
+    else
+      call candle#source#git#run(a:candle, 'switch', [l:item.name])
+    endif
+  else
+    call candle#source#git#run(a:candle, 'switch', [l:items[0].name])
+  endif
   call a:candle.start()
 endfunction
 
 function! s:action_delete(candle) abort
   for l:item in a:candle.get_action_items()
     if l:item.local
-      call candle#source#git#run(a:candle, 'branch', ['-d', l:items[0].name])
-    else
-      let l:remote = matchstr(l:item.refname, '^refs/remotes/\zs[^/]\+')
-      call candle#source#git#run(a:candle, 'push', ['--delete', l:remote, l:item.name])
+      if candle#misc#yesno('delete local branch `' .. l:item.name .. '`')
+        call candle#source#git#run(a:candle, 'branch', ['-d', l:item.name])
+      endif
+    endif
+    if l:item.upstream !=# ''
+      if candle#misc#yesno('delete remove branch `' .. l:item.refname .. '`')
+        call candle#source#git#run(a:candle, 'push', ['--delete', l:item.origin, l:item.name])
+      endif
     endif
   endfor
   call a:candle.start()

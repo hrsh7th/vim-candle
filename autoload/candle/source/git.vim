@@ -33,12 +33,19 @@ endfunction
 "
 function! candle#source#git#run_items(candle, subcommand, items, ...) abort
   if len(a:items) > 0
+    let l:filenames = map(copy(a:items), { _, item -> fnameescape(item.filename) })
+    for l:item in a:items
+      if l:item.filename !=# l:item.filename_before
+        let l:filenames += [fnameescape(l:item.filename_before)]
+      endif
+    endfor
+
     let l:output = system(printf(
     \   'git -C %s %s %s -- %s',
     \   fnameescape(a:candle.source.script.args.working_dir),
     \   a:subcommand,
     \   join(map(copy(get(a:000, 0, [])), { _, v -> escape(v, ' ') })),
-    \   join(map(copy(a:items), { _, item -> fnameescape(item.filename) }))
+    \   join(l:filenames, ' ')
     \ ))
     let l:output = type(l:output) == v:t_list ? join(l:output, '\n') : l:output
     let l:output = substitute(l:output, "\n", '\n', 'g')
@@ -56,13 +63,15 @@ function! candle#source#git#diff_status(candle, status_item) abort
     return
   endif
 
-  let l:filename_a = fnameescape(a:status_item.filename)
-  let l:filename_b = fnameescape(substitute(l:filename_a, '\(\.[^\.]\+\)$', '~HEAD'. '\1', 'g'))
+  let l:filename_after = fnameescape(a:status_item.filename)
+  let l:filename_before = fnameescape(a:status_item.filename_before)
+  let l:filename_a = l:filename_after
+  let l:filename_b = fnameescape(substitute(l:filename_before, '\(\.[^\.]\+\)$', '~HEAD'. '\1', 'g'))
 
   let l:object = system(printf(
   \   'git -C %s show HEAD:%s',
   \   fnameescape(a:candle.source.script.args.working_dir),
-  \   fnameescape(s:relative(a:candle.source.script.args.working_dir, l:filename_a))
+  \   fnameescape(s:relative(a:candle.source.script.args.working_dir, l:filename_before))
   \ ))
 
   noautocmd silent! execute printf('tabnew | file! %s | put!=l:object | $delete | diffthis | setlocal bufhidden=hide buftype=nofile nobuflisted noswapfile nomodifiable nomodified | normal! zM', l:filename_b)
@@ -101,7 +110,7 @@ function! candle#source#git#commit(candle, status_items, amend) abort
   let b:candle_git_commit.amend = a:amend
   let b:candle_git_commit.items = a:status_items
   function! b:candle_git_commit.commit() abort
-    if s:yesno('commit?')
+    if candle#misc#yesno('commit?')
       let l:args = ['-F', s:join(self.root, '.git', 'COMMIT_EDITMSG')]
       if self.amend
         let l:args += ['--amend']
@@ -137,7 +146,7 @@ function! candle#source#git#commit(candle, status_items, amend) abort
 
   call cursor(1, 1)
 
-  nnoremap <C-l> <Cmd>call b:candle_git_commit.refresh()<CR>
+  nnoremap <buffer> <C-l> <Cmd>call b:candle_git_commit.refresh()<CR>
 
   augroup candle_git_commit
     autocmd!
@@ -169,18 +178,6 @@ function! s:relative(base, path) abort
   let l:path = substitute(l:path, '^\V' . a:base, '', 'g')
   let l:path = substitute(l:path, '^\/', '', 'g')
   return l:path
-endfunction
-
-"
-" s:yesno
-"
-function! s:yesno(msg) abort
-  let choose = input(a:msg . '(yes/no): ')
-  echomsg ' '
-  if index(['y', 'ye', 'yes'], choose) > -1
-    return v:true
-  endif
-  return v:false
 endfunction
 
 "

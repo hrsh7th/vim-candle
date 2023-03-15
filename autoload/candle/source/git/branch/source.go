@@ -36,16 +36,18 @@ func Start(process *candle.Process) {
 			columns := strings.Split(line, "\t")
 
 			refparts := strings.Split(columns[1], "/")
-			var name, label string
+			var name, label, origin string
 			var local bool
 			if len(refparts) > 1 {
 				local = refparts[1] == "heads"
 				if local {
 					name = strings.Join(refparts[2:], "/")
 					label = name
+					origin = ""
 				} else if len(refparts) > 3 {
 					name = strings.Join(refparts[3:], "/")
 					label = columns[1]
+					origin = refparts[2]
 				}
 			} else {
 				local = true
@@ -60,11 +62,12 @@ func Start(process *candle.Process) {
 				"refname":        columns[1],
 				"upstream":       columns[2],
 				"upstream_track": columns[3],
+				"origin":         origin,
 				"subject":        columns[4],
 				"local":          local,
 			}
 			objects = append(objects, object)
-			for _, field := range []string{"HEAD", "label", "upstream", "upstream_track"} {
+			for _, field := range []string{"HEAD", "label", "upstream", "origin", "upstream_track"} {
 				widths[field] = max(len(object[field].(string)), widths[field])
 			}
 		}
@@ -73,7 +76,7 @@ func Start(process *candle.Process) {
 		process.AddItem(candle.Item{
 			"id": object["id"],
 			"title": fmt.Sprintf(
-				"%s   %-*s   %-*s   %-*s   %s",
+				"%s   %-*s   %-*s   %-*s   %-*s   %s",
 				object["HEAD"],
 				widths["label"],
 				object["label"],
@@ -81,6 +84,8 @@ func Start(process *candle.Process) {
 				object["upstream_track"],
 				widths["upstream"],
 				object["upstream"],
+				widths["origin"],
+				object["origin"],
 				object["subject"],
 			),
 			"name":           object["name"],
@@ -88,6 +93,7 @@ func Start(process *candle.Process) {
 			"refname":        object["refname"],
 			"upstream":       object["upstream"],
 			"upstream_track": object["upstream_track"],
+			"origin":         object["origin"],
 			"subject":        object["subject"],
 			"local":          object["local"],
 		})

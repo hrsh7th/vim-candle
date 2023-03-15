@@ -55,12 +55,15 @@ function! s:action_switch(candle) abort
   if !l:item.local
     let l:local_names = map(filter(copy(a:candle.get_items()), 'v:val.local'), 'v:val.name')
     if index(l:local_names, l:item.name) != -1
-      call candle#source#git#run(a:candle, 'switch', [l:item.name .. '_' .. l:item.origin, l:item.name])
+      let l:name_with_origin = l:item.name .. '_' .. l:item.origin
+      if candle#misc#yesno('same branch is existing, switch `' .. l:name_with_origin .. '`')
+        call candle#source#git#run(a:candle, 'switch', ['-c', l:name_with_origin, '--track', l:item.origin .. '/' .. l:item.name])
+      endif
     else
       call candle#source#git#run(a:candle, 'switch', [l:item.name])
     endif
   else
-    call candle#source#git#run(a:candle, 'switch', [l:items[0].name])
+    call candle#source#git#run(a:candle, 'switch', [l:item.name])
   endif
   call a:candle.start()
 endfunction
@@ -72,8 +75,8 @@ function! s:action_delete(candle) abort
         call candle#source#git#run(a:candle, 'branch', ['-d', l:item.name])
       endif
     endif
-    if l:item.upstream !=# ''
-      if candle#misc#yesno('delete remove branch `' .. l:item.refname .. '`')
+    if !l:item.local || l:item.upstream !=# ''
+      if candle#misc#yesno('delete remote branch `' .. l:item.name .. '`')
         call candle#source#git#run(a:candle, 'push', ['--delete', l:item.origin, l:item.name])
       endif
     endif

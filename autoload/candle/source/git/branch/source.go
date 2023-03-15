@@ -18,7 +18,7 @@ func Start(process *candle.Process) {
 		workingDir,
 		"branch",
 		"--all",
-		`--format=%(HEAD)%09%(refname)%09%(upstream)%09%(upstream:trackshort)%09%(subject)`,
+		`--format=%(HEAD)%09%(refname)%09%(upstream:short)%09%(upstream:trackshort)%09%(subject)`,
 		"--sort=-authordate",
 		"--sort=-push",
 	).Output()
@@ -43,7 +43,11 @@ func Start(process *candle.Process) {
 				if local {
 					name = strings.Join(refparts[2:], "/")
 					label = name
-					origin = ""
+					if columns[2] != "" {
+						origin = strings.Split(columns[2], "/")[0]
+					} else {
+						origin = ""
+					}
 				} else if len(refparts) > 3 {
 					name = strings.Join(refparts[3:], "/")
 					label = columns[1]
